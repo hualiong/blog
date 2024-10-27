@@ -1,0 +1,1326 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Activiti 工作流引擎 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1730027864129">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Activiti 工作流引擎 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="你听过工作流引擎吗？🤔
+我在学习 SSM 框架进行项目实战时，跟着教程接触到了工作流引擎，所以借此机会记录一下。
+
+一、了解工作流
+1、什么是工作流
+工作流（Workflow），就是通过计算机对业务流程自动化执行管理。它主要解决的是“使在..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1730027864129" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Activiti 工作流引擎
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-11-01
+              </span>
+              <span>
+                43 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>你听过工作流引擎吗？🤔<br>
+我在学习 SSM 框架进行项目实战时，跟着教程接触到了工作流引擎，所以借此机会记录一下。</p>
+<!-- more -->
+<h1 id="一-了解工作流">一、了解工作流</h1>
+<h2 id="1-什么是工作流">1、什么是工作流</h2>
+<p><strong>工作流（Workflow）</strong>，就是通过计算机对业务流程自动化执行管理。它主要解决的是“使在多个参与者之间按照某种<strong>预定义的规则</strong>自动进行传递文档、信息或任务的过程，从而实现某个预期的业务目标，或者促使此目标的实现”。**通俗来讲，就是业务上一个完整的审批流程。**例如员工的请假，出差，外出采购，合同审核等等，这些过程，都是一个工作流。</p>
+<h2 id="2-工作流引擎">2、工作流引擎</h2>
+<p>对于工作流的处理，如果采用原始的方式，我们需要拿着各种文件到各个负责人那里去签字，需要在多个部门之间不断审批，这种方式费时费力。而我们可以借助软件系统来协助我们处理这些审批流程，这样就出现了工作流系统，使用工作流系统后可以极大的提高工作效率。</p>
+<p>在学习工作流的过程中，我们肯定看到过这个模型:填写请假单-&gt;部门经理审批-&gt;总经理审批-&gt;人事备案。</p>
+<p>（1）要实现上述的流程，我们自己可以通过字段标识来实现这个审批效果，在业务表中加个字段，比如填写请假单用1标识，部门经理用2标识，总经理用3标识，人事备案用4标识，好像看起来没啥问题，也实现了审批效果。可是一旦我们的流程出现了变化，这个时候我们就需要改动我们的代码了，这显然是不可取的，那么有没有专业的方式来实现工作流的管理呢？并且可以做到业务流程变化之后，我们的程序可以不用改变，如果可以实现这样的效果，那么我们的业务系统的适应能力就得到了极大提升。在这样的背景下，就出现了<strong>工作流引擎</strong>。</p>
+<p><strong>为什么使用工作流引擎，能实现业务流程改变，不用修改代码，流程还能自动推进？</strong></p>
+<p>（1）我们先来说说为什么流程改变，不用修改代码：我们的工作流引擎都实现了一个规范，这个规范要求我们的流程管理与状态字段无关，始终都是读取业务流程图的下一个节点。当业务更新的时候我们只需要更新业务流程图就行了。这就实现了业务流程改变，不用修改代码。</p>
+<p>（2）再来说说流程自动推进，这个原理就更简单了，就拿上面的请假模型来说，工作流引擎会用一张表来记录当前处在的节点。当填写完请假单后肯定是要轮到部门经理来审批了，所以我们一旦完成了请假单填写那么这条记录将会被从这张表删除掉，并且会把下一个节点部门经理的信息插入到这张表中，当我们用部门经理的信息去这张表中查询的时候就能查出部门经理相关的审批的信息了，以此类推，这样层层递进，就实现了流程的自动递交了。</p>
+<h2 id="3-常见工作流引擎">3、常见工作流引擎</h2>
+<p>主流的框架有：<strong>Activiti</strong>、jBPM、Camunda 、Flowable 、还有我们国产的盘古BPM、云程</p>
+<h2 id="4-activiti7概述">4、Activiti7概述</h2>
+<h3 id="41-activiti介绍">4.1、Activiti介绍</h3>
+<p>activiti是一个工作流引擎，可以将业务系统中复杂的业务流程抽取出来，使用专门的建模语言BPMN进行定义，业务流程按照预先定义的流程进行执行。实现了系统的流程由activiti进行管理，减少业务系统由于流程变更进行系统升级改造的工作流量，从而提高系统的健壮性，同时也减少了系统开发维护成本。</p>
+<p>官方网站：https://www.activiti.org</p>
+<h3 id="42-建模语言bpmn">4.2、建模语言BPMN</h3>
+<p>BPM（Business Process Management）即业务流程管理，是一种规范化的构造端到端的业务流程，以持续提高组织业务效率</p>
+<p>BPM 软件就是根据企业中业务环境的变化，推进人与人之间、人与系统之间以及系统与系统之间的整理及调整的经营方法与解决方案的 IT 工具。使用 BPM 软件对企业内部及外部的业务流程的整个生命周期进行建模、自动化、管理监控和优化，可以降低企业成本，提高利润</p>
+<p>BPMN（Business Process Model AndNotation）即业务流程模型和符号，是一套标准的业务流程建模符号，使用 BPMN 提供的符号可以创建业务流程。Activit 就是使用 BPMN 进行流程建模、流程执行管理的</p>
+<p>BPMN2.0 是业务流程建模符号 2.0 的缩写，它由 Business Process Management Initiative 这个非营利协会创建并不断发展。BPMN2.0 是使用一些符号来明确业务流程设计流程图的一套符号规范，能增进业务建模时的沟通效率。目前 BPMN2.0 是最新的版本，它用于在 BPM 上下文中进行布局和可视化的沟通</p>
+<p>BPMN2.0 的基本符号主要包含：</p>
+<ul>
+<li>
+<p><strong>事件 Event</strong></p>
+<p>开始：表示一个流程的开始</p>
+<p>中间：发生的开始和结束事件之间，影响处理的流程</p>
+<p>结束：表示该过程结束</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1671776604019.png" alt="67177660401" loading="lazy"></figure>
+</li>
+<li>
+<p><strong>活动 Activities</strong></p>
+<p>活动是工作或任务的一个通用术语。一个活动可以是一个任务，还可以是一个当前流程的子处理流程；其次，你还可以为活动指定不同的类型。常见活动如下：</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1671776624801.png" alt="67177662480" loading="lazy"></figure>
+</li>
+<li>
+<p><strong>网关 GateWay</strong></p>
+<p>用于表示流程的分支与合并，有几种常用网关需要了解：</p>
+<figure data-type="image" tabindex="3"><img src="https://hualiang.online/post-images/1671776646378.png" alt="67177664637" loading="lazy"></figure>
+<ul>
+<li>
+<p>排他网关：只有一条路径会被选择</p>
+</li>
+<li>
+<p>xxxxxxxxxx <code>&lt;el-button type=&quot;success&quot; icon=&quot;el-icon-plus&quot; size=&quot;mini&quot; @click=&quot;add&quot; :disabled=&quot;$hasBP('bnt.sysRole.add')  === false&quot;&gt;</code> 添加 <code>&lt;/el-button&gt;</code> vue</p>
+</li>
+<li>
+<p>包容网关：可以同时执行多条线路，也可以在网关上设置条件</p>
+</li>
+<li>
+<p>事件网关：专门为中间捕获事件设置的，允许设置多个输出流指向多个不同的中间捕获事件。当流程执行到事件网关后，流程处于等待状态，需要等待抛出事件才能将等待状态转换为活动状态</p>
+</li>
+</ul>
+<figure data-type="image" tabindex="4"><img src="https://hualiang.online/post-images/image-20230209103727489.png" alt="image-20230209103727489" loading="lazy"></figure>
+</li>
+<li>
+<p><strong>流向 Flow</strong></p>
+<p>流是连接两个流程节点的连线，常见的流向包含以下几种：</p>
+<p>顺序流：用一个带实心箭头的实心线表示，用于指定活动执行的顺序</p>
+<p>信息流：用一条带箭头的虚线表示，用于描述两个独立的业务参与者（业务实体/业务角色）之间发送和接受的消息流动</p>
+<p>关联：用一根带有线箭头的点线表示，用于将相关的数据、文本和其他人工信息与流对象联系起来。用于展示活动的输入和输出</p>
+<figure data-type="image" tabindex="5"><img src="https://hualiang.online/post-images/1671776662921.png" alt="67177666292" loading="lazy"></figure>
+</li>
+</ul>
+<p><strong>流程示例：</strong></p>
+<figure data-type="image" tabindex="6"><img src="https://hualiang.online/post-images/image-20230209104411748.png" alt="image-20230209104411748" loading="lazy"></figure>
+<h3 id="43-activiti使用流程">4.3、Activiti使用流程</h3>
+<p><strong>第一步：</strong> 引入依赖并初始化数据库</p>
+<p>既然activiti是一个框架，那么我们肯定是需要引入对应的jar包坐标的，具体参考代码中的。</p>
+<p><strong>第二步：</strong>  通过工具绘画流程图</p>
+<p>使用 activiti 流程建模工具(activity-designer)定义业务流程(.bpmn 文件)</p>
+<p>.bpmn 文件就是业务流程定义文件，通过 xml 定义业务流程。</p>
+<p><strong>第三步</strong>：流程定义部署;</p>
+<p>向 activiti 部署业务流程定义（.bpmn 文件），使用 activiti 提供的 api 向 activiti 中部署.bpmn 文件，</p>
+<p>通俗来讲，就是让activiti认识要使用的流程</p>
+<p><strong>第四步：</strong> 启动一个流程实例（ProcessInstance）</p>
+<p>启动一个流程实例表示开始一次业务流程的运行，比如员工请假流程部署完成，如果张三要请假就可以启动一个流程实例，如果李四要请假也启动一个流程实例，两个流程的执行互相不影响，就好比定义一个java类，实例化两个对象一样，部署的流程就好比java类，启动一个流程实例就好比new一个java对象</p>
+<p><strong>第五步：</strong> 用户查询待办任务(Task)</p>
+<p>因为现在系统的业务流程已经交给 activiti 管理，通过 activiti 就可以查询当前流程执行到哪了，当前用户需要办理什么任务了，这些 activiti帮我们管理了。实际上我们学习activiti也只是学习它的API怎么使用，因为很多功能activiti都已经封装好了，我们会调用就行了</p>
+<p><strong>第六步：</strong> 用户办理任务</p>
+<p>用户查询待办任务后，就可以办理某个任务，如果这个任务办理完成还需要其它用户办理，比如请假单创建后由部门经理审核，这个过程也是由 activiti 帮我们完成了，不需要我们在代码中硬编码指定下一个任务办理人了</p>
+<p><strong>第七步：</strong> 流程结束</p>
+<p>当任务办理完成没有下一个任务节点了，这个流程实例就完成了。</p>
+<h1 id="二-activiti7">二、Activiti7</h1>
+<h2 id="1-activiti使用">1、Activiti使用</h2>
+<h3 id="11-数据库支持">1.1、数据库支持</h3>
+<p>Activiti 运行必须要有数据库的支持，支持的数据库有：mysql、oracle、postgres、mssql、db2、h2</p>
+<h3 id="12-activiti环境">1.2、Activiti环境</h3>
+<p>我们直接在当前项目：guigu-oa-parent做Activiti入门讲解</p>
+<h4 id="121-引入依赖">1.2.1、引入依赖</h4>
+<pre><code class="language-xml">&lt;!--引入activiti的springboot启动器 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.activiti&lt;/groupId&gt;
+    &lt;artifactId&gt;activiti-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;7.1.0.M6&lt;/version&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;artifactId&gt;mybatis&lt;/artifactId&gt;
+            &lt;groupId&gt;org.mybatis&lt;/groupId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>说明：Activiti7与SpringBoot整合后，默认集成了SpringSecurity安全框架，当前我们项目已经集成过了SpringSecurity，后续案例设置审批人时都必须是系统用户，Activiti框架会检查用户是否存在，否则会出现异常，后续大家可以在案例中测试。</p>
+<figure data-type="image" tabindex="7"><img src="https://hualiang.online/post-images/1672035195682.png" alt="67203519568" loading="lazy"></figure>
+<h4 id="122-添加配置">1.2.2、添加配置</h4>
+<p>数据源项目已经添加，只需要如下配置即可</p>
+<pre><code class="language-java">spring:    
+	activiti:
+      #    false:默认，数据库表不变，但是如果版本不对或者缺失表会抛出异常（生产使用）
+      #    true:表不存在，自动创建（开发使用）
+      #    create_drop: 启动时创建，关闭时删除表（测试使用）
+      #    drop_create: 启动时删除表,在创建表 （不需要手动关闭引擎）
+      database-schema-update: true
+      #监测历史表是否存在，activities7默认不开启历史表
+      db-history-used: true
+      #none：不保存任何历史数据，流程中这是最高效的
+      #activity：只保存流程实例和流程行为
+      #audit：除了activity，还保存全部的流程任务以及其属性，audit为history默认值
+      #full：除了audit、还保存其他全部流程相关的细节数据，包括一些流程参数
+      history-level: full
+      #校验流程文件，默认校验resources下的process 文件夹的流程文件
+      check-process-definitions: true
+</code></pre>
+<h4 id="123-启动项目">1.2.3、启动项目</h4>
+<p>启动项目，即可生成项目数据库表</p>
+<figure data-type="image" tabindex="8"><img src="https://hualiang.online/post-images/1671693937620.png" alt="67169393762" loading="lazy"></figure>
+<h4 id="124-数据库表介绍">1.2.4、数据库表介绍</h4>
+<p>Activiti 的运行支持必须要有这 25 张表的支持，主要是在业务流程运行过程中，记录参与流程的用户主体，用户组信息，以及流程的定义，流程执行时的信息，和流程的历史信息等等</p>
+<p><strong>1、 表的命名规则和作用</strong></p>
+<p>观察创建的表，我们发现 Activiti 的表都以 act_ 开头，紧接着是表示表的用途的两个字母标识，也和 Activiti 所提供的服务的 API 对应：</p>
+<ul>
+<li>ACT_RE：RE 表示 repository，这个前缀的表包含了流程定义和流程静态资源 （图片、规则、等等）</li>
+<li>ACT_RU：RU 表示 runtime，这些表运行时，会包含流程实例、任务、变量、异步任务等流程业务进行中的数据。Activiti 只在流程实例执行过程中保存这些数据，在流程结束时就会删除这些记录。这样表就可以一直保持很小的体积，并且速度很快</li>
+<li>ACT_HI：HI 表示 history，这些表包含一些历史数据，比如历史流程实例、变量、任务等等</li>
+<li>ACT_GE：GE 表示 general，通用数据</li>
+</ul>
+<p><strong>2、Activiti 数据表介绍</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>表分类</strong></th>
+<th><strong>表名</strong></th>
+<th><strong>解释</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一般数据</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_GE_BYTEARRAY]</td>
+<td>通用的流程定义和流程资源</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_GE_PROPERTY]</td>
+<td>系统相关属性</td>
+</tr>
+<tr>
+<td>流程历史记录</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_ACTINST]</td>
+<td>历史的流程实例</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_ATTACHMENT]</td>
+<td>历史的流程附件</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_COMMENT]</td>
+<td>历史的说明性信息</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_DETAIL]</td>
+<td>历史的流程运行中的细节信息</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_IDENTITYLINK]</td>
+<td>历史的流程运行过程中用户关系</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_PROCINST]</td>
+<td>历史的流程实例</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_TASKINST]</td>
+<td>历史的任务实例</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_HI_VARINST]</td>
+<td>历史的流程运行中的变量信息</td>
+</tr>
+<tr>
+<td>流程定义表</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RE_DEPLOYMENT]</td>
+<td>部署单元信息</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RE_MODEL]</td>
+<td>模型信息</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RE_PROCDEF]</td>
+<td>已部署的流程定义</td>
+</tr>
+<tr>
+<td>运行实例表</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_EVENT_SUBSCR]</td>
+<td>运行时事件</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_EXECUTION]</td>
+<td>运行时流程执行实例</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_IDENTITYLINK]</td>
+<td>运行时用户关系信息，存储任务节点与参与者的相关信息</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_JOB]</td>
+<td>运行时作业</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_TASK]</td>
+<td>运行时任务</td>
+</tr>
+<tr>
+<td></td>
+<td>[ACT_RU_VARIABLE]</td>
+<td>运行时变量表</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-activiti常用service服务接口">1.3、Activiti常用Service服务接口</h3>
+<p>简单介绍一下各个 Service 的实现类：</p>
+<ul>
+<li>
+<p>RepositoryService</p>
+<p>Activiti 的资源管理类，该服务负责部署流程定义，管理流程资源。在使用 Activiti 时，一开始需要先完成流程部署，即将使用建模工具设计的业务流程图通过 RepositoryService 进行部署</p>
+</li>
+<li>
+<p>RuntimeService</p>
+<p>Activiti 的流程运行管理类，用于开始一个新的流程实例，获取关于流程执行的相关信息。流程定义用于确定一个流程中的结构和各个节点间行为，而流程实例则是对应的流程定义的一个执行，可以理解为 Java 中类和对象的关系</p>
+</li>
+<li>
+<p>TaskService</p>
+<p>Activiti 的任务管理类，用于处理业务运行中的各种任务，例如查询分给用户或组的任务、创建新的任务、分配任务、确定和完成一个任务</p>
+</li>
+<li>
+<p>HistoryService</p>
+<p>Activiti 的历史管理类，可以查询历史信息。执行流程时，引擎会保存很多数据，比如流程实例启动时间、任务的参与者、完成任务的时间、每个流程实例的执行路径等等。这个服务主要通过查询功能来获得这些数据</p>
+</li>
+<li>
+<p>ManagementService</p>
+<p>Activiti 的引擎管理类，提供了对 Activiti 流程引擎的管理和维护功能，这些功能不在工作流驱动的应用程序中使用，主要用于 Activiti 系统的日常维护</p>
+</li>
+</ul>
+<h3 id="14-流程设计工具">1.4、流程设计工具</h3>
+<p>IDEA版本小于等于2019，可使用Activiti插件actiBPM，大于该版本的IDEA可使用Activiti BPMN visualizer插件绘制流程设计。</p>
+<p>今天我们主角是：<strong>Activiti Modeler</strong></p>
+<p>Activiti Modeler 是 Activiti 官方提供的一款在线流程设计的前端插件，开发人员可以方便在线进行流程设计，保存流程模型，部署至流程定义等等，后续我们的项目也是集成Activiti Modeler绘制流程定义。</p>
+<h4 id="141-下载activiti-explorer">1.4.1、下载activiti-explorer</h4>
+<p>官网下载：https://www.activiti.org/get-started</p>
+<figure data-type="image" tabindex="9"><img src="https://hualiang.online/post-images/1671797894399.png" alt="67179789439" loading="lazy"></figure>
+<h4 id="142-解压获取部署包">1.4.2、解压获取部署包</h4>
+<p>解压activiti-5.22.0.zip，在activiti-5.22.0\wars目录下获取activiti-explorer.war</p>
+<h4 id="143-部署activiti-explorerwar">1.4.3、部署activiti-explorer.war</h4>
+<p>将activiti-explorer.war放到tomcat部署目录，启动tomcat</p>
+<h4 id="144-访问activiti-explorer">1.4.4、访问activiti-explorer</h4>
+<p>http://localhost:8080/activiti-explorer</p>
+<p>默认登录账号：kermit	kermit</p>
+<figure data-type="image" tabindex="10"><img src="https://hualiang.online/post-images/1671798181491.png" alt="67179818149" loading="lazy"></figure>
+<p>上面有很多功能，我们关注流程设计即可，如下图：</p>
+<p>点击上图：流程 --&gt; 新建模型 --&gt; 输入模型名称（请假）--&gt; 创建</p>
+<figure data-type="image" tabindex="11"><img src="https://hualiang.online/post-images/1671798417009.png" alt="67179841700" loading="lazy"></figure>
+<h2 id="2-activiti流程操作">2、Activiti流程操作</h2>
+<h3 id="21-流程定义">2.1、流程定义</h3>
+<p>我们定义一个请假流程</p>
+<h4 id="211-新建模型">2.1.1、新建模型</h4>
+<figure data-type="image" tabindex="12"><img src="https://hualiang.online/post-images/1671799395117.png" alt="67179939511" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://hualiang.online/post-images/1671799424866.png" alt="67179942486" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://hualiang.online/post-images/1671798417009.png" alt="67179841700" loading="lazy"></figure>
+<h4 id="212-开始节点">2.1.2、开始节点</h4>
+<figure data-type="image" tabindex="15"><img src="https://hualiang.online/post-images/1671799530247.png" alt="67179953024" loading="lazy"></figure>
+<h4 id="213-任务节点">2.1.3、任务节点</h4>
+<figure data-type="image" tabindex="16"><img src="https://hualiang.online/post-images/1671799688089.png" alt="67179968808" loading="lazy"></figure>
+<h4 id="214-结束节点">2.1.4、结束节点</h4>
+<figure data-type="image" tabindex="17"><img src="https://hualiang.online/post-images/1671799739334.png" alt="67179973933" loading="lazy"></figure>
+<h4 id="215-设置节点属性">2.1.5、设置节点属性</h4>
+<p>指定标签名称：张三审批，节点任务负责人：zhangsan</p>
+<figure data-type="image" tabindex="18"><img src="https://hualiang.online/post-images/1671799910878.png" alt="67179991087" loading="lazy"></figure>
+<p>指定标签名称：李四审批，节点任务负责人：lisi</p>
+<figure data-type="image" tabindex="19"><img src="https://hualiang.online/post-images/1672016531652.png" alt="67201653165" loading="lazy"></figure>
+<h4 id="215-设置流程定义key">2.1.5、设置流程定义key</h4>
+<figure data-type="image" tabindex="20"><img src="https://hualiang.online/post-images/1672016563704.png" alt="67201656370" loading="lazy"></figure>
+<h4 id="216-保存流程定义模型">2.1.6、保存流程定义模型</h4>
+<figure data-type="image" tabindex="21"><img src="https://hualiang.online/post-images/1671800206531.png" alt="67180020653" loading="lazy"></figure>
+<h4 id="217-下载流程定义文件">2.1.7、下载流程定义文件</h4>
+<figure data-type="image" tabindex="22"><img src="https://hualiang.online/post-images/1672016612079.png" alt="67201661207" loading="lazy"></figure>
+<p>下载文件为：qingjia.bpmn20.xml</p>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;definitions xmlns=&quot;http://www.omg.org/spec/BPMN/20100524/MODEL&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:activiti=&quot;http://activiti.org/bpmn&quot; xmlns:bpmndi=&quot;http://www.omg.org/spec/BPMN/20100524/DI&quot; xmlns:omgdc=&quot;http://www.omg.org/spec/DD/20100524/DC&quot; xmlns:omgdi=&quot;http://www.omg.org/spec/DD/20100524/DI&quot; typeLanguage=&quot;http://www.w3.org/2001/XMLSchema&quot; expressionLanguage=&quot;http://www.w3.org/1999/XPath&quot; targetNamespace=&quot;http://www.activiti.org/processdef&quot;&gt;
+  &lt;process id=&quot;qingjia&quot; isExecutable=&quot;true&quot;&gt;
+    &lt;startEvent id=&quot;sid-14A3E2A6-84E4-49E0-BF92-3DABD741430B&quot;&gt;&lt;/startEvent&gt;
+    &lt;userTask id=&quot;sid-38632C81-C407-4F0D-944D-FC30F90637A3&quot; name=&quot;张三审批&quot; activiti:assignee=&quot;zhangsan&quot;&gt;&lt;/userTask&gt;
+    &lt;sequenceFlow id=&quot;sid-081A176E-6756-4C4C-B36C-2649B12CFC5D&quot; sourceRef=&quot;sid-14A3E2A6-84E4-49E0-BF92-3DABD741430B&quot; targetRef=&quot;sid-38632C81-C407-4F0D-944D-FC30F90637A3&quot;&gt;&lt;/sequenceFlow&gt;
+    &lt;userTask id=&quot;sid-655780D5-8492-494F-9E30-2CFD6691E98D&quot; name=&quot;李四审批&quot; activiti:assignee=&quot;lisi&quot;&gt;&lt;/userTask&gt;
+    &lt;sequenceFlow id=&quot;sid-7DCE821D-4AE0-4F27-9811-80B575E7A758&quot; sourceRef=&quot;sid-38632C81-C407-4F0D-944D-FC30F90637A3&quot; targetRef=&quot;sid-655780D5-8492-494F-9E30-2CFD6691E98D&quot;&gt;&lt;/sequenceFlow&gt;
+    &lt;endEvent id=&quot;sid-7EE28419-BC61-49AC-8990-C63C4D2F7C0D&quot;&gt;&lt;/endEvent&gt;
+    &lt;sequenceFlow id=&quot;sid-2E583A5C-265A-4C05-B5E1-7F5DB98291F1&quot; sourceRef=&quot;sid-655780D5-8492-494F-9E30-2CFD6691E98D&quot; targetRef=&quot;sid-7EE28419-BC61-49AC-8990-C63C4D2F7C0D&quot;&gt;&lt;/sequenceFlow&gt;
+  &lt;/process&gt;
+  &lt;bpmndi:BPMNDiagram id=&quot;BPMNDiagram_qingjia&quot;&gt;
+    &lt;bpmndi:BPMNPlane bpmnElement=&quot;qingjia&quot; id=&quot;BPMNPlane_qingjia&quot;&gt;
+      &lt;bpmndi:BPMNShape bpmnElement=&quot;sid-14A3E2A6-84E4-49E0-BF92-3DABD741430B&quot; id=&quot;BPMNShape_sid-14A3E2A6-84E4-49E0-BF92-3DABD741430B&quot;&gt;
+        &lt;omgdc:Bounds height=&quot;30.0&quot; width=&quot;30.0&quot; x=&quot;93.5&quot; y=&quot;75.0&quot;&gt;&lt;/omgdc:Bounds&gt;
+      &lt;/bpmndi:BPMNShape&gt;
+      &lt;bpmndi:BPMNShape bpmnElement=&quot;sid-38632C81-C407-4F0D-944D-FC30F90637A3&quot; id=&quot;BPMNShape_sid-38632C81-C407-4F0D-944D-FC30F90637A3&quot;&gt;
+        &lt;omgdc:Bounds height=&quot;80.0&quot; width=&quot;100.0&quot; x=&quot;168.5&quot; y=&quot;50.0&quot;&gt;&lt;/omgdc:Bounds&gt;
+      &lt;/bpmndi:BPMNShape&gt;
+      &lt;bpmndi:BPMNShape bpmnElement=&quot;sid-655780D5-8492-494F-9E30-2CFD6691E98D&quot; id=&quot;BPMNShape_sid-655780D5-8492-494F-9E30-2CFD6691E98D&quot;&gt;
+        &lt;omgdc:Bounds height=&quot;80.0&quot; width=&quot;100.0&quot; x=&quot;313.5&quot; y=&quot;50.0&quot;&gt;&lt;/omgdc:Bounds&gt;
+      &lt;/bpmndi:BPMNShape&gt;
+      &lt;bpmndi:BPMNShape bpmnElement=&quot;sid-7EE28419-BC61-49AC-8990-C63C4D2F7C0D&quot; id=&quot;BPMNShape_sid-7EE28419-BC61-49AC-8990-C63C4D2F7C0D&quot;&gt;
+        &lt;omgdc:Bounds height=&quot;28.0&quot; width=&quot;28.0&quot; x=&quot;458.5&quot; y=&quot;76.0&quot;&gt;&lt;/omgdc:Bounds&gt;
+      &lt;/bpmndi:BPMNShape&gt;
+      &lt;bpmndi:BPMNEdge bpmnElement=&quot;sid-7DCE821D-4AE0-4F27-9811-80B575E7A758&quot; id=&quot;BPMNEdge_sid-7DCE821D-4AE0-4F27-9811-80B575E7A758&quot;&gt;
+        &lt;omgdi:waypoint x=&quot;268.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+        &lt;omgdi:waypoint x=&quot;313.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+      &lt;/bpmndi:BPMNEdge&gt;
+      &lt;bpmndi:BPMNEdge bpmnElement=&quot;sid-081A176E-6756-4C4C-B36C-2649B12CFC5D&quot; id=&quot;BPMNEdge_sid-081A176E-6756-4C4C-B36C-2649B12CFC5D&quot;&gt;
+        &lt;omgdi:waypoint x=&quot;123.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+        &lt;omgdi:waypoint x=&quot;168.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+      &lt;/bpmndi:BPMNEdge&gt;
+      &lt;bpmndi:BPMNEdge bpmnElement=&quot;sid-2E583A5C-265A-4C05-B5E1-7F5DB98291F1&quot; id=&quot;BPMNEdge_sid-2E583A5C-265A-4C05-B5E1-7F5DB98291F1&quot;&gt;
+        &lt;omgdi:waypoint x=&quot;413.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+        &lt;omgdi:waypoint x=&quot;458.5&quot; y=&quot;90.0&quot;&gt;&lt;/omgdi:waypoint&gt;
+      &lt;/bpmndi:BPMNEdge&gt;
+    &lt;/bpmndi:BPMNPlane&gt;
+  &lt;/bpmndi:BPMNDiagram&gt;
+&lt;/definitions&gt;
+</code></pre>
+<h4 id="218-下载流程定义图片">2.1.8、下载流程定义图片</h4>
+<p>单击右键上图图片，图片另存为：qingjia.png</p>
+<figure data-type="image" tabindex="23"><img src="https://hualiang.online/post-images/1672016670456.png" alt="67201667045" loading="lazy"></figure>
+<h4 id="219-将资源文件放入项目">2.1.9、将资源文件放入项目</h4>
+<p>在service-oa模块resources下新建process资源文件夹</p>
+<p>将qingjia.bpmn20.xml与qingjia.png放入process目录</p>
+<h3 id="22-流程定义部署">2.2、流程定义部署</h3>
+<p>将上面在设计器中定义的流程部署到activiti数据库中，就是流程定义部署。通过调用activiti的api将流程定义的bpmn和png两个文件一个一个添加部署到activiti中，也可以将两个文件打成zip包进行部署。</p>
+<h4 id="221-单个文件部署方式">2.2.1、单个文件部署方式</h4>
+<pre><code class="language-java">package com.atguigu;
+
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.repository.Deployment;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ProcessTest {
+
+    @Autowired
+    private RepositoryService repositoryService;
+
+    @Test
+    public void deployProcess() {
+        // 流程部署
+        Deployment deploy = repositoryService.createDeployment()
+                .addClasspathResource(&quot;process/qingjia.bpmn20.xml&quot;)
+                .addClasspathResource(&quot;process/qingjia.png&quot;)
+                .name(&quot;请假申请流程&quot;)
+                .deploy();
+        System.out.println(deploy.getId());
+        System.out.println(deploy.getName());
+    }
+}
+</code></pre>
+<h4 id="222-压缩包部署方式">2.2.2、压缩包部署方式</h4>
+<pre><code class="language-java">@Test
+public void deployProcessByZip() {
+    // 定义zip输入流
+    InputStream inputStream = this
+            .getClass()
+            .getClassLoader()
+            .getResourceAsStream(
+                    &quot;process/qingjia.zip&quot;);
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+
+    // 流程部署
+    Deployment deployment = repositoryService.createDeployment()
+            .addZipInputStream(zipInputStream)
+            .name(&quot;请假申请流程&quot;)
+            .deploy();
+    System.out.println(&quot;流程部署id：&quot; + deployment.getId());
+    System.out.println(&quot;流程部署名称：&quot; + deployment.getName());
+}
+</code></pre>
+<h4 id="223-操作数据库表">2.2.3、操作数据库表</h4>
+<p>流程定义部署后操作activiti的3张表如下：</p>
+<p>act_re_deployment     流程定义部署表，每部署一次增加一条记录</p>
+<p>act_re_procdef            流程定义表，部署每个新的流程定义都会在这张表中增加一条记录</p>
+<p>act_ge_bytearray        流程资源表</p>
+<h3 id="23-启动流程实例">2.3、启动流程实例</h3>
+<p>流程定义:将bpmn文件放到activiti的三张表中,好比是java中的一个类<br>
+流程实例:好比是java中的一个实例对象(一个流程定义可以对应多个流程实例)，张三可以启动一个请假流程实例，李四也可以启动一个请假流程实例，他们互不影响</p>
+<pre><code class="language-java">@Autowired
+private RuntimeService runtimeService;
+
+@Test
+public void startUpProcess() {
+    //创建流程实例,我们需要知道流程定义的key
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;qingjia&quot;);
+    //输出实例的相关信息
+    System.out.println(&quot;流程定义id：&quot; + processInstance.getProcessDefinitionId());
+    System.out.println(&quot;流程实例id：&quot; + processInstance.getId());
+    System.out.println(&quot;当前活动Id：&quot; + processInstance.getActivityId());
+}
+</code></pre>
+<p><strong>操作数据表</strong></p>
+<p>act_hi_actinst     流程实例执行历史</p>
+<p>act_hi_identitylink  流程的参与用户历史信息</p>
+<p>act_hi_procinst      流程实例历史信息</p>
+<p>act_hi_taskinst       流程任务历史信息</p>
+<p>act_ru_execution   流程执行信息</p>
+<p>act_ru_identitylink  流程的参与用户信息</p>
+<p>act_ru_task              任务信息</p>
+<h3 id="24-查询任务">2.4、查询任务</h3>
+<p>每个节点都配置了Assignee，流程启动后，任务的负责人就可以查询自己当前需要处理的任务，查询出来的任务都是该用户的待办任务。</p>
+<pre><code class="language-java">@Autowired
+private TaskService taskService;
+
+/**
+ * 查询当前个人待执行的任务
+ */
+@Test
+public void findPendingTaskList() {
+    //任务负责人
+    String assignee = &quot;zhangsan&quot;;
+    List&lt;Task&gt; list = taskService.createTaskQuery()
+            .taskAssignee(assignee)//只查询该任务负责人的任务
+            .list();
+    for (Task task : list) {
+        System.out.println(&quot;流程实例id：&quot; + task.getProcessInstanceId());
+        System.out.println(&quot;任务id：&quot; + task.getId());
+        System.out.println(&quot;任务负责人：&quot; + task.getAssignee());
+        System.out.println(&quot;任务名称：&quot; + task.getName());
+    }
+}
+</code></pre>
+<p>说明：</p>
+<p>​	流程实例id:一个流程只有一个,标识这个流程</p>
+<p>​	任务id:流程每进行到某个节点,就会给这个节点分配一个任务id</p>
+<p>输出结果如下：</p>
+<p>​	流程实例id：d969f534-825e-11ed-95b4-7c57581a7819<br>
+​	任务id：d96c3f28-825e-11ed-95b4-7c57581a7819<br>
+​	任务负责人：zhangsan<br>
+​	任务名称：张三审批</p>
+<h3 id="25-处理当前任务">2.5、处理当前任务</h3>
+<p>任务负责人查询待办任务，选择任务进行处理，完成任务。</p>
+<pre><code class="language-java">/**
+ * 完成任务
+ */
+@Test
+public void completTask(){
+    Task task = taskService.createTaskQuery()
+            .taskAssignee(&quot;zhangsan&quot;)  //要查询的负责人
+            .singleResult();//返回一条
+
+    //完成任务,参数：任务id
+    taskService.complete(task.getId());
+}
+</code></pre>
+<p>完成任务后，任务自动到下一个节点</p>
+<h3 id="26-查询已处理任务">2.6、查询已处理任务</h3>
+<pre><code class="language-java">@Autowired
+private HistoryService historyService;
+
+/**
+ * 查询已处理历史任务
+ */
+@Test
+public void findProcessedTaskList() {
+    //张三已处理过的历史任务
+    List&lt;HistoricTaskInstance&gt; list = historyService.createHistoricTaskInstanceQuery().taskAssignee(&quot;zhangsan&quot;).finished().list();
+    for (HistoricTaskInstance historicTaskInstance : list) {
+        System.out.println(&quot;流程实例id：&quot; + historicTaskInstance.getProcessInstanceId());
+        System.out.println(&quot;任务id：&quot; + historicTaskInstance.getId());
+        System.out.println(&quot;任务负责人：&quot; + historicTaskInstance.getAssignee());
+        System.out.println(&quot;任务名称：&quot; + historicTaskInstance.getName());
+    }
+}
+</code></pre>
+<h3 id="27-其他接口了解">2.7、其他接口（了解）</h3>
+<pre><code class="language-java">/**
+ * 查询流程定义
+ */
+@Test
+public void findProcessDefinitionList(){
+    List&lt;ProcessDefinition&gt; definitionList = repositoryService.createProcessDefinitionQuery()
+            .orderByProcessDefinitionVersion()
+            .desc()
+            .list();
+    //输出流程定义信息
+    for (ProcessDefinition processDefinition : definitionList) {
+        System.out.println(&quot;流程定义 id=&quot;+processDefinition.getId());
+        System.out.println(&quot;流程定义 name=&quot;+processDefinition.getName());
+        System.out.println(&quot;流程定义 key=&quot;+processDefinition.getKey());
+        System.out.println(&quot;流程定义 Version=&quot;+processDefinition.getVersion());
+        System.out.println(&quot;流程部署ID =&quot;+processDefinition.getDeploymentId());
+    }
+}
+
+/**
+ * 删除流程定义
+ */
+public void deleteDeployment() {
+    //部署id
+    String deploymentId = &quot;82e3bc6b-81da-11ed-8e03-7c57581a7819&quot;;
+    //删除流程定义，如果该流程定义已有流程实例启动则删除时出错
+    repositoryService.deleteDeployment(deploymentId);
+    //设置true 级联删除流程定义，即使该流程有流程实例启动也可以删除，设置为false非级别删除方式
+    //repositoryService.deleteDeployment(deploymentId, true);
+}
+</code></pre>
+<h2 id="3-流程实例">3、流程实例</h2>
+<h3 id="31-什么是流程实例">3.1、什么是流程实例</h3>
+<p>流程定义ProcessDefinition和流程实例ProcessInstance是Activiti重要的概念，类似于Java类和Java实例的关系</p>
+<p>启动一个流程实例表示开始一次业务流程的运行，比如员工请假流程部署完成，如果张三要请假就可以启动一个流程实例，如果李四要请假也启动一个流程实例，两个流程的执行互相不影响，就好比定义一个 java 类，实例化两个对象一样，部署的流程就好比 java 类，启动一个流程实例就好比 new 一个 java 对象</p>
+<h3 id="32-让实际业务与activiti表关联businesskey">3.2、让实际业务与activiti表关联(BusinessKey)</h3>
+<p>比如我们填写一个请假单，一定会有一个请假单的唯一标识，我们通常使用这个标识来关联activiti，这个标识在activiti中称为businesskey</p>
+<p>BusinessKey：业务标识，通常为业务的主键，业务标识和流程标识一一对应，业务标识来源于业务系统，存储业务标识就是根据业务标识来关联查询业务系统的数据</p>
+<p>举例：请假流程启动一个流程实例，就可以将请假单的id作为业务标识存储到activiti中，将来查询activiti的流程实例信息就可以获取请假单的id从而关联查询业务系统数据库得到请假单信息</p>
+<pre><code class="language-java">/**
+ * 启动流程实例，添加businessKey
+ */
+@Test
+public void startUpProcessAddBusinessKey(){
+    String businessKey = &quot;1&quot;;
+    // 启动流程实例，指定业务标识businessKey，也就是请假申请单id
+    ProcessInstance processInstance = runtimeService.
+            startProcessInstanceByKey(&quot;qingjia&quot;,businessKey);
+    // 输出
+    System.out.println(&quot;业务id:&quot;+processInstance.getBusinessKey());
+}
+</code></pre>
+<h3 id="33-挂起激活流程实例">3.3、挂起，激活流程实例</h3>
+<p>某些情况可能由于流程变更需要将当前运行的流程暂停而不是直接删除，流程暂停后将不会执行；</p>
+<h4 id="331-全部流程实例挂起">3.3.1、全部流程实例挂起</h4>
+<p>操作流程定义为挂起状态，该流程定义下面的所有流程实例全部暂停:<br>
+流程定义为挂起状态，该流程定义将不允许启动新的流程实例，同时该流程定义下所有的流程实例将全部挂起暂停执行</p>
+<pre><code class="language-java">@Test
+public void suspendProcessInstance() {
+    ProcessDefinition qingjia = repositoryService.createProcessDefinitionQuery().processDefinitionKey(&quot;qingjia&quot;).singleResult();
+    // 获取到当前流程定义是否为暂停状态 suspended方法为true是暂停的，suspended方法为false是运行的
+    boolean suspended = qingjia.isSuspended();
+    if (suspended) {
+        // 暂定,那就可以激活
+        // 参数1:流程定义的id  参数2:是否激活    参数3:时间点
+        repositoryService.activateProcessDefinitionById(qingjia.getId(), true, null);
+        System.out.println(&quot;流程定义:&quot; + qingjia.getId() + &quot;激活&quot;);
+    } else {
+        repositoryService.suspendProcessDefinitionById(qingjia.getId(), true, null);
+        System.out.println(&quot;流程定义:&quot; + qingjia.getId() + &quot;挂起&quot;);
+    }
+}
+</code></pre>
+<h4 id="332-单个流程实例挂起">3.3.2、单个流程实例挂起</h4>
+<p>操作流程实例对象，针对单个流程执行挂起操作，某个流程实例挂起则此流程不在继续执行，完成该流程实例的当前任务将报异常；</p>
+<pre><code class="language-java">@Test
+public void SingleSuspendProcessInstance() {
+    String processInstanceId = &quot;8bdff984-ab53-11ed-9b17-f8e43b734677&quot;;
+    ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+    //获取到当前流程定义是否为暂停状态   suspended方法为true代表为暂停   false就是运行的
+    boolean suspended = processInstance.isSuspended();
+    if (suspended) {
+        runtimeService.activateProcessInstanceById(processInstanceId);
+        System.out.println(&quot;流程实例:&quot; + processInstanceId + &quot;激活&quot;);
+    } else {
+        runtimeService.suspendProcessInstanceById(processInstanceId);
+        System.out.println(&quot;流程实例:&quot; + processInstanceId + &quot;挂起&quot;);
+    }
+}
+</code></pre>
+<h2 id="4-任务分配">4、任务分配</h2>
+<p>任务分配有三种方式</p>
+<ol>
+<li>固定分配</li>
+<li>UEL表达式分配</li>
+<li>监听器分配</li>
+</ol>
+<h3 id="41-固定分配">4.1、固定分配</h3>
+<p>在前面进行业务流程建模时指定固定的任务负责人，如：Assignee：zhangsan/lisi</p>
+<h3 id="42-表达式分配">4.2、表达式分配</h3>
+<p>activiti使用UEL表达式，UEL是java EE6规范的一部分,UEL即统一表达式语言，activiti支持两个UEL表达式：UEL-value和UEL-method。</p>
+<h4 id="421-uel-value">4.2.1、UEL-value</h4>
+<p>新建：一个加班流程</p>
+<p>如图：</p>
+<figure data-type="image" tabindex="24"><img src="https://hualiang.online/post-images/1671800917826.png" alt="67180091782" loading="lazy"></figure>
+<p>assignee1 这个变量是 activiti 的一个流程变量</p>
+<p>我们启动流程实例，这个启动实例的方法跟之前的方法基本一致,唯一的不同是在启动时,添加了一个参数</p>
+<pre><code class="language-java">@Test
+public void deployProcess01() {
+    // 流程部署
+    Deployment deploy = repositoryService.createDeployment()
+        .addClasspathResource(&quot;process/jiaban01.bpmn20.xml&quot;)
+        .name(&quot;加班申请流程&quot;)
+        .deploy();
+    System.out.println(deploy.getId());
+    System.out.println(deploy.getName());
+}
+
+/**
+ * 启动流程实例
+ */
+@Test
+public void startUpProcess01() {
+    Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+    variables.put(&quot;assignee1&quot;,&quot;zhangsan&quot;);
+    variables.put(&quot;assignee2&quot;,&quot;lisi&quot;);
+    //创建流程实例,我们需要知道流程定义的key
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;qingjia01&quot;, variables);
+    //输出实例的相关信息
+    System.out.println(&quot;流程定义id：&quot; + processInstance.getProcessDefinitionId());
+    System.out.println(&quot;流程实例id：&quot; + processInstance.getId());
+}
+</code></pre>
+<h4 id="422-uel-method-方式">4.2.2、UEL-method 方式</h4>
+<p>如图：</p>
+<figure data-type="image" tabindex="25"><img src="https://hualiang.online/post-images/1671801255280.png" alt="67180125528" loading="lazy"></figure>
+<p>userBean 是 spring 容器中的一个 bean，表示调用该 bean 的 getUsername(int id)方法。</p>
+<p>经理审批：${userBean.getUsername(1)}</p>
+<p>人事审批：${userBean.getUsername(2)}</p>
+<pre><code class="language-java">package com.atguigu.process.bean;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserBean {
+
+    public String getUsername(int id) {
+        if(id == 1) {
+            return &quot;zhangsan&quot;;
+        }
+        if(id == 2) {
+            return &quot;lisi&quot;;
+        }
+        return &quot;admin&quot;;
+    }
+}
+</code></pre>
+<p>部署与启动</p>
+<pre><code class="language-java">@Test
+public void deployProcess02() {
+    // 流程部署
+    Deployment deploy = repositoryService.createDeployment()
+        .addClasspathResource(&quot;process/jiaban02.bpmn20.xml&quot;)
+        .name(&quot;加班申请流程&quot;)
+        .deploy();
+    System.out.println(deploy.getId());
+    System.out.println(deploy.getName());
+}
+
+/**
+ * 启动流程实例
+ */
+@Test
+public void startUpProcess02() {
+    //创建流程实例,我们需要知道流程定义的key
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;qingjia02&quot;);
+    //输出实例的相关信息
+    System.out.println(&quot;流程定义id：&quot; + processInstance.getProcessDefinitionId());
+    System.out.println(&quot;流程实例id：&quot; + processInstance.getId());
+}
+</code></pre>
+<p>启动流程实例，就会调用bean方法，参数为：1，经理审批后，接着调用bean方法，参数为：2</p>
+<h3 id="43-监听器分配">4.3、监听器分配</h3>
+<p>使用监听器的方式来指定负责人，那么在流程设计时就不需要指定assignee。</p>
+<p>任务监听器是发生对应的任务相关事件时执行自定义 java 逻辑 或表达式</p>
+<p>Event的选项包含：</p>
+<pre><code>Create：任务创建后触发
+Assignment：任务分配后触发
+Delete：任务完成后触发
+All：所有事件发生都触发
+</code></pre>
+<p>定义任务监听类，且类必须实现 org.activiti.engine.delegate.TaskListener 接口</p>
+<pre><code class="language-java">package com.atguigu.process.bean;
+
+import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.TaskListener;
+
+public class MyTaskListener implements TaskListener {
+
+    @Override
+    public void notify(DelegateTask delegateTask) {
+        if(delegateTask.getName().equals(&quot;经理审批&quot;)){
+            //这里指定任务负责人
+            delegateTask.setAssignee(&quot;zhangsan&quot;);
+        } else if(delegateTask.getName().equals(&quot;人事审批&quot;)){
+            //这里指定任务负责人
+            delegateTask.setAssignee(&quot;lisi&quot;);
+        }
+    }
+}
+</code></pre>
+<p>配置监听器</p>
+<figure data-type="image" tabindex="26"><img src="https://hualiang.online/post-images/1671802034480.png" alt="67180203448" loading="lazy"></figure>
+<figure data-type="image" tabindex="27"><img src="https://hualiang.online/post-images/1671801889180.png" alt="67180188918" loading="lazy"></figure>
+<p>经理审批与人事审批，都设置一样的监听即可</p>
+<p>部署与测试</p>
+<pre><code class="language-java">@Test
+public void deployProcess03() {
+    // 流程部署
+    Deployment deploy = repositoryService.createDeployment()
+            .addClasspathResource(&quot;process/jiaban03.bpmn20.xml&quot;)
+            .name(&quot;加班申请流程&quot;)
+            .deploy();
+    System.out.println(deploy.getId());
+    System.out.println(deploy.getName());
+}
+
+/**
+ * 启动流程实例
+ */
+@Test
+public void startUpProcess03() {
+    //创建流程实例,我们需要知道流程定义的key
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;jiaban03&quot;);
+    //输出实例的相关信息
+    System.out.println(&quot;流程定义id：&quot; + processInstance.getProcessDefinitionId());
+    System.out.println(&quot;流程实例id：&quot; + processInstance.getId());
+}
+</code></pre>
+<p>启动流程实例，就会调用MyTaskListener监听方法</p>
+<h2 id="5-流程变量">5、流程变量</h2>
+<h3 id="51-什么是流程变量">5.1、什么是流程变量</h3>
+<p>流程变量在 activiti 中是一个非常重要的角色，流程运转有时需要靠流程变量，业务系统和 activiti<br>
+结合时少不了流程变量，流程变量就是 activiti 在管理工作流时根据管理需要而设置的变量。<br>
+比如：在请假申请流程流转时如果请假天数大于2 天则由总经理审核，否则由部门经理直接审核， 请假天<br>
+数就可以设置为流程变量，在流程流转时使用。</p>
+<h3 id="52-流程变量的作用域">5.2、流程变量的作用域</h3>
+<p>流程变量的作用可以是一个流程实例，但也可以是一个任务(task)或是一个执行实例</p>
+<h4 id="521-globa变量">5.2.1、globa变量</h4>
+<p>流程变量的默认作用域是流程实例。当一个流程变量的作用域为流程实例时，可以称为 global 变量</p>
+<p>global 变量中变量名不允许重复，设置相同名称的变量，后设置的值会覆盖前设置的变量值。</p>
+<h4 id="522-local变量">5.2.2、local变量</h4>
+<p>任务和执行实例仅仅是针对一个任务和一个执行实例范围，范围没有流程实例大， 称为 local 变量。</p>
+<p>Local 变量由于在不同的任务或不同的执行实例中，作用域互不影响，变量名可以相同没有影响。Local 变量名也可以和 global 变量名相同，没有影响。</p>
+<h3 id="53-流程变量的使用方法">5.3、流程变量的使用方法</h3>
+<p>通过UEL表达式使用流程变量</p>
+<p>1、之前我们也使用过UEL表达式来设置任务处理人，例如 <code>${assignee1}</code>，activiti获取UEL表达式的值，即流程变量assignee1的值，将值作为任务的负责人进行任务分配<br>
+2、我们也可以在任务和任务间的连线上使用UEL表达式，决定流程走向比如 <code>${day &gt; 2}</code> 和 <code>${day &lt;= 2}</code>，day就是一个流程变量名称，UEL表达式的执行结果是布尔类型</p>
+<h3 id="54-设置globa变量">5.4、设置globa变量</h3>
+<h4 id="541-启动流程时设置变量">5.4.1、启动流程时设置变量</h4>
+<p>在启动流程时设置流程变量，<strong>变量的作用域是整个流程实例。</strong><br>
+通过 Map&lt;key,value&gt; 设置流程变量，map 中可以设置多个变量，这个 key 就是流程变量的名字</p>
+<p>这是前面的实例代码</p>
+<pre><code class="language-java">@Test
+public void startUpProcess() {
+    Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+    variables.put(&quot;assignee1&quot;, &quot;zhangsan&quot;);
+    variables.put(&quot;assignee2&quot;, &quot;lisi&quot;);
+    //创建流程实例,我们需要知道流程定义的key
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;qingjia&quot;, variables);
+    //输出实例的相关信息
+    System.out.println(&quot;流程定义id：&quot; + processInstance.getProcessDefinitionId());
+    System.out.println(&quot;流程实例id：&quot; + processInstance.getId());
+}
+</code></pre>
+<h4 id="542-在任务办理时设置流程变量">5.4.2、在任务办理时设置流程变量</h4>
+<p><strong>它的作用域是整个流程实例</strong> ，如果设置的流程变量的   key   在流程实例中已存在相同的名字则后设置的变量替换前边设置的变量。</p>
+<p>模拟实例代码：</p>
+<pre><code class="language-java">@Test
+public void completTask() {
+    Task task = taskService.createTaskQuery()
+            .taskAssignee(&quot;zhangsan&quot;)  //要查询的负责人
+            .singleResult();//返回一条
+
+    Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+    variables.put(&quot;assignee2&quot;, &quot;zhao&quot;);
+    //完成任务,参数：任务id
+    taskService.complete(task.getId(), variables);
+}
+</code></pre>
+<h4 id="543-通过当前流程实例设置">5.4.3、通过当前流程实例设置</h4>
+<p>通过流程实例 id   设置全局变量， <strong>它的作用域是整个流程实例</strong> ，该流程实例必须未执行完成。</p>
+<p>模拟实例代码：</p>
+<pre><code class="language-java">@Test
+public void processInstanceIdSetVariables() {
+    Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+    variables.put(&quot;assignee2&quot;, &quot;wang&quot;);
+    runtimeService.setVariables(&quot;1c347a90-82c6-11ed-96ca-7c57581a7819&quot;, variables);
+}
+</code></pre>
+<h3 id="55-设置local变量">5.5、设置Local变量</h3>
+<p>local 流程变量的作用域只在当前任务节点下可用</p>
+<p>任务办理时设置local流程变量，当前运行的流程实例只能在该任务结束前使用，任务结束该变量无法在当前流程实例使用</p>
+<p>模拟实例代码：</p>
+<pre><code class="language-java">@Test
+public void completLocalTask() {
+    Task task = taskService.createTaskQuery()
+            .taskAssignee(&quot;zhangsan&quot;)  //要查询的负责人
+            .singleResult();//返回一条
+
+    // 设置local变量，作用域为该任务
+    taskService.setVariableLocal(task.getId(),&quot;assignee2&quot;,&quot;li&quot;);
+    // 查看local变量
+    System.out.println(taskService.getVariableLocal(task.getId(), &quot;assignee2&quot;));
+    //完成任务,参数：任务id
+    taskService.complete(task.getId());
+}
+</code></pre>
+<h2 id="6-任务组">6、任务组</h2>
+<h3 id="61-candidate-users候选人">6.1、Candidate-users候选人</h3>
+<p><strong>1、需求</strong><br>
+在流程定义中在任务结点的assignee固定设置任务负责人，在流程定义时将参与者固定设置在.bpmn文件中，如果要临时变更任务负责人则需要修改流程定义，系统扩展性很差，针对这种情况，我们可以给任务设置多个候选人，从候选人中选择参与者来完成任务</p>
+<p><strong>2、设置任务候选人</strong></p>
+<figure data-type="image" tabindex="28"><img src="https://hualiang.online/post-images/1672024290855.png" alt="67202429085" loading="lazy"></figure>
+<figure data-type="image" tabindex="29"><img src="https://hualiang.online/post-images/1672024319632.png" alt="67202431963" loading="lazy"></figure>
+<h3 id="62-组任务办理流程">6.2、组任务办理流程</h3>
+<p><strong>第一步:查询组任务</strong></p>
+<p>指定候选人，查询该候选人当前的待办任务<br>
+候选人不能办理任务<br>
+<strong>第二步:拾取(claim)任务</strong></p>
+<p>该组任务的所有候选人都能拾取<br>
+将候选人的组任务，变成个人任务，原来的候选人就变成了该任务的负责人<br>
+如果拾取后不想办理该任务<br>
+需要将已经拾取<br>
+<strong>第三步:查询个人任务</strong></p>
+<p>查询方式同个人任务部分，根据assignee查询用户负责的个人任务<br>
+<strong>第四步:办理个人任务</strong></p>
+<h3 id="63-关键代码">6.3、关键代码</h3>
+<h4 id="631-部署及启动">6.3.1、部署及启动</h4>
+<pre><code class="language-java">@Test
+public void deployProcess04() {
+    // 流程部署
+    Deployment deploy = repositoryService.createDeployment()
+            .addClasspathResource(&quot;process/jiaban04.bpmn20.xml&quot;)
+            .name(&quot;请假申请流程&quot;)
+            .deploy();
+    System.out.println(deploy.getId());
+    System.out.println(deploy.getName());
+
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(&quot;jiaban04&quot;);
+    System.out.println(processInstance.getId());
+}
+</code></pre>
+<h4 id="632-查询组任务">6.3.2、查询组任务</h4>
+<pre><code class="language-java">@Test
+public void findGroupTaskList() {
+    //查询组任务
+    List&lt;Task&gt; list = taskService.createTaskQuery()
+            .taskCandidateUser(&quot;zhangsan01&quot;)//根据候选人查询
+            .list();
+    for (Task task : list) {
+        System.out.println(&quot;----------------------------&quot;);
+        System.out.println(&quot;流程实例id：&quot; + task.getProcessInstanceId());
+        System.out.println(&quot;任务id：&quot; + task.getId());
+        System.out.println(&quot;任务负责人：&quot; + task.getAssignee());
+        System.out.println(&quot;任务名称：&quot; + task.getName());
+    }
+}
+</code></pre>
+<h4 id="632-拾取组任务">6.3.2、拾取组任务</h4>
+<pre><code class="language-java">@Test
+public void claimTask(){
+    //拾取任务,即使该用户不是候选人也能拾取(建议拾取时校验是否有资格)
+    //校验该用户有没有拾取任务的资格
+    Task task = taskService.createTaskQuery()
+            .taskCandidateUser(&quot;zhangsan01&quot;)//根据候选人查询
+            .singleResult();
+    if(task!=null){
+        //拾取任务
+        taskService.claim(taskId, &quot;zhangsan01&quot;);
+        System.out.println(&quot;任务拾取成功&quot;);
+    }
+}
+</code></pre>
+<p>张三01拾取任务了，张三02就不能拾取了</p>
+<h4 id="633-查询个人待办任务">6.3.3、  查询个人待办任务</h4>
+<p>查询方式同个人任务查询</p>
+<pre><code class="language-java">@Test
+public void findGroupPendingTaskList() {
+    //任务负责人
+    String assignee = &quot;zhangsan01&quot;;
+    List&lt;Task&gt; list = taskService.createTaskQuery()
+            .taskAssignee(assignee)//只查询该任务负责人的任务
+            .list();
+    for (Task task : list) {
+        System.out.println(&quot;流程实例id：&quot; + task.getProcessInstanceId());
+        System.out.println(&quot;任务id：&quot; + task.getId());
+        System.out.println(&quot;任务负责人：&quot; + task.getAssignee());
+        System.out.println(&quot;任务名称：&quot; + task.getName());
+    }
+}
+</code></pre>
+<h4 id="634-办理个人任务">6.3.4、  办理个人任务</h4>
+<p>同个人任务办理</p>
+<pre><code class="language-java">@Test
+public void completGroupTask() {
+    Task task = taskService.createTaskQuery()
+            .taskAssignee(&quot;zhangsan01&quot;)  //要查询的负责人
+            .singleResult();//返回一条
+    taskService.complete(task.getId());
+}
+</code></pre>
+<h4 id="635-归还组任务">6.3.5、归还组任务</h4>
+<p>如果个人不想办理该组任务，可以归还组任务，归还后该用户不再是该任务的负责人</p>
+<pre><code class="language-java">@Test
+public void assigneeToGroupTask() {
+    String taskId = &quot;d96c3f28-825e-11ed-95b4-7c57581a7819&quot;;
+    // 任务负责人
+    String userId = &quot;zhangsan01&quot;;
+    // 校验userId是否是taskId的负责人，如果是负责人才可以归还组任务
+    Task task = taskService
+            .createTaskQuery()
+            .taskId(taskId)
+            .taskAssignee(userId)
+            .singleResult();
+    if (task != null) {
+        // 如果设置为null，归还组任务,该 任务没有负责人
+        taskService.setAssignee(taskId, null);
+    }
+}
+</code></pre>
+<h4 id="636-任务交接">6.3.6、  任务交接</h4>
+<p>任务交接，任务负责人将任务交给其它候选人办理该任务</p>
+<pre><code class="language-java">@Test
+public void assigneeToCandidateUser() {
+    // 当前待办任务
+    String taskId = &quot;d96c3f28-825e-11ed-95b4-7c57581a7819&quot;;
+    // 校验zhangsan01是否是taskId的负责人，如果是负责人才可以归还组任务
+    Task task = taskService
+            .createTaskQuery()
+            .taskId(taskId)
+            .taskAssignee(&quot;zhangsan01&quot;)
+            .singleResult();
+    if (task != null) {
+        // 将此任务交给其它候选人zhangsan02办理该 任务
+        taskService.setAssignee(taskId, &quot;zhangsan02&quot;);
+    }
+}
+</code></pre>
+<h2 id="7-网关">7、网关</h2>
+<p>网关用来控制流程的流向，通常会和流程变量一起使用。</p>
+<h3 id="71-排他网关">7.1、排他网关</h3>
+<ul>
+<li>排他网关：只有一条路径会被选择</li>
+</ul>
+<p>当你的流程出现这样的场景：请假申请，两天以内，部门经理审批流程就结束了，两天以上需要总经理直接审批，这个时候就需要排他网关</p>
+<figure data-type="image" tabindex="30"><img src="https://hualiang.online/post-images/1672021496641.png" alt="67202149664" loading="lazy"></figure>
+<h3 id="72-并行网关">7.2、并行网关</h3>
+<ul>
+<li>并（平）行网关：所有路径会被同时选择</li>
+</ul>
+<p>当出现这样的场景：请假申请开始，需要部门经理和总经理都审批，两者没有前后需要两个人全部审批才能进入下个节点人事审批。这个时候就需要并行网关</p>
+<figure data-type="image" tabindex="31"><img src="https://hualiang.online/post-images/image-20230213201822157.png" alt="image-20230213201822157" loading="lazy"></figure>
+<p><strong>与排他网关的主要区别是，并行网关不会解析条件。</strong> <strong>即使顺序流中定义了条件，也会被忽略。</strong></p>
+<h3 id="73-包含网关">7.3、包含网关</h3>
+<p>包容网关：可以同时执行多条线路，也可以在网关上设置条件，可以看做是排他网关和并行网关的结合体。<br>
+当出现这样的场景：请假申请大于等于2天需要由部门总经理审批，小于2天由部门经理审批，请假申请必须经过人事经理审批。这个时候就需要包含网关</p>
+<figure data-type="image" tabindex="32"><img src="https://hualiang.online/post-images/1672025869146.png" alt="67202586914" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%B8%80-%E4%BA%86%E8%A7%A3%E5%B7%A5%E4%BD%9C%E6%B5%81">一、了解工作流</a>
+<ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%B7%A5%E4%BD%9C%E6%B5%81">1、什么是工作流</a></li>
+<li><a href="#2-%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BC%95%E6%93%8E">2、工作流引擎</a></li>
+<li><a href="#3-%E5%B8%B8%E8%A7%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E5%BC%95%E6%93%8E">3、常见工作流引擎</a></li>
+<li><a href="#4-activiti7%E6%A6%82%E8%BF%B0">4、Activiti7概述</a>
+<ul>
+<li><a href="#41-activiti%E4%BB%8B%E7%BB%8D">4.1、Activiti介绍</a></li>
+<li><a href="#42-%E5%BB%BA%E6%A8%A1%E8%AF%AD%E8%A8%80bpmn">4.2、建模语言BPMN</a></li>
+<li><a href="#43-activiti%E4%BD%BF%E7%94%A8%E6%B5%81%E7%A8%8B">4.3、Activiti使用流程</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E4%BA%8C-activiti7">二、Activiti7</a>
+<ul>
+<li><a href="#1-activiti%E4%BD%BF%E7%94%A8">1、Activiti使用</a>
+<ul>
+<li><a href="#11-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%94%AF%E6%8C%81">1.1、数据库支持</a></li>
+<li><a href="#12-activiti%E7%8E%AF%E5%A2%83">1.2、Activiti环境</a>
+<ul>
+<li><a href="#121-%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96">1.2.1、引入依赖</a></li>
+<li><a href="#122-%E6%B7%BB%E5%8A%A0%E9%85%8D%E7%BD%AE">1.2.2、添加配置</a></li>
+<li><a href="#123-%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE">1.2.3、启动项目</a></li>
+<li><a href="#124-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%A8%E4%BB%8B%E7%BB%8D">1.2.4、数据库表介绍</a></li>
+</ul>
+</li>
+<li><a href="#13-activiti%E5%B8%B8%E7%94%A8service%E6%9C%8D%E5%8A%A1%E6%8E%A5%E5%8F%A3">1.3、Activiti常用Service服务接口</a></li>
+<li><a href="#14-%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%B7%A5%E5%85%B7">1.4、流程设计工具</a>
+<ul>
+<li><a href="#141-%E4%B8%8B%E8%BD%BDactiviti-explorer">1.4.1、下载activiti-explorer</a></li>
+<li><a href="#142-%E8%A7%A3%E5%8E%8B%E8%8E%B7%E5%8F%96%E9%83%A8%E7%BD%B2%E5%8C%85">1.4.2、解压获取部署包</a></li>
+<li><a href="#143-%E9%83%A8%E7%BD%B2activiti-explorerwar">1.4.3、部署activiti-explorer.war</a></li>
+<li><a href="#144-%E8%AE%BF%E9%97%AEactiviti-explorer">1.4.4、访问activiti-explorer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#2-activiti%E6%B5%81%E7%A8%8B%E6%93%8D%E4%BD%9C">2、Activiti流程操作</a>
+<ul>
+<li><a href="#21-%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89">2.1、流程定义</a>
+<ul>
+<li><a href="#211-%E6%96%B0%E5%BB%BA%E6%A8%A1%E5%9E%8B">2.1.1、新建模型</a></li>
+<li><a href="#212-%E5%BC%80%E5%A7%8B%E8%8A%82%E7%82%B9">2.1.2、开始节点</a></li>
+<li><a href="#213-%E4%BB%BB%E5%8A%A1%E8%8A%82%E7%82%B9">2.1.3、任务节点</a></li>
+<li><a href="#214-%E7%BB%93%E6%9D%9F%E8%8A%82%E7%82%B9">2.1.4、结束节点</a></li>
+<li><a href="#215-%E8%AE%BE%E7%BD%AE%E8%8A%82%E7%82%B9%E5%B1%9E%E6%80%A7">2.1.5、设置节点属性</a></li>
+<li><a href="#215-%E8%AE%BE%E7%BD%AE%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89key">2.1.5、设置流程定义key</a></li>
+<li><a href="#216-%E4%BF%9D%E5%AD%98%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9E%8B">2.1.6、保存流程定义模型</a></li>
+<li><a href="#217-%E4%B8%8B%E8%BD%BD%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89%E6%96%87%E4%BB%B6">2.1.7、下载流程定义文件</a></li>
+<li><a href="#218-%E4%B8%8B%E8%BD%BD%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89%E5%9B%BE%E7%89%87">2.1.8、下载流程定义图片</a></li>
+<li><a href="#219-%E5%B0%86%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E6%94%BE%E5%85%A5%E9%A1%B9%E7%9B%AE">2.1.9、将资源文件放入项目</a></li>
+</ul>
+</li>
+<li><a href="#22-%E6%B5%81%E7%A8%8B%E5%AE%9A%E4%B9%89%E9%83%A8%E7%BD%B2">2.2、流程定义部署</a>
+<ul>
+<li><a href="#221-%E5%8D%95%E4%B8%AA%E6%96%87%E4%BB%B6%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F">2.2.1、单个文件部署方式</a></li>
+<li><a href="#222-%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F">2.2.2、压缩包部署方式</a></li>
+<li><a href="#223-%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%A8">2.2.3、操作数据库表</a></li>
+</ul>
+</li>
+<li><a href="#23-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B">2.3、启动流程实例</a></li>
+<li><a href="#24-%E6%9F%A5%E8%AF%A2%E4%BB%BB%E5%8A%A1">2.4、查询任务</a></li>
+<li><a href="#25-%E5%A4%84%E7%90%86%E5%BD%93%E5%89%8D%E4%BB%BB%E5%8A%A1">2.5、处理当前任务</a></li>
+<li><a href="#26-%E6%9F%A5%E8%AF%A2%E5%B7%B2%E5%A4%84%E7%90%86%E4%BB%BB%E5%8A%A1">2.6、查询已处理任务</a></li>
+<li><a href="#27-%E5%85%B6%E4%BB%96%E6%8E%A5%E5%8F%A3%E4%BA%86%E8%A7%A3">2.7、其他接口（了解）</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B">3、流程实例</a>
+<ul>
+<li><a href="#31-%E4%BB%80%E4%B9%88%E6%98%AF%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B">3.1、什么是流程实例</a></li>
+<li><a href="#32-%E8%AE%A9%E5%AE%9E%E9%99%85%E4%B8%9A%E5%8A%A1%E4%B8%8Eactiviti%E8%A1%A8%E5%85%B3%E8%81%94businesskey">3.2、让实际业务与activiti表关联(BusinessKey)</a></li>
+<li><a href="#33-%E6%8C%82%E8%B5%B7%E6%BF%80%E6%B4%BB%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B">3.3、挂起，激活流程实例</a>
+<ul>
+<li><a href="#331-%E5%85%A8%E9%83%A8%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B%E6%8C%82%E8%B5%B7">3.3.1、全部流程实例挂起</a></li>
+<li><a href="#332-%E5%8D%95%E4%B8%AA%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B%E6%8C%82%E8%B5%B7">3.3.2、单个流程实例挂起</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#4-%E4%BB%BB%E5%8A%A1%E5%88%86%E9%85%8D">4、任务分配</a>
+<ul>
+<li><a href="#41-%E5%9B%BA%E5%AE%9A%E5%88%86%E9%85%8D">4.1、固定分配</a></li>
+<li><a href="#42-%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%88%86%E9%85%8D">4.2、表达式分配</a>
+<ul>
+<li><a href="#421-uel-value">4.2.1、UEL-value</a></li>
+<li><a href="#422-uel-method-%E6%96%B9%E5%BC%8F">4.2.2、UEL-method 方式</a></li>
+</ul>
+</li>
+<li><a href="#43-%E7%9B%91%E5%90%AC%E5%99%A8%E5%88%86%E9%85%8D">4.3、监听器分配</a></li>
+</ul>
+</li>
+<li><a href="#5-%E6%B5%81%E7%A8%8B%E5%8F%98%E9%87%8F">5、流程变量</a>
+<ul>
+<li><a href="#51-%E4%BB%80%E4%B9%88%E6%98%AF%E6%B5%81%E7%A8%8B%E5%8F%98%E9%87%8F">5.1、什么是流程变量</a></li>
+<li><a href="#52-%E6%B5%81%E7%A8%8B%E5%8F%98%E9%87%8F%E7%9A%84%E4%BD%9C%E7%94%A8%E5%9F%9F">5.2、流程变量的作用域</a>
+<ul>
+<li><a href="#521-globa%E5%8F%98%E9%87%8F">5.2.1、globa变量</a></li>
+<li><a href="#522-local%E5%8F%98%E9%87%8F">5.2.2、local变量</a></li>
+</ul>
+</li>
+<li><a href="#53-%E6%B5%81%E7%A8%8B%E5%8F%98%E9%87%8F%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95">5.3、流程变量的使用方法</a></li>
+<li><a href="#54-%E8%AE%BE%E7%BD%AEgloba%E5%8F%98%E9%87%8F">5.4、设置globa变量</a>
+<ul>
+<li><a href="#541-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%97%B6%E8%AE%BE%E7%BD%AE%E5%8F%98%E9%87%8F">5.4.1、启动流程时设置变量</a></li>
+<li><a href="#542-%E5%9C%A8%E4%BB%BB%E5%8A%A1%E5%8A%9E%E7%90%86%E6%97%B6%E8%AE%BE%E7%BD%AE%E6%B5%81%E7%A8%8B%E5%8F%98%E9%87%8F">5.4.2、在任务办理时设置流程变量</a></li>
+<li><a href="#543-%E9%80%9A%E8%BF%87%E5%BD%93%E5%89%8D%E6%B5%81%E7%A8%8B%E5%AE%9E%E4%BE%8B%E8%AE%BE%E7%BD%AE">5.4.3、通过当前流程实例设置</a></li>
+</ul>
+</li>
+<li><a href="#55-%E8%AE%BE%E7%BD%AElocal%E5%8F%98%E9%87%8F">5.5、设置Local变量</a></li>
+</ul>
+</li>
+<li><a href="#6-%E4%BB%BB%E5%8A%A1%E7%BB%84">6、任务组</a>
+<ul>
+<li><a href="#61-candidate-users%E5%80%99%E9%80%89%E4%BA%BA">6.1、Candidate-users候选人</a></li>
+<li><a href="#62-%E7%BB%84%E4%BB%BB%E5%8A%A1%E5%8A%9E%E7%90%86%E6%B5%81%E7%A8%8B">6.2、组任务办理流程</a></li>
+<li><a href="#63-%E5%85%B3%E9%94%AE%E4%BB%A3%E7%A0%81">6.3、关键代码</a>
+<ul>
+<li><a href="#631-%E9%83%A8%E7%BD%B2%E5%8F%8A%E5%90%AF%E5%8A%A8">6.3.1、部署及启动</a></li>
+<li><a href="#632-%E6%9F%A5%E8%AF%A2%E7%BB%84%E4%BB%BB%E5%8A%A1">6.3.2、查询组任务</a></li>
+<li><a href="#632-%E6%8B%BE%E5%8F%96%E7%BB%84%E4%BB%BB%E5%8A%A1">6.3.2、拾取组任务</a></li>
+<li><a href="#633-%E6%9F%A5%E8%AF%A2%E4%B8%AA%E4%BA%BA%E5%BE%85%E5%8A%9E%E4%BB%BB%E5%8A%A1">6.3.3、  查询个人待办任务</a></li>
+<li><a href="#634-%E5%8A%9E%E7%90%86%E4%B8%AA%E4%BA%BA%E4%BB%BB%E5%8A%A1">6.3.4、  办理个人任务</a></li>
+<li><a href="#635-%E5%BD%92%E8%BF%98%E7%BB%84%E4%BB%BB%E5%8A%A1">6.3.5、归还组任务</a></li>
+<li><a href="#636-%E4%BB%BB%E5%8A%A1%E4%BA%A4%E6%8E%A5">6.3.6、  任务交接</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#7-%E7%BD%91%E5%85%B3">7、网关</a>
+<ul>
+<li><a href="#71-%E6%8E%92%E4%BB%96%E7%BD%91%E5%85%B3">7.1、排他网关</a></li>
+<li><a href="#72-%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3">7.2、并行网关</a></li>
+<li><a href="#73-%E5%8C%85%E5%90%AB%E7%BD%91%E5%85%B3">7.3、包含网关</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/spring-security-permission-authentication/">
+              <h3 class="post-title">
+                Spring Security 权限管理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
