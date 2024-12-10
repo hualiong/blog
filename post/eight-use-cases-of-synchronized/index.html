@@ -1,0 +1,494 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>synchronized 的 8 种使用案例分析 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1733809793492">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="synchronized 的 8 种使用案例分析 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="你知道 synchronized 是怎么用的吗？😮
+
+现在有一个 HuaWei 类，它有三个方法 sendMail，sendSMS，hello
+class HuaWei {
+    
+    public synchronized voi..." />
+    <meta name="keywords" content="多线程,Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1733809793492" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              synchronized 的 8 种使用案例分析
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-12-18
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/ZPGViNQnD/" class="post-tag">
+                  # 多线程
+                </a>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>你知道 synchronized 是怎么用的吗？😮</p>
+<!-- more -->
+<p>现在有一个 <code>HuaWei</code> 类，它有三个方法 <code>sendMail</code>，<code>sendSMS</code>，<code>hello</code></p>
+<pre><code class="language-java">class HuaWei {
+    
+    public synchronized void sendMail() {
+        System.out.println(Thread.currentThread().getName() + &quot;: send Mail&quot;);
+    }
+
+    public synchronized void sendSMS() {
+        System.out.println(Thread.currentThread().getName() + &quot;: send SMS&quot;);
+    }
+
+    public void hello() {
+        System.out.println(Thread.currentThread().getName() + &quot;: say hello&quot;);
+    }
+
+}
+</code></pre>
+<p>我们会在以下 8 种案例下对方法进行访问并分析原因：</p>
+<ol>
+<li>标准访问有 A，B 两个线程，请问先打印邮件还是短信？</li>
+<li>sendEmail 方法中加入暂停 3 秒钟，请问先打印邮件还是短信？</li>
+<li>添加一个普通的 hello 方法，请问先打印邮件还是 hello？</li>
+<li>有 2 部手机，请问先打印邮件还是短信？</li>
+<li>有两个静态同步方法，有 1 部手机，请问先打印邮件还是短信？</li>
+<li>有两个静态同步方法，有 2 部手机，请问先打印邮件还是短信？</li>
+<li>有 1 个静态同步方法，有 1 个普通同步方法，有 1 部手机，请问先打印邮件还是短信？</li>
+<li>有 1 个静态同步方法，有 1 个普通同步方法，有 2 部手机，请问先打印邮件还是短信？</li>
+</ol>
+<hr>
+<h2 id="标准访问有-ab-两个线程请问先打印邮件还是短信">标准访问有 A，B 两个线程，请问先打印邮件还是短信？</h2>
+<pre><code class="language-java">public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        HuaWei huaWei = new HuaWei();
+        new Thread(() -&gt; {
+            huaWei.sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200); // 保证线程 A 先执行
+        new Thread(() -&gt; {
+            huaWei.sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下">结果如下：</h3>
+<pre><code>线程A: send Mail
+线程B: send SMS
+</code></pre>
+<h3 id="结果分析">结果分析：</h3>
+<p>加在普通方法上的 <code>synchronized</code> 使用当前对象作为监视器，是对象锁，同一时刻仅允许单个线程访问同一个对象实例。这里线程 A 先启动抢占锁，线程 B 后启动等待。虽然访问方法不同，但是是同一对象，必须等待锁释放后 B 才能访问该对象实例，故 A 先一步完成并打印结果。</p>
+<h2 id="sendemail-方法中加入暂停-3-秒钟请问先打印邮件还是短信">sendEmail 方法中加入暂停 3 秒钟，请问先打印邮件还是短信？</h2>
+<pre><code class="language-java">class HuaWei {
+    
+    public synchronized void sendMail() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(Thread.currentThread().getName() + &quot;: send Mail&quot;);
+    }
+
+    public synchronized void sendSMS() {
+        System.out.println(Thread.currentThread().getName() + &quot;: send SMS&quot;);
+    }
+
+    public void hello() {
+        System.out.println(Thread.currentThread().getName() + &quot;: say hello&quot;);
+    }
+
+}
+</code></pre>
+<h3 id="结果如下-2">结果如下：</h3>
+<pre><code>线程A: send Mail
+线程B: send SMS
+</code></pre>
+<h3 id="结果分析-2">结果分析：</h3>
+<p>虽然 A 睡了 1 秒，但 <code>Thread.sleep()</code> 方法不会使线程释放锁，因此 B 依旧无法拿到锁被迫等待，A 醒来后执行完毕并释放锁，B 拿到锁后才能执行。</p>
+<h2 id="添加一个普通的-hello-方法请问先打印邮件还是-hello">添加一个普通的 hello 方法，请问先打印邮件还是 hello？</h2>
+<p><code>HuaWei</code> 类不变，<code>MyTest</code> 如下：</p>
+<pre><code class="language-java">public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        HuaWei huaWei = new HuaWei();
+        new Thread(() -&gt; {
+            huaWei.sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            huaWei.hello(); // 调用 hello()
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下-3">结果如下：</h3>
+<pre><code>线程B: say hello
+线程A: send Mail
+</code></pre>
+<h3 id="结果分析-3">结果分析：</h3>
+<p>加在普通方法上的 <code>synchronized</code> 对象锁，仅会锁住对象实例上的所有同步方法，与普通方法不产生互斥。这里 A 先启动抢占锁后睡眠，B 后启动访问普通方法 <code>hello()</code> 不会产生互斥，无需等待锁释放即可执行完毕，因此 B 先一步打印结果。</p>
+<h2 id="有-2-部手机请问先打印邮件还是短信">有 2 部手机，请问先打印邮件还是短信？</h2>
+<p><code>HuaWei</code> 类不变，<code>MyTest</code> 如下：</p>
+<pre><code class="language-java">public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(() -&gt; {
+            new HuaWei().sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            new HuaWei().sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+</code></pre>
+<h3 id="结果如下-4">结果如下：</h3>
+<pre><code>线程B: say hello
+线程A: send Mail
+</code></pre>
+<h3 id="结果分析-4">结果分析：</h3>
+<p>对象锁只锁同一对象实例，不同对象之间的锁不相同。B 无需等待 A 的锁释放就能拿到自己对象的锁并执行方法，两者拿到的是不同的锁。又因为 A 要睡 1 秒，所以 B 先打印结果。</p>
+<h2 id="有两个静态同步方法有-1-部手机请问先打印邮件还是短信">有两个静态同步方法，有 1 部手机，请问先打印邮件还是短信？</h2>
+<pre><code class="language-java">package fun.hualiang.test;
+
+class HuaWei {
+    
+    public static synchronized void sendMail() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(Thread.currentThread().getName() + &quot;: send Mail&quot;);
+    }
+
+    public static synchronized void sendSMS() {
+        System.out.println(Thread.currentThread().getName() + &quot;: send SMS&quot;);
+    }
+
+    public void hello() {
+        System.out.println(Thread.currentThread().getName() + &quot;: say hello&quot;);
+    }
+
+}
+
+public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        HuaWei huaWei = new HuaWei();
+        new Thread(() -&gt; {
+            huaWei.sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            huaWei.sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下-5">结果如下：</h3>
+<pre><code>线程A: send Mail
+线程B: send SMS
+</code></pre>
+<h3 id="结果分析-5">结果分析：</h3>
+<p>加在静态方法上的 <code>synchronized</code> 使用当前类作为监视器，是类锁，同一时刻仅允许单个线程访问同一个类。这里的原因跟情况二类似，区别在于情况二拿到的是对象锁，这里拿到的是类锁。</p>
+<h2 id="有两个静态同步方法有-2-部手机请问先打印邮件还是短信">有两个静态同步方法，有 2 部手机，请问先打印邮件还是短信？</h2>
+<p><code>HuaWei</code> 类不变，<code>MyTest</code> 如下：</p>
+<pre><code class="language-java">public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(() -&gt; {
+            new HuaWei().sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            new HuaWei().sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下-6">结果如下：</h3>
+<pre><code>线程A: send Mail
+线程B: send SMS
+</code></pre>
+<h3 id="结果分析-6">结果分析：</h3>
+<p>这种情况与情况四的区别在于，情况四中 A 和 B 分别拿到的是不同对象上的对象锁，不会产生互斥。而这里因为静态方法是属于类的，所以 A 和 B 拿到的是同一个类的类锁，既然是同一把锁就会产生互斥。A 先启动拿到锁，B 就只能等 A 执行完释放锁后在执行，故 A 先一步打印结果。</p>
+<h2 id="有-1-个静态同步方法有-1-个普通同步方法有-1-部手机请问先打印邮件还是短信">有 1 个静态同步方法，有 1 个普通同步方法，有 1 部手机，请问先打印邮件还是短信？</h2>
+<pre><code class="language-java">package fun.hualiang.test;
+
+class HuaWei {
+    
+    public static synchronized void sendMail() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(Thread.currentThread().getName() + &quot;: send Mail&quot;);
+    }
+
+    public synchronized void sendSMS() {
+        System.out.println(Thread.currentThread().getName() + &quot;: send SMS&quot;);
+    }
+
+    public void hello() {
+        System.out.println(Thread.currentThread().getName() + &quot;: say hello&quot;);
+    }
+
+}
+
+public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        HuaWei huaWei = new HuaWei();
+        new Thread(() -&gt; {
+            huaWei.sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            huaWei.sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下-7">结果如下：</h3>
+<pre><code>线程B: send SMS
+线程A: send Mail
+</code></pre>
+<h3 id="结果分析-7">结果分析：</h3>
+<p>B 拿的是对象锁，A 拿的是类锁，不同的锁不会发生互斥，因此结果与情况四类似，都是拿到不同的锁。</p>
+<h2 id="有-1-个静态同步方法有-1-个普通同步方法有-2-部手机请问先打印邮件还是短信">有 1 个静态同步方法，有 1 个普通同步方法，有 2 部手机，请问先打印邮件还是短信？</h2>
+<p><code>HuaWei</code> 类不变，<code>MyTest</code> 如下：</p>
+<pre><code class="language-java">public class MyTest {
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(() -&gt; {
+            new HuaWei().sendMail();
+        }, &quot;线程A&quot;).start();
+        Thread.sleep(200);
+        new Thread(() -&gt; {
+            new HuaWei().sendSMS();
+        }, &quot;线程B&quot;).start();
+    }
+}
+</code></pre>
+<h3 id="结果如下-8">结果如下：</h3>
+<pre><code>线程B: send SMS
+线程A: send Mail
+</code></pre>
+<h3 id="结果分析-8">结果分析：</h3>
+<p>与情况七一致，即使是不同对象，也不影响 B 拿的是对象锁，A 拿的是类锁，因此结果一致。</p>
+<hr>
+<h2 id="总结">总结</h2>
+<p>综上所述，多线程是否同步的关键在于：<strong>它们是否拿到的是同一把锁</strong>。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%A0%87%E5%87%86%E8%AE%BF%E9%97%AE%E6%9C%89-ab-%E4%B8%A4%E4%B8%AA%E7%BA%BF%E7%A8%8B%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">标准访问有 A，B 两个线程，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#sendemail-%E6%96%B9%E6%B3%95%E4%B8%AD%E5%8A%A0%E5%85%A5%E6%9A%82%E5%81%9C-3-%E7%A7%92%E9%92%9F%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">sendEmail 方法中加入暂停 3 秒钟，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-2">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-2">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%B7%BB%E5%8A%A0%E4%B8%80%E4%B8%AA%E6%99%AE%E9%80%9A%E7%9A%84-hello-%E6%96%B9%E6%B3%95%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF-hello">添加一个普通的 hello 方法，请问先打印邮件还是 hello？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-3">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-3">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%89-2-%E9%83%A8%E6%89%8B%E6%9C%BA%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">有 2 部手机，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-4">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-4">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%89%E4%B8%A4%E4%B8%AA%E9%9D%99%E6%80%81%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-1-%E9%83%A8%E6%89%8B%E6%9C%BA%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">有两个静态同步方法，有 1 部手机，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-5">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-5">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%89%E4%B8%A4%E4%B8%AA%E9%9D%99%E6%80%81%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-2-%E9%83%A8%E6%89%8B%E6%9C%BA%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">有两个静态同步方法，有 2 部手机，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-6">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-6">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%89-1-%E4%B8%AA%E9%9D%99%E6%80%81%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-1-%E4%B8%AA%E6%99%AE%E9%80%9A%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-1-%E9%83%A8%E6%89%8B%E6%9C%BA%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">有 1 个静态同步方法，有 1 个普通同步方法，有 1 部手机，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-7">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-7">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%89-1-%E4%B8%AA%E9%9D%99%E6%80%81%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-1-%E4%B8%AA%E6%99%AE%E9%80%9A%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95%E6%9C%89-2-%E9%83%A8%E6%89%8B%E6%9C%BA%E8%AF%B7%E9%97%AE%E5%85%88%E6%89%93%E5%8D%B0%E9%82%AE%E4%BB%B6%E8%BF%98%E6%98%AF%E7%9F%AD%E4%BF%A1">有 1 个静态同步方法，有 1 个普通同步方法，有 2 部手机，请问先打印邮件还是短信？</a>
+<ul>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%A6%82%E4%B8%8B-8">结果如下：</a></li>
+<li><a href="#%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90-8">结果分析：</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/23-design-patterns/">
+              <h3 class="post-title">
+                23 种设计模式（Design Patterns）
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
