@@ -1,0 +1,604 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>贡献指南 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1757924991202">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="贡献指南 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="本文档提供了创建新 Tachiyomi 扩展的说明和技巧。如果您是首次贡献者或对所需语言和技术缺乏经验，请仔细阅读。
+本指南并非最终版，会持续更新。如果您发现任何问题，欢迎通过 元问题（Meta Issue） 报告，或直接提交 Pull R..." />
+    <meta name="keywords" content="Other" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1757924991202" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              贡献指南
+            </h2>
+            <div class="post-info">
+              <span>
+                2025-06-14
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+                  # Other
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>本文档提供了创建新 Tachiyomi 扩展的说明和技巧。如果您是首次贡献者或对所需语言和技术缺乏经验，请<strong>仔细阅读</strong>。</p>
+<p>本指南并非最终版，会持续更新。如果您发现任何问题，欢迎通过 <a href="https://github.com/keiyoushi/extensions-source/issues/new?assignees=&amp;labels=Meta+request&amp;template=06_request_meta.yml">元问题（Meta Issue）</a> 报告，或直接提交 Pull Request 修复。</p>
+<h2 id="目录">目录</h2>
+<ol>
+<li><a href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">前提条件</a>
+<ol>
+<li><a href="#%E5%B7%A5%E5%85%B7">工具</a></li>
+<li><a href="#%E5%85%8B%E9%9A%86%E4%BB%93%E5%BA%93">克隆仓库</a></li>
+</ol>
+</li>
+<li><a href="#%E8%8E%B7%E5%8F%96%E5%B8%AE%E5%8A%A9">获取帮助</a></li>
+<li><a href="#%E7%BC%96%E5%86%99%E6%89%A9%E5%B1%95">编写扩展</a>
+<ol>
+<li><a href="#%E8%AE%BE%E7%BD%AE%E6%96%B0%E7%9A%84-gradle-%E6%A8%A1%E5%9D%97">设置新的 Gradle 模块</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E4%BE%9D%E8%B5%96">核心依赖</a></li>
+<li><a href="#%E6%89%A9%E5%B1%95%E4%B8%BB%E7%B1%BB">扩展主类</a></li>
+<li><a href="#%E6%89%A9%E5%B1%95%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B">扩展调用流程</a></li>
+<li><a href="#%E5%85%B6%E4%BB%96%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">其他注意事项</a></li>
+<li><a href="#%E9%AB%98%E7%BA%A7%E6%89%A9%E5%B1%95%E5%8A%9F%E8%83%BD">高级扩展功能</a></li>
+</ol>
+</li>
+<li><a href="#%E5%A4%9A%E6%BA%90%E4%B8%BB%E9%A2%98">多源主题</a>
+<ol>
+<li><a href="#%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84">目录结构</a></li>
+<li><a href="#%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B">开发流程</a></li>
+<li><a href="#%E8%84%9A%E6%89%8B%E6%9E%B6%E8%A6%86%E7%9B%96">脚手架覆盖</a></li>
+<li><a href="#%E9%99%84%E5%8A%A0%E8%AF%B4%E6%98%8E">附加说明</a></li>
+</ol>
+</li>
+<li><a href="#%E8%BF%90%E8%A1%8C">运行</a></li>
+<li><a href="#%E8%B0%83%E8%AF%95">调试</a>
+<ol>
+<li><a href="#android-%E8%B0%83%E8%AF%95%E5%99%A8">Android 调试器</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97">日志</a></li>
+<li><a href="#%E6%A3%80%E6%9F%A5%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82">检查网络请求</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E6%A3%80%E6%9F%A5%E5%B7%A5%E5%85%B7">使用外部网络检查工具</a></li>
+</ol>
+</li>
+<li><a href="#%E6%9E%84%E5%BB%BA">构建</a></li>
+<li><a href="#%E6%8F%90%E4%BA%A4%E6%9B%B4%E6%94%B9">提交更改</a>
+<ol>
+<li><a href="#pull-request-%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95">Pull Request 检查清单</a></li>
+</ol>
+</li>
+</ol>
+<hr>
+<h2 id="前提条件">前提条件</h2>
+<p>开始前请注意，以下技术的使用能力是<strong>必需的</strong>，现有贡献者不会主动教授这些知识：</p>
+<ul>
+<li>基础 <a href="https://developer.android.com/">Android 开发</a></li>
+<li><a href="https://kotlinlang.org/">Kotlin</a></li>
+<li>网页抓取
+<ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTML">HTML</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_Selectors">CSS 选择器</a></li>
+<li><a href="https://square.github.io/okhttp/">OkHttp</a></li>
+<li><a href="https://jsoup.org/">JSoup</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="工具">工具</h3>
+<ul>
+<li><a href="https://developer.android.com/studio">Android Studio</a></li>
+<li>已启用开发者选项的模拟器或手机，并安装最新版 Tachiyomi</li>
+<li><a href="https://as280093.github.io/AndroidAssetStudio/icons-launcher.html">图标生成器</a></li>
+</ul>
+<h3 id="克隆仓库">克隆仓库</h3>
+<p>若仓库过大且包含大量源，可执行以下步骤跳过无关内容，加快克隆、导航和构建速度。此方法也可减少磁盘占用和网络流量。</p>
+<p><strong>仅当仓库巨大且包含大量源时需执行这些步骤。若仓库较小，请直接完整克隆。</strong></p>
+<h3 id="步骤">步骤</h3>
+<ol>
+<li>
+<p>执行部分克隆：</p>
+<pre><code class="language-bash">git clone --filter=blob:none --sparse &lt;fork-repo-url&gt;
+cd extensions-source/
+</code></pre>
+</li>
+<li>
+<p>配置稀疏检出（Sparse Checkout）：</p>
+<p>有两种模式：默认的锥形（🔺）模式和非锥形模式。锥形模式在大仓库中匹配更快，但灵活性较低。若需简单过滤，可跳过锥形模式。</p>
+<p><strong>锥形模式</strong>：</p>
+<pre><code class="language-bash">git sparse-checkout set --cone --sparse-index
+# 添加项目目录
+git sparse-checkout add buildSrc core gradle lib lib-multisrc utils
+# 添加单个源
+git sparse-checkout add src/&lt;lang&gt;/&lt;source&gt;
+</code></pre>
+<p><strong>非锥形模式</strong>：</p>
+<pre><code class="language-bash">git sparse-checkout set --no-cone
+# 编辑过滤规则（示例）
+/*
+!/src/*
+!/multisrc-lib/*
+/src/&lt;lang&gt;/&lt;source&gt;
+/lib-multisrc/&lt;source&gt;
+</code></pre>
+</li>
+<li>
+<p>配置远程仓库：</p>
+<pre><code class="language-bash">git remote add upstream &lt;keiyoushi-repo-url&gt;
+git remote set-url --push upstream no_pushing
+git config remote.upstream.fetch &quot;+refs/heads/main:refs/remotes/upstream/main&quot;
+git remote update
+git branch main -u upstream/main
+</code></pre>
+</li>
+<li>
+<p>可选实用配置：</p>
+<pre><code class="language-bash">git config remote.origin.prune true
+git config pull.ff only
+git config alias.sync-main '!git switch main &amp;&amp; git fetch upstream &amp;&amp; git reset --keep FETCH_HEAD'
+</code></pre>
+</li>
+<li>
+<p>若修改稀疏检出规则，运行：</p>
+<pre><code class="language-bash">git sparse-checkout reapply
+</code></pre>
+</li>
+</ol>
+<p>详情参阅 <a href="https://git-scm.com/docs">Git 文档</a>。</p>
+<hr>
+<h2 id="获取帮助">获取帮助</h2>
+<ul>
+<li>加入 <a href="https://discord.gg/3FbCpdKbdY">Discord 服务器</a> 的 <code>#programming</code> 频道提问。</li>
+<li>参考现有扩展代码示例，部分功能未在本文档中提及。</li>
+</ul>
+<hr>
+<h2 id="编写扩展">编写扩展</h2>
+<p>建议复制现有扩展的目录结构并按需重命名。开始前请阅读现有扩展代码。</p>
+<h3 id="设置新的-gradle-模块">设置新的 Gradle 模块</h3>
+<p>每个扩展应位于 <code>src/&lt;lang&gt;/&lt;mysourcename&gt;</code>。若源支持多语言，使用 <code>all</code> 作为 <code>&lt;lang&gt;</code>。</p>
+<p>文件夹中的 <code>&lt;lang&gt;</code> 应为主要语言代码（如 <code>pt-BR</code> 对应 <code>pt</code>），源类中使用完整区域代码。</p>
+<h3 id="加载部分-gradle-模块">加载部分 Gradle 模块</h3>
+<p>默认加载所有扩展，若需仅加载部分，调整 <code>settings.gradle.kts</code> 文件。</p>
+<h4 id="扩展文件结构">扩展文件结构</h4>
+<p>基本结构示例：</p>
+<pre><code class="language-console">src/&lt;lang&gt;/&lt;mysourcename&gt;/
+├── AndroidManifest.xml (可选)
+├── build.gradle
+├── res
+│   └── ...（图标）
+└── src
+    └── eu
+        └── kanade
+            └── tachiyomi
+                └── extension
+                    └── &lt;lang&gt;
+                        └── &lt;mysourcename&gt;
+                            └── &lt;MySourceName&gt;.kt
+</code></pre>
+<p>包名必须为 <code>eu.kanade.tachiyomi.extension.&lt;lang&gt;.&lt;mysourcename&gt;</code>。</p>
+<h4 id="buildgradle-结构">build.gradle 结构</h4>
+<pre><code class="language-groovy">ext {
+    extName = '&lt;源名称&gt;'
+    extClass = '.&lt;主类名&gt;'
+    extVersionCode = 1
+    isNsfw = true
+}
+
+apply from: &quot;$rootDir/common.gradle&quot;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extName</code></td>
+<td>扩展名称，非英文需罗马化</td>
+</tr>
+<tr>
+<td><code>extClass</code></td>
+<td>实现 <code>Source</code> 的类路径（以点开头）</td>
+</tr>
+<tr>
+<td><code>extVersionCode</code></td>
+<td>版本号，每次代码变更需递增</td>
+</tr>
+<tr>
+<td><code>isNsfw</code></td>
+<td>（可选）标记是否包含 NSFW 内容，默认 <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p>版本名自动生成（如 <code>1.4.1</code>）。</p>
+<hr>
+<h2 id="核心依赖">核心依赖</h2>
+<h3 id="扩展-api">扩展 API</h3>
+<p>依赖 <a href="https://github.com/tachiyomiorg/extensions-lib">extensions-lib</a>，实际实现参考 <a href="https://github.com/tachiyomiorg/tachiyomi">主应用代码</a>。</p>
+<h3 id="其他库">其他库</h3>
+<ul>
+<li><strong>lib-dataimage</strong>：处理 Base64 图片数据。</li>
+<li><strong>lib-i18n</strong>：国际化支持，加载 <code>assets/i18n</code> 下的翻译文件。</li>
+</ul>
+<p>添加依赖示例：</p>
+<pre><code class="language-groovy">dependencies {
+    implementation(project(':lib-dataimage'))
+    implementation(project(':lib-i18n'))
+}
+</code></pre>
+<hr>
+<h2 id="扩展主类">扩展主类</h2>
+<p>主类需实现 <code>SourceFactory</code> 或继承 <code>HttpSource</code>/<code>ParsedHttpSource</code>。</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SourceFactory</code></td>
+<td>暴露多个源（如多语言/镜像）</td>
+</tr>
+<tr>
+<td><code>HttpSource</code></td>
+<td>基于 HTTP 的在线源</td>
+</tr>
+<tr>
+<td><code>ParsedHttpSource</code></td>
+<td>支持网页抓取的工具类</td>
+</tr>
+</tbody>
+</table>
+<h3 id="关键字段">关键字段</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>在“来源”列表中显示的名称</td>
+</tr>
+<tr>
+<td><code>baseUrl</code></td>
+<td>基础 URL（不带末尾斜杠）</td>
+</tr>
+<tr>
+<td><code>lang</code></td>
+<td>ISO 639-1 语言代码</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>源标识符，通常自动生成</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="扩展调用流程">扩展调用流程</h2>
+<h3 id="热门漫画popular-manga">热门漫画（Popular Manga）</h3>
+<ul>
+<li>应用调用 <code>fetchPopularManga</code> 返回首批漫画列表，支持分页。</li>
+<li>必须设置 <code>url</code>、<code>title</code> 和 <code>thumbnail_url</code>。</li>
+</ul>
+<h3 id="最新漫画latest-manga">最新漫画（Latest Manga）</h3>
+<ul>
+<li>若 <code>supportsLatest</code> 为 <code>true</code>，显示“最新”按钮。</li>
+<li>流程与热门漫画类似。</li>
+</ul>
+<h3 id="漫画搜索manga-search">漫画搜索（Manga Search）</h3>
+<ul>
+<li><code>fetchSearchManga</code> 处理搜索请求，支持过滤器。</li>
+<li>过滤器类型包括选择框、文本输入、排序等。</li>
+</ul>
+<h3 id="漫画详情manga-details">漫画详情（Manga Details）</h3>
+<ul>
+<li>用户点击漫画时调用 <code>getMangaDetails</code> 和 <code>getChapterList</code>。</li>
+<li><code>SManga</code> 通过 <code>url</code> 标识。</li>
+<li>章节列表需按源顺序降序排列。</li>
+</ul>
+<hr>
+<h2 id="高级功能">高级功能</h2>
+<h3 id="url-意图过滤器">URL 意图过滤器</h3>
+<p>通过 <code>AndroidManifest.xml</code> 添加深度链接支持。测试命令：</p>
+<pre><code class="language-bash">adb shell am start -d &quot;&lt;链接&gt;&quot; -a android.intent.action.VIEW
+</code></pre>
+<h3 id="更新策略">更新策略</h3>
+<ul>
+<li><code>UpdateStrategy.ALWAYS_UPDATE</code>：默认，始终更新。</li>
+<li><code>UpdateStrategy.ONLY_FETCH_ONCE</code>：仅首次获取，适用于完结作品。</li>
+</ul>
+<h3 id="重命名现有源">重命名现有源</h3>
+<p>需保持 <code>id</code> 不变以避免用户迁移。示例：</p>
+<pre><code class="language-kotlin">override val id: Long = &lt;旧ID&gt;
+</code></pre>
+<hr>
+<h2 id="多源主题">多源主题</h2>
+<p><code>multisrc</code> 模块用于生成基于相同 CMS 的多个源。目录结构：</p>
+<pre><code class="language-console">multisrc
+├── overrides
+│   └── &lt;主题包&gt;
+│       ├── default      # 默认图标和配置
+│       └── &lt;源包&gt;       # 单个源的覆盖文件
+└── src
+    └── main
+        └── java         # 主题默认实现和生成器
+</code></pre>
+<h3 id="开发流程">开发流程</h3>
+<ol>
+<li><strong>生成代码</strong>：
+<ul>
+<li>运行主题生成器或执行 <code>./gradlew multisrc:generateExtensions</code>。</li>
+</ul>
+</li>
+<li><strong>同步 Gradle</strong>：导入生成的模块。</li>
+<li><strong>测试扩展</strong>：与普通扩展相同。</li>
+</ol>
+<hr>
+<h2 id="运行">运行</h2>
+<p>在 Android Studio 中使用以下配置直接启动到“浏览”界面：</p>
+<figure data-type="image" tabindex="1"><img src="https://i.imgur.com/STy0UFY.png" alt="" loading="lazy"></figure>
+<p>调试版命令：</p>
+<pre><code>-W -S -n eu.kanade.tachiyomi.debug/eu.kanade.tachiyomi.ui.main.MainActivity -a eu.kanade.tachiyomi.SHOW_CATALOGUES
+</code></pre>
+<hr>
+<h2 id="调试">调试</h2>
+<h3 id="android-调试器">Android 调试器</h3>
+<p>使用 <strong>Attach Debugger to Android Process</strong> 附加到 Tachiyomi 进程。</p>
+<h3 id="日志">日志</h3>
+<p>通过 Android Studio 的 <strong>Logcat</strong> 面板查看日志，过滤 <code>OkHttpClient</code> 标签。</p>
+<h3 id="网络检查">网络检查</h3>
+<p>启用详细日志（设置 → 高级 → 详细日志）后，可通过以下方式检查请求：</p>
+<ul>
+<li><strong>内置网络分析器</strong>：使用 Android Studio 的 Network Inspector。</li>
+<li><strong>mitm-proxy</strong>：设置代理并禁用 SSL 验证（示例代码见文档）。</li>
+</ul>
+<hr>
+<h2 id="构建">构建</h2>
+<p>通过 Android Studio 生成 APK，或命令行：</p>
+<pre><code class="language-bash">./gradlew src:&lt;lang&gt;:&lt;source&gt;:assembleDebug
+</code></pre>
+<hr>
+<h2 id="提交更改">提交更改</h2>
+<p>提交 Pull Request 前请确保：</p>
+<ul>
+<li>更新 <code>extVersionCode</code> 或 <code>overrideVersionCode</code>。</li>
+<li>引用相关 Issue（如 <code>Closes #xyz</code>）。</li>
+<li>测试修改后的扩展。</li>
+<li>移除自动生成的 <code>web_hi_res_512.png</code>。</li>
+</ul>
+<h3 id="pull-request-检查清单">Pull Request 检查清单</h3>
+<ul class="contains-task-list">
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-6759865"> 更新单源的 <label class="task-list-item-label" for="task-item-6759865"> 更新单源的 `extVersionCode`</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-138700"> 更新多源的 <code>overrideVersionCode</code> 或 <label class="task-list-item-label" for="task-item-138700"> 更新多源的 `overrideVersionCode` 或 `baseVersionCode`</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-9993207"><label class="task-list-item-label" for="task-item-9993207"> 关联所有相关 Issue</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-5901774"> 标记 <code>isNsfw</code><label class="task-list-item-label" for="task-item-5901774"> 标记 `isNsfw`（如适用）</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-8186193"><label class="task-list-item-label" for="task-item-8186193"> 未修改源名称</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-4059677"> 保留重命名源的 <label class="task-list-item-label" for="task-item-4059677"> 保留重命名源的 `id`</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-6169783"><label class="task-list-item-label" for="task-item-6169783"> 通过 Android Studio 编译测试</label></li>
+<li class="task-list-item"><input class="task-list-item-checkbox" disabled="" type="checkbox" id="task-item-9590745"> 移除新扩展的 <label class="task-list-item-label" for="task-item-9590745"> 移除新扩展的 `web_hi_res_512.png`</label></li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%9B%AE%E5%BD%95">目录</a></li>
+<li><a href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">前提条件</a>
+<ul>
+<li><a href="#%E5%B7%A5%E5%85%B7">工具</a></li>
+<li><a href="#%E5%85%8B%E9%9A%86%E4%BB%93%E5%BA%93">克隆仓库</a></li>
+<li><a href="#%E6%AD%A5%E9%AA%A4">步骤</a></li>
+</ul>
+</li>
+<li><a href="#%E8%8E%B7%E5%8F%96%E5%B8%AE%E5%8A%A9">获取帮助</a></li>
+<li><a href="#%E7%BC%96%E5%86%99%E6%89%A9%E5%B1%95">编写扩展</a>
+<ul>
+<li><a href="#%E8%AE%BE%E7%BD%AE%E6%96%B0%E7%9A%84-gradle-%E6%A8%A1%E5%9D%97">设置新的 Gradle 模块</a></li>
+<li><a href="#%E5%8A%A0%E8%BD%BD%E9%83%A8%E5%88%86-gradle-%E6%A8%A1%E5%9D%97">加载部分 Gradle 模块</a>
+<ul>
+<li><a href="#%E6%89%A9%E5%B1%95%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84">扩展文件结构</a></li>
+<li><a href="#buildgradle-%E7%BB%93%E6%9E%84">build.gradle 结构</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E4%BE%9D%E8%B5%96">核心依赖</a>
+<ul>
+<li><a href="#%E6%89%A9%E5%B1%95-api">扩展 API</a></li>
+<li><a href="#%E5%85%B6%E4%BB%96%E5%BA%93">其他库</a></li>
+</ul>
+</li>
+<li><a href="#%E6%89%A9%E5%B1%95%E4%B8%BB%E7%B1%BB">扩展主类</a>
+<ul>
+<li><a href="#%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5">关键字段</a></li>
+</ul>
+</li>
+<li><a href="#%E6%89%A9%E5%B1%95%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B">扩展调用流程</a>
+<ul>
+<li><a href="#%E7%83%AD%E9%97%A8%E6%BC%AB%E7%94%BBpopular-manga">热门漫画（Popular Manga）</a></li>
+<li><a href="#%E6%9C%80%E6%96%B0%E6%BC%AB%E7%94%BBlatest-manga">最新漫画（Latest Manga）</a></li>
+<li><a href="#%E6%BC%AB%E7%94%BB%E6%90%9C%E7%B4%A2manga-search">漫画搜索（Manga Search）</a></li>
+<li><a href="#%E6%BC%AB%E7%94%BB%E8%AF%A6%E6%83%85manga-details">漫画详情（Manga Details）</a></li>
+</ul>
+</li>
+<li><a href="#%E9%AB%98%E7%BA%A7%E5%8A%9F%E8%83%BD">高级功能</a>
+<ul>
+<li><a href="#url-%E6%84%8F%E5%9B%BE%E8%BF%87%E6%BB%A4%E5%99%A8">URL 意图过滤器</a></li>
+<li><a href="#%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5">更新策略</a></li>
+<li><a href="#%E9%87%8D%E5%91%BD%E5%90%8D%E7%8E%B0%E6%9C%89%E6%BA%90">重命名现有源</a></li>
+</ul>
+</li>
+<li><a href="#%E5%A4%9A%E6%BA%90%E4%B8%BB%E9%A2%98">多源主题</a>
+<ul>
+<li><a href="#%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B">开发流程</a></li>
+</ul>
+</li>
+<li><a href="#%E8%BF%90%E8%A1%8C">运行</a></li>
+<li><a href="#%E8%B0%83%E8%AF%95">调试</a>
+<ul>
+<li><a href="#android-%E8%B0%83%E8%AF%95%E5%99%A8">Android 调试器</a></li>
+<li><a href="#%E6%97%A5%E5%BF%97">日志</a></li>
+<li><a href="#%E7%BD%91%E7%BB%9C%E6%A3%80%E6%9F%A5">网络检查</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9E%84%E5%BB%BA">构建</a></li>
+<li><a href="#%E6%8F%90%E4%BA%A4%E6%9B%B4%E6%94%B9">提交更改</a>
+<ul>
+<li><a href="#pull-request-%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95">Pull Request 检查清单</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
