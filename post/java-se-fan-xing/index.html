@@ -1,0 +1,314 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】十八、泛型 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】十八、泛型 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 泛型（generics）是 JDK 5 中引入的一个新特性，就是允许在定义类、接口时通过一个标识表示类中某个属性的类型或某个方法的返回值及参数类型，这个泛型类型将在使用时确定。
+
+使用泛型
+我们可以在集合中使用泛型，如下：
+pub..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】十八、泛型
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-20
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 泛型（generics）是 JDK 5 中引入的一个新特性，就是允许在定义类、接口时通过一个<strong>标识</strong>表示类中某个属性的类型或某个方法的返回值及参数类型，这个<strong>泛型类型</strong>将在使用时确定。</p>
+<!-- more -->
+<h2 id="使用泛型">使用泛型</h2>
+<p>我们可以在集合中使用泛型，如下：</p>
+<pre><code class="language-java">public static void main(String[] args) {
+    ArrayList&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();
+    list.add(123);
+ // list.add(&quot;fuck&quot;); 编译不通过
+    
+    HashMap&lt;String,Integer&gt; map = new HashMap&lt;&gt;(); // 双参泛型，其实后面的泛型可省略，反正和前面一样
+    map.put(&quot;A&quot;, 1);
+ // map.put(2, &quot;B&quot;); 编译不通过
+    Set&lt;Entry&lt;String,Integer&gt;&gt; entry = map.entrySet(); // 因为返回值也是泛型嵌套结构，所以也要用泛型创建引用
+}
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>集合接口或集合类在 JDK 5.0 时都修改为带泛型结构，所以在实例化集合类时，需指明具体的泛型类型</li>
+<li>指明后，在集合类或接口中凡是定义类或接口时，内部结构用到泛型的位置都指定为实例化所传入的类型</li>
+<li>泛型类型必须是类，不能是基本数据类型，但可以用包装类代替，如上面的 <code>Integer</code></li>
+<li>若没有指明泛型类型，则默认类型为 <code>Object</code></li>
+<li><strong>泛型不同的引用不能相互赋值</strong>，如 <code>ArrayList&lt;Integer&gt;</code> 和  <code>ArrayList&lt;String&gt;</code></li>
+</ul>
+<h2 id="自定义泛型">自定义泛型</h2>
+<p>自定义泛型的过程其实很简单，只需要把不确定的类型用泛型类型代替即可，示例如下：</p>
+<pre><code class="language-java">public class Test&lt;T&gt; { // 第一种用法：自定义泛型类
+    T unknowData; // 用泛型类型声明未知变量
+    static int[] arr = {1, 2, 3, 4};
+    
+    public Test(T unknowData) { // 用泛型类型声明形参，这不是泛型方法
+        this.unknowData = unknowData;
+        List&lt;Integer&gt; list = Test2(arr); // 指明泛型方法的泛型类型
+    }
+    // 第三种用法：自定义泛型方法
+    public static &lt;E&gt; List&lt;E&gt; Test2(E[] arr) {...} // 其泛型类型与类的无关，所以可以是静态的
+}
+public interface Test1&lt;T&gt;; // 第二种用法：自定义泛型接口
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li><strong>异常类和静态方法中不能使用泛型类型</strong>，后者是因为还没实例化传入类的泛型类型，但是<strong>泛型方法可以是静态的</strong></li>
+<li><strong>不能直接使用泛型类型创建数组</strong>，只能 <code>T[] arr = (T[]) new Object[10]</code> 这样来间接创建</li>
+</ul>
+<h2 id="泛型的继承">泛型的继承</h2>
+<p>泛型的继承情况有点复杂，这里只讲解两点可能会出现的情况。</p>
+<h3 id="泛型的子父类关系">泛型的子父类关系</h3>
+<p>具体分为两种情况：<code>G&lt;A&gt;</code> &amp; <code>G&lt;B&gt;</code> 和 <code>A&lt;G&gt;</code> &amp; <code>B&lt;G&gt;</code></p>
+<pre><code class="language-java">public void test1() {
+    // 虽然类A是类B的父类，但是G&lt;A&gt;和G&lt;B&gt;二者不具备子父类关系，二者是并列关系
+    List&lt;Object&gt; list1 = null;
+    List&lt;String&gt; list2 = null;
+ // list1 = list2; 编译不通过
+    // 如果类A是类B的父类，则A&lt;G&gt;就是B&lt;G&gt;的父类，二者是父子关系
+    List&lt;String&gt; list3 = null;
+    ArrayList&lt;String&gt; list4 = null;
+    list3 = list4; // 编译通过
+}
+</code></pre>
+<p><em>注：情况一也对应了注意事项中所说的：<strong>泛型不同的引用不能相互赋值</strong></em></p>
+<h3 id="泛型的保留">泛型的保留</h3>
+<p>在父类使用泛型的情况下，子类在继承时可以选择<strong>全保留</strong>和<strong>部分保留</strong>父类的泛型或是<strong>重定义</strong>泛型</p>
+<pre><code class="language-java">class Father&lt;T1,T2&gt; {}
+
+// 子类不保留父类的泛型，直接指明父类的泛型类型就可以保证子类继承的是已经确定的类型而不是泛型
+class Son1 extends Father {} // 默认Object类型
+
+class Son2 extends Father&lt;Integer,String&gt; {} // 具体类型
+
+// 子类保留父类的泛型，父类的泛型类型是否指明可决定子类是否继承泛型
+class Son3&lt;T1,T2&gt; extends Father&lt;T1,T2&gt; {} // 全保留
+
+class Son4&lt;T2&gt; extends Father&lt;Integer,T2&gt; {} // 部分保留
+</code></pre>
+<h2 id="通配符">通配符</h2>
+<p>在上文我们讲到泛型不同的引用不具有父子关系，这导致值传递时无法使用多态性，我们不得不多写几个方法重载，那样十分繁琐。因此 Java 提供了通配符 <code>?</code> 来作为两者的共同“父类”来实现多态性。</p>
+<pre><code class="language-java">public void test(){
+    List&lt;Object&gt; list1 = null;
+    List&lt;String&gt; list2 = null; 
+    List&lt;?&gt; list = null;
+    
+    // 作为两者的共同“父类”
+    list = list1; // 编译通过
+    list = list2; // 编译通过
+    
+    // 对于List&lt;?&gt;，除了null以外，不能向其内部添加其他数据
+ // list.add(&quot;shit&quot;); 编译不通过
+    
+    // 但可以读取数据且只能为Object
+    Object o = new list.get(0); // 编译通过
+}
+</code></pre>
+<p>Java 还允许我们对通配符加上限制条件，有三种用法：<code>&lt;? extends 类&gt;</code> 、<code>&lt;? super 类&gt;</code> 、<code>&lt;? extends Comparable&gt;</code></p>
+<pre><code class="language-java">// Person是Student的父类
+public void test() {
+    List&lt;? extends Person&gt; list1 = null; // (-∞, Person]，读取数据可以用Person作引用
+    List&lt;? super Person&gt; list2 = null; // [Person, +∞)，读取数据只能为Object
+    List&lt;Student&gt; list3 = null;
+    List&lt;Person&gt; list4 = null;
+    List&lt;Object&gt; list5 = null;
+
+    list1 = list3;
+	list1 = list4;
+ // list1 = list5; 编译不通过
+ // list2 = list3; 编译不通过
+	list2 = list4;
+	list2 = list5;
+	// 以下为写入操作的差异
+ // list1.add(new Student()); 编译不通过
+    list2.add(new Person()); 
+	list2.add(new Student());
+}
+</code></pre>
+<p>第三种用法<strong>只允许泛型为实现 Comparable 接口的实现类的引用调用</strong>，这里仅说明就不展示了。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%BD%BF%E7%94%A8%E6%B3%9B%E5%9E%8B">使用泛型</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B3%9B%E5%9E%8B">自定义泛型</a></li>
+<li><a href="#%E6%B3%9B%E5%9E%8B%E7%9A%84%E7%BB%A7%E6%89%BF">泛型的继承</a>
+<ul>
+<li><a href="#%E6%B3%9B%E5%9E%8B%E7%9A%84%E5%AD%90%E7%88%B6%E7%B1%BB%E5%85%B3%E7%B3%BB">泛型的子父类关系</a></li>
+<li><a href="#%E6%B3%9B%E5%9E%8B%E7%9A%84%E4%BF%9D%E7%95%99">泛型的保留</a></li>
+</ul>
+</li>
+<li><a href="#%E9%80%9A%E9%85%8D%E7%AC%A6">通配符</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-zhu-jie/">
+              <h3 class="post-title">
+                【Java SE】十六、注解
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

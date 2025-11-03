@@ -1,0 +1,351 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Javascript 逆向之 woff 字体反爬破解 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Javascript 逆向之 woff 字体反爬破解 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="转自个人博客 “Eeyhan” 的《python爬虫 - js逆向之woff字体反爬破解》
+
+一、前言
+本篇博文的主题就是处理字体反爬的，其实这种网上已经很多了，那为什么我还要写呢？因为无聊啊，最近是真没啥事，并且我看了下，还是有点难度的，..." />
+    <meta name="keywords" content="优质文章收藏" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Javascript 逆向之 woff 字体反爬破解
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-08-25
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+                  # 优质文章收藏
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>转自个人博客 “<a href="https://home.cnblogs.com/u/Eeyhan">Eeyhan</a>” 的<a href="https://www.cnblogs.com/Eeyhan/p/15576450.html">《python爬虫 - js逆向之woff字体反爬破解》</a></p>
+<!-- more -->
+<h1 id="一-前言">一、前言</h1>
+<p>本篇博文的主题就是处理字体反爬的，其实这种网上已经很多了，那为什么我还要写呢？因为无聊啊，最近是真没啥事，并且我看了下，还是有点难度的，然后这个字体反爬系列会出两到三篇博文，针对市面上主流的字体反爬，一一讲清楚</p>
+<p>不多bb，先看目标站</p>
+<blockquote>
+<p>http://www.dianping.com/member/79399592/reviews</p>
+</blockquote>
+<h1 id="二-分析">二、分析</h1>
+<p>打开网站发现，如下地址在源码里不显示</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1724637148523.png" alt="img" loading="lazy"></figure>
+<p>再看下面的文字，网页源码里面也没有正常显示</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1724637202451.png" alt="img" loading="lazy"></figure>
+<p>这种就很秀了啊，对于没搞过字体反爬的朋友来说，估计就迷糊了，不用怕，跟着我的思路来</p>
+<p>先看地址栏，点下那个标签，看右边的css样式（对这个不理解的，看看html前端基础吧，最多一周就懂了），或者看看我的之前的博文，https://www.cnblogs.com/Eeyhan/category/1339041.html</p>
+<figure data-type="image" tabindex="3"><img src="https://hualiang.online/post-images/1724637280564.png" alt="img" loading="lazy"></figure>
+<p>在看下面的内容：</p>
+<figure data-type="image" tabindex="4"><img src="https://hualiang.online/post-images/1724637365331.png" alt="img" loading="lazy"></figure>
+<p>这种啥意思呢，首先哈，看到这种源码里面看不到的，那一定是在css样式里，用的@font-face自定义的字体，所以，上面圈出来的两个css就很重要了，点进去看看，点这个</p>
+<figure data-type="image" tabindex="5"><img src="https://hualiang.online/post-images/1724637386208.png" alt="img" loading="lazy"></figure>
+<p>进去之后，格式化一下，然后就看到如下：</p>
+<figure data-type="image" tabindex="6"><img src="https://hualiang.online/post-images/1724637415873.png" alt="img" loading="lazy"></figure>
+<p>果然有个@font-face，就看这个后面的url引入了啥样式的字体文件，往后面拉下滚动条，果然看到一个woff的字体文件</p>
+<p>补充一下，字体文件格式有哪几种呢？常见的有woff，svg，ttf，其他的就不细说了，好的，先把这个字体下载下来，复制链接浏览器打开直接下载，不用补齐http协议直接下载：</p>
+<figure data-type="image" tabindex="7"><img src="https://hualiang.online/post-images/1724637439593.png" alt="img" loading="lazy"></figure>
+<p>这个字体先放着，目前这个是地址相关的，再看内容的字体文件，同样的方式点击那个css，进入里面把链接复制出来下载：</p>
+<figure data-type="image" tabindex="8"><img src="https://hualiang.online/post-images/1724637462046.png" alt="img" loading="lazy"></figure>
+<p>因为我之前分析的时候已经下载过了，所以，文件名会有个（1）。</p>
+<p>好的，这两个字体文件，梳理一下，f76的是地址的，924的是内容的，这种文件怎么打开呢？用这个地址：<a href="http://font.qqe2.com/index-en.html">点我</a> ，（百度的在线字体编辑器网址已经打不开了，另外找的一个）在线打开：</p>
+<figure data-type="image" tabindex="9"><img src="https://hualiang.online/post-images/1724637481773.png" alt="img" loading="lazy"></figure>
+<p>当然你也可以用fontcreator软件打开：</p>
+<figure data-type="image" tabindex="10"><img src="https://hualiang.online/post-images/1724637502129.png" alt="img" loading="lazy"></figure>
+<p>果然哈，这里面就是定义好的字体了，而可以看到，这种有编码，有实际字体的，只要找到映射关系，就可以把我们要的内容给映射出来了，那么，我们怎么去找映射关系呢？</p>
+<p>先看看规律哈，提前说下，这里直接是中文字，而不是网上有些老哥针对字体反爬讲解的数字，然后找到映射关系之后减2哈，所以还是要自己去找那套映射逻辑</p>
+<p>怎么找？直接用一个字来看吧，就找这个【广】字</p>
+<figure data-type="image" tabindex="11"><img src="https://hualiang.online/post-images/1724637525609.png" alt="img" loading="lazy"></figure>
+<p>先看网页源码里这个广是啥编码，好的，<code>&amp;#xe2c9</code>，先放一放</p>
+<figure data-type="image" tabindex="12"><img src="https://hualiang.online/post-images/1724637550423.png" alt="img" loading="lazy"></figure>
+<p>看这边woff字体里这个广是啥</p>
+<p>在线网站看到的，还好，第一页就有，是 <code>unie2c9</code></p>
+<figure data-type="image" tabindex="13"><img src="https://hualiang.online/post-images/1724637587200.png" alt="img" loading="lazy"></figure>
+<p><code>unie2c9</code> 跟 <code>&amp;#xe2c9</code>，好像有点像，先不急，看下，fontCreator 软件里是啥：</p>
+<figure data-type="image" tabindex="14"><img src="https://hualiang.online/post-images/1724637652821.png" alt="img" loading="lazy"></figure>
+<p>看着有点不一样哈，这不重要，接下来，我们用 Python 的库看看，有一个大佬写好的字体映射文件库，fontTools（自己用pip安装，不多介绍了）</p>
+<figure data-type="image" tabindex="15"><img src="https://hualiang.online/post-images/1724637670683.png" alt="img" loading="lazy"></figure>
+<p>打印结果如下，然后它生成了一个 font 的 xml 文件，打开看看：</p>
+<figure data-type="image" tabindex="16"><img src="https://hualiang.online/post-images/1724637687037.png" alt="img" loading="lazy"></figure>
+<p>里面有两个关键的节点就是 <code>GlyphOrder</code> 和 <code>cmap</code>，而这两个，刚才的代码里已经打印出来了，结果：</p>
+<figure data-type="image" tabindex="17"><img src="https://hualiang.online/post-images/1724637734981.png" alt="img" loading="lazy"></figure>
+<p>那行，我们找下这个【广】在哪，搜从在线字体文件编辑网里拿到的 <code>unie2c9</code>，发现有两个：</p>
+<figure data-type="image" tabindex="18"><img src="https://hualiang.online/post-images/1724637753741.png" alt="img" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://hualiang.online/post-images/1724637776491.png" alt="img" loading="lazy"></figure>
+<p>哪个才是呢？再搜下，字体文件拿到的 <code>glyph86</code>，发现没有</p>
+<figure data-type="image" tabindex="20"><img src="https://hualiang.online/post-images/1724638532426.png" alt="img" loading="lazy"></figure>
+<p>但是，目前感觉有点联系，<code>&amp;#xe2c9</code> - <code>unie2c9</code> - <code>86</code></p>
+<p>这种是啥呀，就不多说了，<code>unie2c9</code> 前面的 <code>uni</code> 就是 unicode 编码的意思，姑且认定为 &amp;<code>#xe2c9</code> = <code>unie2c9</code> ，那 86 呢，怎么映射出【广】字的，大胆猜测，这个 86 就是索引位置，在那个 woff 文件里数一下，看是不是第 86 个，先看这个，一行是 10 个，然后第一行是没有任何编码的，所以第一行只有 9 个，</p>
+<figure data-type="image" tabindex="21"><img src="https://hualiang.online/post-images/1724637801401.png" alt="img" loading="lazy"></figure>
+<p>往下数，数到第8行倒数第四个，也就是87，但是第一行只有9个，那就是86了</p>
+<figure data-type="image" tabindex="22"><img src="https://hualiang.online/post-images/1724637916709.png" alt="img" loading="lazy"></figure>
+<p>哈哈哈，刚好对上，那现在就说得通了，那我们先拿到源码，然后去找映射关系，找到索引位置，再从索引位置里找到真实的文字内容就行了。</p>
+<p>但有个很繁琐的，这些实际的文字内容，我们要一个一个的手写映射关系（哭了），没法啊，找好之后，写成一个 json，然后 load 吧</p>
+<figure data-type="image" tabindex="23"><img src="https://hualiang.online/post-images/1724638148671.png" alt="img" loading="lazy"></figure>
+<h1 id="三-调试">三、调试</h1>
+<p>先把刚才打开网页源码，直接copy到本地保存成html文件测试吧，免得一改什么就请求下，因为这个站的风控还挺强的</p>
+<p>废话不多说，直接处理保存在本地的html，然后我只打印了地址信息</p>
+<figure data-type="image" tabindex="24"><img src="https://hualiang.online/post-images/1724638167364.png" alt="img" loading="lazy"></figure>
+<p>感觉跟在源码里看到的&amp;#开头的有点不一样，好像给处理成了【\u】，先看看能不能处理吧：</p>
+<p>复制一个 <code>['\ue2c9', '\uef20', '\ue801', '5', '\ued77', '\ue150', '42']</code> ，拿来处理下，</p>
+<figure data-type="image" tabindex="25"><img src="https://hualiang.online/post-images/1724638205464.png" alt="img" loading="lazy"></figure>
+<p>卧槽，这咋回事，打断点一看，这个参数并不是我们预期的，</p>
+<figure data-type="image" tabindex="26"><img src="https://hualiang.online/post-images/1724638222729.png" alt="img" loading="lazy"></figure>
+<p>那多半就是那个被转义成【\u】的问题了，那我们直接在读取内容的时候，直接就替换一下：</p>
+<figure data-type="image" tabindex="27"><img src="https://hualiang.online/post-images/1724638245820.png" alt="img" loading="lazy"></figure>
+<p>执行下：</p>
+<figure data-type="image" tabindex="28"><img src="https://hualiang.online/post-images/1724638266448.png" alt="img" loading="lazy"></figure>
+<p>然后同样的，拿第一个来处理：</p>
+<figure data-type="image" tabindex="29"><img src="https://hualiang.online/post-images/1724638286373.png" alt="img" loading="lazy"></figure>
+<p>完美，跟原网站的数据对上</p>
+<figure data-type="image" tabindex="30"><img src="https://hualiang.online/post-images/1724638302887.png" alt="img" loading="lazy"></figure>
+<p>接着再处理内容的，这个内容原理一样，只是把woff文件替换下即可</p>
+<p>打印下内容的：</p>
+<figure data-type="image" tabindex="31"><img src="https://hualiang.online/post-images/1724638321482.png" alt="img" loading="lazy"></figure>
+<p>选第一个，然后执行：</p>
+<figure data-type="image" tabindex="32"><img src="https://hualiang.online/post-images/1724638339615.png" alt="img" loading="lazy"></figure>
+<p>对比原网站：</p>
+<figure data-type="image" tabindex="33"><img src="https://hualiang.online/post-images/1724638355148.png" alt="img" loading="lazy"></figure>
+<p>然后，有朋友要问了，那后面的emoji怎么没有搞出来，看看源码哈：</p>
+<figure data-type="image" tabindex="34"><img src="https://hualiang.online/post-images/1724638369168.png" alt="img" loading="lazy"></figure>
+<p>这个emoji，是个图片资源，你要处理肯定是可以的，拼接一下就可以了</p>
+<h1 id="四-python-实现">四、Python 实现</h1>
+<p>提一句，那两个字体文件经过我的发现，是会不定期变的，所以你需要去请求源码，用正则匹配指定位置，然后请求css文件，再去把woff文件url匹配出来，单独请求，下载下来，接着完成后续的工作即可</p>
+<p>最后用 Python 完整实现，完整的代码就不贴出来了，后续的都是一些常规且简单的操作了，再一个就是，我根本就没写完整的代码（哈哈哈哈哈），只贴出部分：</p>
+<pre><code class="language-python">from fontTools.ttLib import TTFont
+import re
+import requests
+from lxml import etree
+import json
+
+
+def parser_woff_font(font='4375cf76.woff', something=None):
+    font = TTFont(font)
+    glyph = font.getReverseGlyphMap()
+    f = open('font_template.json', encoding='utf-8')
+    font_template = json.load(f)
+    f.close()
+    new_str = ''
+    for item in something:
+        if not item:
+            continue
+        if item.endswith(';'):
+            item = item.replace(';', '')
+        if item in glyph:
+            index = glyph.get(item)
+            if index:
+                real = font_template.get(str(index))
+                if real:
+                    new_str += real
+        else:
+            new_str += item
+    print(12312312, new_str)
+    return new_str
+
+
+def get_real_data():
+    f = open('content.html', encoding='utf-8')
+    source_data = f.read()
+    source_data = source_data.replace('&amp;#x', 'uni')
+    f.close()
+    html = etree.HTML(source_data)
+    data = html.xpath('//div[@class=&quot;txt J_rptlist&quot;]')
+    for item in data:
+        temp_dict = dict()
+        shop_name = item.xpath('./div[1]/h6//text()')
+        shop_addr = item.xpath('.//div[@class=&quot;mode-tc addres&quot;]/p//text()')
+        shop_score = item.xpath('.//div[@class=&quot;mode-tc comm-rst&quot;]/span/@class')
+        shop_comment = item.xpath('.//div[@class=&quot;mode-tc comm-entry&quot;]//text()')
+        comment_photo_url = item.xpath('.//div[@class=&quot;mode-tc comm-photo&quot;]/a/@href')
+        comment_photo_url = ''.join(comment_photo_url) if comment_photo_url else ''
+        create_time = item.xpath('.//div[@class=&quot;mode-tc info&quot;]/span[1]/text()')
+        create_time = ''.join(create_time) if create_time else ''
+        if create_time:
+            create_time = create_time.replace('发表于', '')
+        temp_dict['shop_name'] = shop_name
+        temp_dict['shop_addr'] = shop_addr
+        temp_dict['shop_score'] = shop_score
+        temp_dict['shop_comment'] = shop_comment
+        temp_dict['comment_photo_url'] = comment_photo_url
+        temp_dict['create_time'] = create_time
+        print(123123, temp_dict['shop_comment'])
+
+
+# get_real_data()
+
+
+s = ['unif1af;', 'unif147;', 'uniecc0;', 'unie635;', 'unif083;', 'unie3c5;', 'unif802;', ' ', 'unie931;', 'uniea55;', 'unif534;', 'unied79;', 'unie1bd;', ' ', 'unie1e4;', 'unie7b0;', 'unie65d;', 'unif534;', 'unie3c5;', 'unie66f;', 'unif52d;', ' ', 'unif765;', 'unif49d;', 'unieb19;', 'unie2de;', 'unie66f;', '闹', 'unie8ee;', 'unie3a4;', 'unif759;', ' ', 'unif195;', 'unif195;', 'unif195;', 'unif195;']
+
+parser_woff_font('2f66e924.woff', s)
+</code></pre>
+<p>那个映射的font_template.json文件，<a href="https://files.cnblogs.com/files/Eeyhan/font_template.json">点我</a></p>
+<p>说明一下，这个json映射关系是只针对这一个站，并不通用网上所有的字体反爬哈，而且，这个站的映射，说不定以后还会改变，所以，你懂我意思吧</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%B8%80-%E5%89%8D%E8%A8%80">一、前言</a></li>
+<li><a href="#%E4%BA%8C-%E5%88%86%E6%9E%90">二、分析</a></li>
+<li><a href="#%E4%B8%89-%E8%B0%83%E8%AF%95">三、调试</a></li>
+<li><a href="#%E5%9B%9B-python-%E5%AE%9E%E7%8E%B0">四、Python 实现</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/ji-yi-ci-dui-datax-xiang-es-tong-bu-dui-xiang-xing-shu-ju-de-jie-jue-guo-cheng/">
+              <h3 class="post-title">
+                记一次对 DataX 向 ES 同步对象型数据的探索过程
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

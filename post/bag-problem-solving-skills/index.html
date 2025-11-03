@@ -1,0 +1,283 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>背包问题的套路 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="背包问题的套路 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="最近跟着代码随想录学到了线性规划章节，背包问题也是很常见的题型，在此总结一些做题套路。
+
+常见的背包问题有：
+
+
+组合问题
+
+
+True, False问题
+
+
+最大最小问题。
+
+
+
+一、组合问题：
+
+377. 组合总和 Ⅳ
+494. 目标和..." />
+    <meta name="keywords" content="Other" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              背包问题的套路
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-01-23
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+                  # Other
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>最近跟着代码随想录学到了线性规划章节，背包问题也是很常见的题型，在此总结一些做题套路。</p>
+<!-- more -->
+<p><strong>常见的背包问题有：</strong></p>
+<ol>
+<li>
+<p>组合问题</p>
+</li>
+<li>
+<p>True, False问题</p>
+</li>
+<li>
+<p>最大最小问题。</p>
+</li>
+</ol>
+<hr>
+<p><strong>一、组合问题：</strong></p>
+<ul>
+<li>377. 组合总和 Ⅳ</li>
+<li>494. 目标和</li>
+<li>518. 零钱兑换 II</li>
+</ul>
+<p><strong>二、True, False问题：</strong></p>
+<ul>
+<li>139. 单词拆分</li>
+<li>416. 分割等和子集</li>
+</ul>
+<p><strong>三、最大最小问题：</strong></p>
+<ul>
+<li>474. 一和零</li>
+<li>322. 零钱兑换</li>
+</ul>
+<hr>
+<p><strong>组合问题公式</strong></p>
+<pre><code class="language-c++">dp[i] += dp[i - num]
+</code></pre>
+<p><strong>True, False问题公式</strong></p>
+<pre><code class="language-c++">dp[i] = dp[i] || dp[i - num]
+</code></pre>
+<p><strong>最大最小问题公式</strong></p>
+<pre><code class="language-c++">dp[i] = max(dp[i], dp[i - num] + 1)
+dp[i] = min(dp[i], dp[i - num] + 1)
+</code></pre>
+<p>以上三组公式是解决对应问题的核心公式。</p>
+<hr>
+<h2 id="当然拿到问题后需要做到以下几个步骤">当然拿到问题后，需要做到以下几个步骤：</h2>
+<ol>
+<li>
+<p>分析是否为背包问题。</p>
+</li>
+<li>
+<p>是以上三种背包问题中的哪一种。</p>
+</li>
+<li>
+<p>是0-1背包问题还是完全背包问题。也就是题目给的 nums 数组中的元素是否可以重复使用。</p>
+</li>
+<li>
+<p>如果是组合问题，是否需要考虑元素之间的顺序。需要考虑顺序有顺序的解法，不需要考虑顺序又有对应的解法。</p>
+</li>
+</ol>
+<hr>
+<h2 id="背包问题的判定">背包问题的判定</h2>
+<p>背包问题具备的特征：给定一个 target，target 可以是数字也可以是字符串，再给定一个数组 nums，nums 中装的可能是数字，也可能是字符串，问：能否使用 nums 中的元素做各种排列组合得到 target</p>
+<p>背包问题技巧：</p>
+<p>1.如果是 0-1 背包，即数组中的元素不可重复使用，nums 放在外循环，target 在内循环，且内循环倒序；</p>
+<pre><code class="language-c++">for (int num : nums)
+    for (int i = target; i &gt;= num; i--)
+</code></pre>
+<p>2.如果是完全背包，即数组中的元素可重复使用，nums 放在外循环，target 在内循环。且内循环正序。</p>
+<pre><code class="language-c++">for (int num : nums)
+    for (int i = 1; i &lt;= target; i++)
+</code></pre>
+<p>3.如果组合问题需考虑元素之间的顺序，需将 target 放在外循环，将 nums 放在内循环。</p>
+<pre><code class="language-c++">for (int i = 1; i &lt;= target; i++)
+    for (int num : nums)
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%BD%93%E7%84%B6%E6%8B%BF%E5%88%B0%E9%97%AE%E9%A2%98%E5%90%8E%E9%9C%80%E8%A6%81%E5%81%9A%E5%88%B0%E4%BB%A5%E4%B8%8B%E5%87%A0%E4%B8%AA%E6%AD%A5%E9%AA%A4">当然拿到问题后，需要做到以下几个步骤：</a></li>
+<li><a href="#%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98%E7%9A%84%E5%88%A4%E5%AE%9A">背包问题的判定</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/eight-use-cases-of-synchronized/">
+              <h3 class="post-title">
+                synchronized 的 8 种使用案例分析
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

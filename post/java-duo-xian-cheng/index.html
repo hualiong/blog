@@ -1,0 +1,624 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】十三、多线程 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】十三、多线程 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 给多线程编程提供了内置的支持。 一条线程指的是进程中一个单一顺序的控制流，一个进程中可以并发多个线程，每条线程并行执行不同的任务。多线程是多任务的一种特别的形式，但多线程使用了更小的资源开销。
+
+普通的 Java 程序至少有三个线..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】十三、多线程
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-15
+              </span>
+              <span>
+                16 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 给多线程编程提供了内置的支持。 一条线程指的是进程中一个单一顺序的控制流，一个进程中可以并发多个线程，每条线程并行执行不同的任务。多线程是多任务的一种特别的形式，但多线程使用了更小的资源开销。</p>
+<!-- more -->
+<p>普通的 Java 程序至少有三个线程：主线程、垃圾收集线程、异常处理线程</p>
+<h2 id="线程的生命周期">线程的生命周期</h2>
+<p>线程是一个动态执行的过程，它也有一个从产生到死亡的过程。如图所示：</p>
+<figure data-type="image" tabindex="1"><img src="https://www.runoob.com/wp-content/uploads/2014/01/java-thread.jpg" alt="img" loading="lazy"></figure>
+<ul>
+<li>
+<p><strong>新建状态:</strong></p>
+<p>创建一个线程对象后，该线程对象就处于新建状态。它保持这个状态直到程序启动这个线程。</p>
+</li>
+<li>
+<p><strong>就绪状态:</strong></p>
+<p>当该线程启动之后，该线程就进入就绪状态。就绪状态的线程处于就绪队列中，要等待 JVM 里线程调度器的调度。</p>
+</li>
+<li>
+<p><strong>运行状态:</strong></p>
+<p>如果就绪状态的线程获取 CPU 资源，就可以运行，此时线程便处于运行状态。处于运行状态的线程最为复杂，它可以变为阻塞状态、就绪状态和死亡状态。</p>
+</li>
+<li>
+<p><strong>阻塞状态:</strong></p>
+<p>如果一个线程执行了 <strong>sleep</strong>（睡眠）、<strong>suspend</strong>（挂起）等方法，失去所占用资源之后，该线程就从运行状态进入阻塞状态。在睡眠时间已到或获得设备资源后可以重新进入就绪状态。可以分为三种：</p>
+<ul>
+<li>等待阻塞：运行状态中的线程执行 <code>wait()</code> 方法，使线程进入到等待阻塞状态。</li>
+<li>同步阻塞：线程在获取 <code>synchronized</code> 同步锁失败(因为同步锁被其他线程占用)。</li>
+<li>其他阻塞：通过调用线程的 <code>sleep()</code> 或 <code>join()</code> 发出了 I/O 请求时，线程就会进入到阻塞状态。当 <code>sleep()</code> 状态超时，<code>join()</code> 等待线程终止或超时，或者 I/O 处理完毕，线程重新转入就绪状态。</li>
+</ul>
+</li>
+<li>
+<p><strong>死亡状态:</strong></p>
+<p>一个运行状态的线程完成任务或者其他终止条件发生时，该线程就切换到死亡状态。</p>
+</li>
+</ul>
+<h2 id="创建线程">创建线程</h2>
+<h3 id="继承-thread-类">继承 Thread 类</h3>
+<p>Java 提供了一个 Thread 类来处理线程，我们可以用以下方式创建一个线程：</p>
+<pre><code class="language-java">public class MyThread extends Thread { // 第一种方式：必须继承Thread类，受限于单继承性
+    @Override
+    public void run() {
+        // 这里写你要运行的代码
+    }
+}
+public static void main(String[] args) {
+    MyThread t1 = new MyThread();
+    t1.start(); // 使用start()方法，而不是直接调用run()方法
+    // 下面是使用匿名方式创建线程
+    new MyThread() {
+        @Override
+        public void run() {...}
+    }.start()；
+}
+</code></pre>
+<h3 id="实现-runnable-接口">实现 Runnable 接口</h3>
+<p>然鹅，开发中优先使用下面的方式创建线程：</p>
+<pre><code class="language-java">class MyThread implements Runnable { // 第二种方式：实现Runnable接口
+    @Override
+    public void run() { // 只用实现这一个方法
+        // 这里写你要运行的代码
+        System.out.println(Thread.currentThread().getName()) // 不能用this关键字或直接调用，只能静态调用
+    }
+}
+
+public class ThreadTest1 {
+    public static void main(String[] args) {
+        MyThread sample = new MyThread()；
+        Thread t1 = new Thread(sample); // 将实现类的对象作为Thread构造器的参数
+        t1.start();
+        Thread t2 = new Thread(sample);
+        t2.start();
+    }
+}
+</code></pre>
+<p>第二种方式适用于多线程共用一个数据的情况*（实例变量）<em>；若用第一种数据，则需要将共用数据声明为静态</em>（类变量）*</p>
+<h3 id="实现-callable-接口">实现 Callable 接口</h3>
+<p>在 JDK 5.0 中新增了通过实现 <code>Callable</code> 接口来创建线程的方式，如下：</p>
+<pre><code class="language-java">import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+ // 因为Callable是一个原始类型。对泛型类型Callable&lt;V&gt;的引用应该参数化，所以这里我们使用&lt;Integer&gt;指明类型
+public class MyThread implements Callable&lt;Integer&gt; { // 第三种方式：实现Callable接口
+    public static void main(String[] args) {
+        MyThread ctt = new MyThread(); // 创建实例
+        FutureTask&lt;Integer&gt; ft = new FutureTask&lt;Integer&gt;(ctt); // 使用FutureTask类来包装Callable对象
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; 的循环变量i的值&quot; + i);
+            if (i == 20) {
+                new Thread(ft, &quot;有返回值的线程&quot;).start(); // 使用FutureTask对象作为参数创建且命名并启动新线程
+            }
+        }
+        try {
+            System.out.println(&quot;子线程的返回值：&quot; + ft.get()); // 调用FutureTask对象的get()方法来获得子线程的返回值
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public Integer call() throws Exception { // 实现call()方法，以下为线程执行体
+        int i;
+        for (i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+        return i;
+    }
+}
+</code></pre>
+<h3 id="使用线程池">使用线程池</h3>
+<p>在 JDK 5.0 中新增了线程池，它可以<strong>提前创建好线程存放在池中，使用时直接获取，用完放回池中</strong>，优点如下：</p>
+<ul>
+<li>提高响应速度（减少了创建新线程的时间）</li>
+<li>降低资源消耗（重复利用线程池中线程，不需要每次都创建和销毁）</li>
+<li>线程池提供了一些方法便于管理线程</li>
+</ul>
+<pre><code class="language-java">import java.util.concurrrrent.Executors;
+
+class NumberThread implements Runnable {
+    @Override
+    public void run() {
+        // 这里写你要运行的代码
+    }
+}
+
+public class ThreadPoll {
+    public static void main(String[] args) {
+        ExecutorService service = Executors.newFixedThreadPool(10);
+     // ThreadPoolExecutor control = (ThreadPoolExecutor) service;
+     // control.setCorePoolSize(...) 设置核心池的大小
+     // control.setKeepAliveTime(...) 设置线程闲置存活时间
+        service.execute(new NumberThread()); // 加入并运行线程，不用手动start()，适用于Runnable
+     // service.submit(); 适用于Callable
+        service.shutdown(); // 关闭线程池
+    }
+}
+</code></pre>
+<p>线程池常用于开发，目前不要求掌握，仅了解即可</p>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>第三种方式虽功能强大，但较复杂，如果没有对返回值的要求，则一般使用前两种方式</li>
+<li>通过 Thread 和 Runnable 创建的线程，须用重写的方式将该线程的操作写在 <code>run()</code> 方法里，用 Callable 创建则是在 <code>call()</code> 中</li>
+<li>通过实现接口创建的线程类<strong>只能以静态方式调用线程的常用方法</strong></li>
+<li>启动线程使用 <code>start()</code> 方法，而不是直接调用 <code>run()</code> 方法，使用线程池则用 <code>execute()</code> 方法</li>
+<li>除非用线程池，否则<strong>不能调用已经调用过 <code>start()</code> 的线程</strong>，就是说同一线程实例不能调用两次</li>
+<li>第一种方式创建的多个线程共用一个 <strong>MyThread 类</strong>，而第二、三种方式则是共用一个 <strong>MyThread 对象</strong></li>
+</ul>
+<h2 id="一些常用方法">一些常用方法</h2>
+<ul>
+<li><strong>start()</strong>：启动线程，并执行对象的 <code>run()</code> 方法</li>
+<li><strong>run()</strong>：线程在被调度时执行的操作</li>
+<li><strong>getName()</strong>：返回线程的名称</li>
+<li><strong>setName(String name)</strong>：设置该线程名称</li>
+<li><strong>Thread.currentThread()</strong>：返回当前线程。在 Thread 子类中就是 <code>this</code>，通常用于主线程和 Runnable 实现类</li>
+<li><strong>yield()</strong>： 线程让步
+<ul>
+<li>暂停当前正在执行的线程，把执行机会让给优先级相同或更高的线程</li>
+<li>若队列中没有同优先级的线程，忽略此方法</li>
+</ul>
+</li>
+<li><strong>join()</strong>：当某个程序执行流中调用其他线程的 <code>join()</code> 方法时，调用线程将被阻塞，直到 <code>join()</code> 方法加入的 join 线程执行完为止
+<ul>
+<li>低优先级的线程也可以获得执行</li>
+</ul>
+</li>
+<li><strong>sleep(long millis)</strong>： (毫秒级)
+<ul>
+<li>令当前活动线程在指定时间段内放弃对CPU控制，使其他线程有机会被执行，时间到后重排队，<strong>但不会释放锁</strong></li>
+<li>会抛出 <code>InterruptedException</code> 异常</li>
+</ul>
+</li>
+<li><strong>wait()</strong>：让进程进入阻塞状态<strong>并释放锁</strong>，<strong>在同步结构中使用</strong>且调用者必须是<strong>同步监视器</strong>，<code>notify() &amp; notifyAll()</code> 也是如此</li>
+<li><strong>notify()</strong>：随机唤醒一个在此对象监视器上等待的线程，常与 <code>wait()</code> 配合使用
+<ul>
+<li><strong>notifyAll()</strong>：唤醒所有在此对象监视器上等待的线程</li>
+</ul>
+</li>
+<li><strong>stop()</strong>：强制线程生命期结束，<strong>已经过时</strong>，不推荐使用</li>
+<li><strong>isAlive()</strong>：判断线程是否还活着</li>
+</ul>
+<pre><code class="language-java">class MyThread extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i &lt; 100; i++) {
+            if (i % 2 == 0) {
+                try {
+                    sleep(10); // 让线程暂停10ms，也就是进入阻塞状态
+                } catch (InterruptedException e) { // 该方法会抛出异常，必须准备捕获
+                    e.printStackTrace();
+                }
+                System.out.println(getName() + &quot;:&quot; + i);
+            } // Java14 加入了yield关键字，所以必须通过类调用
+            if (i % 20 == 0) {Thread.yield();} // 提前释放占用的CPU资源，重新接受调度（也有可能还是分配到该线程，与优先级有关）
+        }
+    }
+    public MyThread(String name) {super(name);} // 这是用构造器命名，也可以用setName()
+}
+
+public class Test {
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread(&quot;线程一&quot;); // 构造器命名
+        t1.start();
+        Thread.currentThread().setName(&quot;主线程&quot;); // 给主线程命名
+    	for (int i = 0; i &lt; 100; i++) {
+            if (i % 2 == 0) {
+                System.out.println(Thread.currentThread().getName() + &quot;:&quot; + i);
+            }
+            if (i == 0) {
+                try {
+                    t1.join(); // 让t1先运行，等t1运行完后在运行调用该方法的线程
+                } catch (InterruptedException e) { // 同上
+                    e.printStackTrace();
+                }
+            }
+        }
+        System.out.println(t1.isAlive());
+    }
+}
+</code></pre>
+<p>线程的运行具有不确定性，所以运行结果可能有所不同，故不展示。</p>
+<h2 id="线程的优先级">线程的优先级</h2>
+<p>Thread 类中，优先级使用 1 ~ 10 的整数表示：</p>
+<ul>
+<li>最低优先级 1：<code>Thread.MIN_PRIORITY</code></li>
+<li>最高优先级 10：<code>Thread.MAX_PRIORITY</code></li>
+<li>普通优先级 5：<code>Thread.NORM_PRIORITY</code></li>
+</ul>
+<p>我们可以使用下面两个方法来设置线程的优先级：</p>
+<ul>
+<li><strong>getPriority()</strong>：获取线程的优先级</li>
+<li><strong>setPriority()</strong>：设置线程的优先级</li>
+</ul>
+<pre><code class="language-java">public static void main(String[] args) { // 以下均为设置主线程的优先级
+    Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+    System.out.println(Thread.currentThread().getPriority()); // 1
+    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+    System.out.println(Thread.currentThread().getPriority()); // 10
+    Thread.currentThread().setPriority(8); // 1 ~ 10
+    System.out.println(Thread.currentThread().getPriority()); // 8
+}
+</code></pre>
+<p>注意：高优先级的线程要抢占低优先级线程 CPU 的执行权。但是只是从概率上讲，高优先级的线程高概率的情况下被执行。并不意味着只有当高优先级的线程执行完以后，低优先级的线程才执行。</p>
+<h2 id="线程的同步">线程的同步</h2>
+<p>使用多线程的一大隐患就是安全问题，概括地说就是，多个线程“同时”访问一个数据。为了解决该问题，我们需要使用<strong>同步机制</strong>。</p>
+<h3 id="同步代码块">同步代码块</h3>
+<p>用 <code>synchronized</code> 关键字修饰的代码块，就叫同步代码块，它会被加上<strong>内置锁</strong>，使得多线程无法同时执行该代码块内的代码</p>
+<pre><code class="language-java">// 以第二种方式展示
+class MyThread implements Runnable {
+    // Object obj = new Object(); // 该类为实例属性，用第二种方式创建线程可以满足共用同一把锁
+    
+    @Override
+    public void run() {
+     // synchronized(this) 通常这样用更方便
+        synchronized(obj) { // 括号内为同步监视器，俗称：锁
+            // 操作共享数据的代码
+        }
+    }
+}
+// 以第一种方式展示
+public class MyThread extends Thread {
+    // private static Object obj = new Object(); // 该类为类属性，用第一种方式创建线程可以满足共用同一把锁
+    
+    @Override
+    public void run() {
+     // synchronized(MyThread.class) 通常这样用更方便
+        synchronized(obj) {
+            // 操作共享数据的代码
+        }
+    }
+}
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>任何一个类的实例对象都能充当锁，但要求多个线程共用同一把锁，即同一对象</li>
+<li>使用同步机制即是把多线程的过程限制为单线程的过程，效率会降低</li>
+<li>因为方式二共用一个的对象，所以更简便的方法是用<strong>当前对象</strong>充当锁，也就是 <code>this</code> ；<strong>方式一不适用</strong></li>
+<li>因为<strong>类也算对象</strong> <em>(Class 类的实例 )</em>，所以方式一也可以用 <code>MyThread.class</code> 充当锁，<strong>方式二也适用</strong></li>
+</ul>
+<h3 id="同步方法">同步方法</h3>
+<p>如果操作共享数据的代码<strong>完整地存在于一个方法中</strong>，我们就可以将其声明为同步方法，如下：</p>
+<pre><code class="language-java">// 同步方法不一定要run()，也可以自己定义
+class MyThread implements Runnable { // 实现
+    @Override
+    public synchronized void run() { // 同步监视器默认为：this
+        // 操纵共享数据的代码
+    }
+}
+class MyThread extends Thread { // 继承
+    @Override
+    public static synchronized void run() { // 要声明为静态！同步监视器默认为：MyThread.class
+        // 操纵共享数据的代码
+    }
+}
+</code></pre>
+<p><strong>注意：<strong>确保</strong>操纵共享数据的代码被完整地包含在同步方法里</strong>，不能多，也不能少，<strong>同步代码块也一样</strong></p>
+<h3 id="lock-锁">Lock 锁</h3>
+<p>在 JDK 5.0 中新增了一种解决线程安全的措施：Lock 锁。它可以得到和 <code>synchronized</code> 一样的效果，但不同的是，Lock 锁可<strong>手动获取锁和释放锁、可中断的获取锁、超时获取锁。</strong></p>
+<p>Lock 是一个<strong>接口</strong>，两个直接实现类：ReentrantLock（重入锁）, ReentrantReadWriteLock（读写锁）。</p>
+<p>示例如下：</p>
+<pre><code class="language-java">import java.util.concurrent.locks.ReentrantLock;
+ 
+public class MyLockStudy implements Runnable {
+
+    private int count;
+    ReentrantLock l = new ReentrantLock(); // 可传入参数fair，用来确保按先后顺序执行线程，
+ 
+    @Override
+    public void run() {
+        l.lock(); // 手动开启锁
+        for (int i = 0; i &lt; 2; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot;: &quot;);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        l.unlock(); // 手动解锁
+    }
+ 
+    public static void main(String args[]) {
+        MyLockStudy runn = new MyLockStudy();
+        Thread thread1 = new Thread(runn, &quot;thread1&quot;);
+        Thread thread2 = new Thread(runn, &quot;thread2&quot;);
+        Thread thread3 = new Thread(runn, &quot;thread3&quot;);
+        thread1.start();
+        thread2.start();
+        thread3.start();
+    }
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code>thread1:
+thread1:
+thread2:
+thread2:
+thread3:
+thread3:
+</code></pre>
+<h2 id="死锁">死锁</h2>
+<p>死锁是这样一种情形：多个线程同时被阻塞，它们中的一个或者全部都在等待某个资源被释放。由于线程被无限期地阻塞，因此程序不可能正常终止。</p>
+<p>java 死锁产生的四个必要条件：</p>
+<ul>
+<li><strong>互斥使用</strong>，即当资源被一个线程使用(占有)时，别的线程不能使用</li>
+<li><strong>不可抢占</strong>，资源请求者不能强制从资源占有者手中夺取资源，资源只能由资源占有者主动释放。</li>
+<li><strong>请求和保持</strong>，即当资源请求者在请求其他的资源的同时保持对原有资源的占有。</li>
+<li><strong>循环等待</strong>，即存在一个等待队列：P1占有P2的资源，P2占有P3的资源，P3占有P1的资源。这样就形成了一个等待环路。</li>
+</ul>
+<p>当上述四个条件都成立的时候，便形成死锁。当然，死锁的情况下如果打破上述任何一个条件，便可让死锁消失。</p>
+<p>解决死锁问题的方法是：一种是用 synchronized，一种是用 Lock 显式锁实现。</p>
+<p>而如果不恰当的使用了锁，且出现同时要锁多个对象时，会出现死锁情况，如下：</p>
+<pre><code class="language-java">import java.util.Date;
+
+public class Test {
+    public static String obj1 = &quot;obj1&quot;;
+    public static String obj2 = &quot;obj2&quot;;
+
+    public static void main(String[] args) {
+        LockA la = new LockA();
+        new Thread(la).start();
+        LockB lb = new LockB();
+        new Thread(lb).start();
+    }
+}
+
+class LockA implements Runnable {
+    public void run() {
+        try {
+            System.out.println(new Date().toString() + &quot; LockA 开始执行&quot;);
+            while (true) {
+                synchronized (Test.obj1) {
+                    System.out.println(new Date().toString() + &quot; LockA 锁住 obj1&quot;);
+                    Thread.sleep(3000); // 此处等待是给B能锁住机会
+                    synchronized (Test.obj2) {
+                        System.out.println(new Date().toString() + &quot; LockA 锁住 obj2&quot;); // 多半不会执行，因为死锁
+                        Thread.sleep(60 * 1000); // 为测试，占用了就不放
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class LockB implements Runnable {
+    public void run() {
+        try {
+            System.out.println(new Date().toString() + &quot; LockB 开始执行&quot;);
+            while (true) {
+                synchronized (Test.obj2) {
+                    System.out.println(new Date().toString() + &quot; LockB 锁住 obj2&quot;);
+                    Thread.sleep(3000); // 此处等待是给A能锁住机会
+                    synchronized (Test.obj1) {
+                        System.out.println(new Date().toString() + &quot; LockB 锁住 obj1&quot;);
+                        Thread.sleep(60 * 1000); // 为测试，占用了就不放
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code>Tue May 05 10:51:06 CST 2015 LockB 开始执行
+Tue May 05 10:51:06 CST 2015 LockA 开始执行
+Tue May 05 10:51:06 CST 2015 LockB 锁住 obj2
+Tue May 05 10:51:06 CST 2015 LockA 锁住 obj1
+</code></pre>
+<p>此时死锁产生，这里给出几点建议：</p>
+<ul>
+<li>用专门的算法避开死锁</li>
+<li>少定义同步资源</li>
+<li>避免嵌套同步</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">线程的生命周期</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B">创建线程</a>
+<ul>
+<li><a href="#%E7%BB%A7%E6%89%BF-thread-%E7%B1%BB">继承 Thread 类</a></li>
+<li><a href="#%E5%AE%9E%E7%8E%B0-runnable-%E6%8E%A5%E5%8F%A3">实现 Runnable 接口</a></li>
+<li><a href="#%E5%AE%9E%E7%8E%B0-callable-%E6%8E%A5%E5%8F%A3">实现 Callable 接口</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0">使用线程池</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95">一些常用方法</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E7%9A%84%E4%BC%98%E5%85%88%E7%BA%A7">线程的优先级</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%90%8C%E6%AD%A5">线程的同步</a>
+<ul>
+<li><a href="#%E5%90%8C%E6%AD%A5%E4%BB%A3%E7%A0%81%E5%9D%97">同步代码块</a></li>
+<li><a href="#%E5%90%8C%E6%AD%A5%E6%96%B9%E6%B3%95">同步方法</a></li>
+<li><a href="#lock-%E9%94%81">Lock 锁</a></li>
+</ul>
+</li>
+<li><a href="#%E6%AD%BB%E9%94%81">死锁</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-yi-chang-chu-li/">
+              <h3 class="post-title">
+                【Java SE】十二、异常处理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

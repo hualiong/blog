@@ -1,0 +1,318 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】十二、异常处理 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】十二、异常处理 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 中的所有异常都被封装成一个类且都继承于 Exception 类，而它是 Throwable 类的子类。除了Exception类外，Throwable还有一个子类 Error，但 Java 程序通常不捕获错误，它们一般在 Java ..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】十二、异常处理
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-12
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 中的所有异常都被封装成一个类且都继承于 Exception 类，而它是 Throwable 类的子类。除了Exception类外，Throwable还有一个子类 Error，但 Java 程序通常不捕获错误，它们一般在 Java 程序处理的范畴之外，所以只是用来指示运行时环境发生的错误。</p>
+<!-- more -->
+<figure data-type="image" tabindex="1"><img src="https://www.runoob.com/wp-content/uploads/2013/12/exception-hierarchy.png" alt="tree" loading="lazy"></figure>
+<p>要理解 Java 异常处理是如何工作的，你需要掌握以下三种类型的异常：</p>
+<ul>
+<li>**检查性异常：**最具代表的检查性异常是用户错误或问题引起的异常，这是程序员无法预见的。例如要打开一个不存在文件时，一个异常就发生了，这些异常在编译时不能被简单地忽略。</li>
+<li><strong>运行时异常：</strong> 运行时异常是可能被程序员避免的异常。与检查性异常相反，运行时异常可以在编译时被忽略。</li>
+<li><strong>错误：</strong> 错误不是异常，而是脱离程序员控制的问题。错误在代码中通常被忽略。例如，当栈溢出时，一个错误就发生了，它们在编译也检查不到的。</li>
+</ul>
+<h2 id="捕获异常">捕获异常</h2>
+<h3 id="基本操作">基本操作</h3>
+<p>Java 中使用 <code>try</code> 和 <code>catch</code> 关键字可以捕获异常。<code>try-catch</code> 代码块被放在异常可能发生的地方。</p>
+<pre><code class="language-java">// 下面的例子中声明有两个元素的一个数组，当代码试图访问数组的第四个元素的时候就会抛出一个异常
+import java.io.*;
+public class ExcepTest {
+    public static void main(String args[]){
+        try {
+            int a[] = new int[2];
+            System.out.println(&quot;Access element three :&quot; + a[3]);
+        } catch(ArrayIndexOutOfBoundsException e) { // 声明捕获数组下标越界异常类的引用变量e作为形参
+            System.out.println(&quot;Exception thrown  :&quot; + e); // 此处e则表示ArrayIndexOutOfBoundsException类的实例
+        }
+        System.out.println(&quot;Out of the block&quot;);
+    }
+}
+</code></pre>
+<p><code>catch</code> 语句包含要捕获异常类型的声明。当保护代码块中发生一个异常时，<code>try</code> 后面的 <code>catch</code> 块就会被检查，如果发生的异常<strong>包含</strong>在 <code>catch</code> 块中，异常会被传递到该 <code>catch</code> 块的形参 <code>e</code> 中，这和传递一个参数到方法是一样。</p>
+<h3 id="多重捕获块">多重捕获块</h3>
+<p>一个 <code>try</code> 代码块后面跟随多个 <code>catch</code> 代码块的情况就叫多重捕获。</p>
+<p>多重捕获块的语法如下所示：</p>
+<pre><code class="language-java">// 下面的代码段包含了 2 个 catch 块，可以在 try 语句后面添加任意数量的 catch 块
+try {
+    file = new FileInputStream(fileName);
+    x = (byte) file.read();
+} catch(FileNotFoundException f) { // 不匹配，跳过
+    f.printStackTrace();
+    return -1;
+} catch(IOException i) { // 匹配，被捕获，执行代码块
+    i.printStackTrace();
+    return -1;
+}
+</code></pre>
+<p>如果保护代码中发生异常，异常会按照先后顺序一层一层的匹配 <code>catch</code> 块中的异常，直到异常被捕获或者通过所有的 <code>catch</code> 块。</p>
+<p>为了避免异常通过所有的 <code>catch</code> 块，我们一般会将异常类按辈分从小到大的顺序自上而下来声明 <code>catch</code> 块，如下所示：</p>
+<pre><code class="language-java">try{
+    // Code
+} catch(FileNotFoundException e) { // 最小
+    // Code
+} catch(IOException e) { // 中间
+    // Code
+} catch(Exception e) { // 所有异常的父类，绝对漏不掉
+    // Code
+}
+</code></pre>
+<h3 id="finally-关键字">finally 关键字</h3>
+<p><code>finally</code> 关键字用来创建在 <code>try</code> 代码块后面执行的代码块。无论是否发生异常，<code>finally</code> 代码块中的代码总会被执行，所以常用来运行清理类型等收尾善后性质的语句。</p>
+<pre><code class="language-java">public class ExcepTest {
+    public static void main(String args[]) {
+        int a[] = new int[2];
+        try {
+            System.out.println(&quot;Access element three :&quot; + a[3]);
+        } catch(ArrayIndexOutOfBoundsException e) { // 捕获异常，执行代码块
+            System.out.println(&quot;Exception thrown  :&quot; + e);
+        } finally { // 无论有没有异常，都会执行代码块
+            a[0] = 6;
+            System.out.println(&quot;First element value: &quot; +a[0]);
+            System.out.println(&quot;The finally statement is executed&quot;);
+        }
+    }
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code>Exception thrown  :java.lang.ArrayIndexOutOfBoundsException: 3
+First element value: 6
+The finally statement is executed
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li><code>catch</code> 不能独立于 <code>try</code> 存在</li>
+<li><code>try</code> 代码后不能既没 <code>catch</code> 块也没 <code>finally</code> 块</li>
+<li><code>try</code>, <code>catch</code>, <code>finally</code> 块之间不能添加任何代码</li>
+</ul>
+<h2 id="抛出异常">抛出异常</h2>
+<p>如果一个方法没有捕获到一个检查性异常，那么该方法必须使用 <code>throws</code> 关键字来声明。<code>throws</code> 关键字放在方法签名的尾部。</p>
+<p>无论是新实例化的还是刚捕获到的，也可以使用 <code>throw</code> 关键字抛出一个异常，将其交给调用者去处理。</p>
+<pre><code class="language-java">import java.io.*;
+public class className { // 一个方法可以声明抛出多个异常，多个异常之间用逗号隔开
+    public void withdraw(double amount) throws RemoteException,InsufficientFundsException {
+        // Method implementation
+        throw new RemoteException(&quot;Error&quot;); // 手动抛出异常，注意用的是throw关键字
+    }
+    // Remainder of class definition
+}
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>子类重写的方法抛出的异常类型<strong>不大于</strong>父类被重写的方法抛出的异常类型</li>
+<li>当方法体内部的异常符合声明抛出的异常，则会被抛出，异常后续代码不被执行</li>
+<li><code>throws</code> 的方式只是将异常抛给了方法的调用者。并没有真正将异常处理掉</li>
+<li>手动抛出的异常是由自己手动生成并抛出的，并非系统运行生成的</li>
+</ul>
+<h2 id="自定义异常">自定义异常</h2>
+<p>在 Java 中你可以自定义异常。编写自己的异常类时需要记住下面的几点。</p>
+<ul>
+<li>必须继承现有的异常结构，如 Exception、RuntimeException 等</li>
+<li>可以提供全局常量：serialVersionUID，用来作为该异常的标识</li>
+<li>提供重载的构造器</li>
+<li>如果希望写一个<strong>检查性异常</strong>类，则需要继承 Exception 类。</li>
+<li>如果你想写一个<strong>运行时异常</strong>类，那么需要继承 RuntimeException 类。</li>
+</ul>
+<p>可以像下面这样定义自己的异常类：</p>
+<pre><code class="language-java">pub1ic class MyException extends RuntimeException {
+    
+    static final long serialVersionUID = -7034897193246939L; // 标识符，可选
+    
+    public MyException(){} // 空参构造器
+    public MyException(String msg) { // 直接调用父类现成的有参构造器
+    	super(msg);
+    }
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8">捕获异常</a>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C">基本操作</a></li>
+<li><a href="#%E5%A4%9A%E9%87%8D%E6%8D%95%E8%8E%B7%E5%9D%97">多重捕获块</a></li>
+<li><a href="#finally-%E5%85%B3%E9%94%AE%E5%AD%97">finally 关键字</a></li>
+</ul>
+</li>
+<li><a href="#%E6%8A%9B%E5%87%BA%E5%BC%82%E5%B8%B8">抛出异常</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%82%E5%B8%B8">自定义异常</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-yi-zhi-chuan-di-he-yin-yong-chuan-di/">
+              <h3 class="post-title">
+                【Java SE】十一、值传递和引用传递
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,484 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】 前言 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】 前言 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="本篇用于记录，在学习了 C 和 Python 的语法基础下，学习 Java 的自认为不同于前两门语言而需要额外记录的内容，仅含概 JavaSE 部分内容，用于个人参考和回顾。由于每个人的学习进度不同，所以不建议用于自学。
+
+全篇共 22 个..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】 前言
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-15
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>本篇用于记录，在学习了 C 和 Python 的语法基础下，学习 Java 的<strong>自认为不同于前两门语言而需要额外记录</strong>的内容，仅含概 <strong>JavaSE</strong> 部分内容，用于个人参考和回顾。<strong>由于每个人的学习进度不同，所以不建议用于自学。</strong></p>
+<!-- more -->
+<p>全篇共 22 个部分，都是我学习 Java 一路上记录的一些要点，<strong>不会包含 Java SE 的所有知识点</strong>。</p>
+<p>目录如下：</p>
+<ul>
+<li>一、手动运行代码</li>
+<li>二、Javadoc
+<ul>
+<li>文档注释与Javadoc 标签</li>
+<li>生成 API 帮助文档的简单步骤</li>
+</ul>
+</li>
+<li>三、新增数据类型
+<ul>
+<li>基本数据类型</li>
+<li>引用数据类型</li>
+<li>注意事项</li>
+</ul>
+</li>
+<li>四、类名与包机制
+<ul>
+<li>类名</li>
+<li>包机制</li>
+</ul>
+</li>
+<li>五、命名规则</li>
+<li>六、字符串
+<ul>
+<li>String 类
+<ul>
+<li>创建字符串</li>
+<li>字符串长度</li>
+<li>连接字符串</li>
+<li>创建格式化字符串</li>
+<li>String 方法</li>
+</ul>
+</li>
+<li>StringBuffer &amp; StringBuilder</li>
+</ul>
+</li>
+<li>七、用户输入</li>
+<li>八、流程控制
+<ul>
+<li>带标签的 break</li>
+<li>带标签的 countine</li>
+</ul>
+</li>
+<li>九、数组
+<ul>
+<li>声明数组</li>
+<li>创建数组</li>
+<li>数组长度</li>
+<li>增强型 for 循环(For-Each循环)</li>
+<li>其他不同点
+<ul>
+<li>数组作为函数的参数</li>
+<li>多维数组的动态初始化</li>
+</ul>
+</li>
+<li>Arrays 类</li>
+</ul>
+</li>
+<li>十、类
+<ul>
+<li>基本操作</li>
+<li>构造方法
+<ul>
+<li>this 关键字</li>
+<li>super 关键字</li>
+<li>通过关键字引用构造函数</li>
+</ul>
+</li>
+<li>访问控制
+<ul>
+<li>默认访问修饰符 default</li>
+<li>私有访问修饰符 private</li>
+<li>公有访问修饰符 public</li>
+<li>受保护访问修饰符</li>
+<li>protected</li>
+<li>访问控制和继承</li>
+</ul>
+</li>
+<li>static 关键字
+<ul>
+<li>静态变量</li>
+<li>静态方法</li>
+</ul>
+</li>
+<li>final 关键字
+<ul>
+<li>修饰变量</li>
+<li>修饰方法</li>
+<li>修饰类</li>
+</ul>
+</li>
+<li>可长参数</li>
+<li>方法重载</li>
+<li>虚拟方法</li>
+<li>代码块</li>
+<li>包装类
+<ul>
+<li>常用方法</li>
+</ul>
+</li>
+<li>内部类
+<ul>
+<li>成员内部类</li>
+<li>局部内部类</li>
+</ul>
+</li>
+<li>抽象类</li>
+<li>接口
+<ul>
+<li>接口的实现和继承</li>
+<li>新特性</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>十一、值传递和引用传递</li>
+<li>十二、异常处理
+<ul>
+<li>捕获异常
+<ul>
+<li>基本操作</li>
+<li>多重捕获块</li>
+<li>finally 关键字</li>
+</ul>
+</li>
+<li>抛出异常</li>
+<li>自定义异常</li>
+</ul>
+</li>
+<li>十三、多线程
+<ul>
+<li>线程的生命周期</li>
+<li>创建线程
+<ul>
+<li>继承 Thread 类</li>
+<li>实现 Runnable 接口</li>
+<li>实现 Callable 接口</li>
+<li>使用线程池</li>
+</ul>
+</li>
+<li>一些常用方法</li>
+<li>线程的优先级</li>
+<li>线程的同步
+<ul>
+<li>同步代码块</li>
+<li>同步方法</li>
+<li>Lock 锁</li>
+</ul>
+</li>
+<li>死锁</li>
+</ul>
+</li>
+<li>十四、常用类
+<ul>
+<li>java.time
+<ul>
+<li>创建时间对象</li>
+<li>瞬时对象</li>
+<li>格式化日期时间</li>
+<li>其他API</li>
+</ul>
+</li>
+<li>Java 比较器
+<ul>
+<li>Comparable 接口</li>
+<li>Comparator 接口</li>
+</ul>
+</li>
+<li>System 类</li>
+<li>Math 类</li>
+<li>BigInteger &amp; BigDecimal 类</li>
+</ul>
+</li>
+<li>十五、枚举类
+<ul>
+<li>基本操作</li>
+<li>实现接口</li>
+<li>其他方法</li>
+</ul>
+</li>
+<li>十六、注解
+<ul>
+<li>基本注解</li>
+<li>自定义注解</li>
+<li>元注解</li>
+<li>可重复注解</li>
+<li>类型注解</li>
+</ul>
+</li>
+<li>十七、集合框架
+<ul>
+<li>Collection 接口
+<ul>
+<li>内置方法</li>
+<li>迭代器</li>
+<li>List 接口</li>
+<li>Set 接口</li>
+</ul>
+</li>
+<li>Map 接口
+<ul>
+<li>内置方法</li>
+<li>Properties 的使用</li>
+</ul>
+</li>
+<li>Collections 工具类</li>
+</ul>
+</li>
+<li>十八、泛型
+<ul>
+<li>使用泛型</li>
+<li>自定义泛型</li>
+<li>泛型的继承
+<ul>
+<li>泛型的子父类关系</li>
+<li>泛型的保留</li>
+</ul>
+</li>
+<li>通配符</li>
+</ul>
+</li>
+<li>十九、I/0流
+<ul>
+<li>File 类
+<ul>
+<li>实例化</li>
+<li>常用方法</li>
+</ul>
+</li>
+<li>流
+<ul>
+<li>字符流</li>
+<li>字节流</li>
+<li>缓冲流</li>
+<li>转换流</li>
+<li>打印流</li>
+<li>数据流</li>
+<li>对象流</li>
+<li>随机存取文件流</li>
+</ul>
+</li>
+<li>NIO</li>
+</ul>
+</li>
+<li>二十、网络编程
+<ul>
+<li>InetAddress 类</li>
+<li>TCP 网络编程</li>
+<li>UDP 网络编程</li>
+<li>URL 编程</li>
+</ul>
+</li>
+<li>二十一、反射
+<ul>
+<li>基本操作
+<ul>
+<li>创建运行时类的对象</li>
+<li>获取运行时类的属性和方法结构</li>
+<li>获取运行时类的父类及父类的泛型</li>
+<li>获取运行时类的其他结构</li>
+<li>调用运行时类中的指定内部结构</li>
+</ul>
+</li>
+<li>获取 Class 对象的方式</li>
+<li>类加载器</li>
+<li>动态代理</li>
+</ul>
+</li>
+<li>二十二、Java 8 新特性
+<ul>
+<li>函数式接口</li>
+<li>Lambda 表达式</li>
+<li>方法引用和构造器引用</li>
+<li>Stream API
+<ul>
+<li>Stream 的实例化
+<ul>
+<li>筛选与切片</li>
+<li>映射</li>
+<li>排序</li>
+</ul>
+</li>
+<li>Stream 的中间操作</li>
+<li>Stream 的终止操作
+<ul>
+<li>匹配与查找</li>
+<li>归约</li>
+<li>收集</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Optional 类</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/git-basic-usage/">
+              <h3 class="post-title">
+                Git 基本用法
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

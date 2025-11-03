@@ -1,0 +1,245 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】四、类名与包机制 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】四、类名与包机制 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 中，万物皆对象。
+
+类名
+一个 Java 文件被称作一个Java类，每个Java文件内部的唯一公开类名必须与文件名相同，比如下面的 CalculatePrime.java 文件。
+包机制
+Java 中使用 package 语句定义..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】四、类名与包机制
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-19
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 中，万物皆对象。</p>
+<!-- more -->
+<h2 id="类名">类名</h2>
+<p>一个 <code>Java</code> 文件被称作一个Java类，<strong>每个Java文件内部的唯一公开类名必须与文件名相同</strong>，比如下面的 <code>CalculatePrime.java </code>文件。</p>
+<h2 id="包机制">包机制</h2>
+<p>Java 中使用 <code>package</code> 语句定义包，可以粗略地理解为文件夹，<strong><code>package</code> 语句应该放在源文件的第一行，在每个源文件中只能有一个包定义语句</strong>，并且 <code>package</code> 语句适用于所有类型（类、接口、枚举和注释）的文件。如下图所示：</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/%E5%8C%851.png" alt="包1" loading="lazy"></figure>
+<p>上图中的工作环境根目录为 <code>src</code> 文件夹，所以 <code>Test.java</code> 无需写明包路径，而 <code>CalculatePrime.java </code> 则需要写一个文件夹名。包的作用是把不同的程序分类保存，更方便的被其他程序调用。</p>
+<p>我们还可以通过导入包来访问其他类，使用 <code>import</code> 来实现，下图是在 <code>Test.java</code> 中导入 <code>Code</code> 里的 <code>CalculatePrime</code> 类：</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/%E5%8C%852.png" alt="import" loading="lazy"></figure>
+<p>如果上述包中的类太多，还可以用 <code>import Code.*</code> 来导入全部类。<em><strong>注：同一目录下的类之间可相互直接访问，因为在同一包下。</strong></em></p>
+<hr>
+<p><strong>包的命名规则：</strong></p>
+<ul>
+<li>
+<p>包名全部由小写字母（多个单词也全部小写）。</p>
+</li>
+<li>
+<p>如果包名包含多个层次，每个层次用 <code>.</code> 分割。</p>
+</li>
+<li>
+<p>包名一般由倒置的域名开头，比如 com.baidu，不要有 www。</p>
+</li>
+<li>
+<p>自定义包不能 <code>java</code> 开头。</p>
+</li>
+</ul>
+<p><em>注：如果在源文件中没有定义包，那么类、接口、枚举和注释类型文件将会被放进一个无名的包中，也称为默认包。在实际企业开发中，通常不会把类定义在默认包下。</em></p>
+<hr>
+<p><strong>常见的系统包</strong>：</p>
+<ul>
+<li>
+<p>java.lang：系统常用基础类(String、Object),此包从 JDK 1.1 后自动导入。</p>
+</li>
+<li>
+<p>java.lang.reflect：java 反射编程包;</p>
+</li>
+<li>
+<p>java.net：进行网络编程开发包。</p>
+</li>
+<li>
+<p>java.sql：进行数据库开发的支持包。</p>
+</li>
+<li>
+<p>java.util：是 java 提供的工具程序包。(集合类等) 非常重要</p>
+</li>
+<li>
+<p>java.io：I/O 编程开发包</p>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%B1%BB%E5%90%8D">类名</a></li>
+<li><a href="#%E5%8C%85%E6%9C%BA%E5%88%B6">包机制</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/vscode-shortcut-key/">
+              <h3 class="post-title">
+                VSCode 快捷键
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

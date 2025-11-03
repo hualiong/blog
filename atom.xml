@@ -1,0 +1,2197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://hualiang.online</id>
+    <title>Hualiang&apos;s Blog</title>
+    <updated>2025-11-03T08:52:24.734Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://hualiang.online"/>
+    <link rel="self" href="https://hualiang.online/atom.xml"/>
+    <subtitle>&lt;i&gt;Unless I don&apos;t want to win, nobody can make me lose.&lt;/i&gt;&lt;br/&gt;&lt;br/&gt;I always believe 天道酬勤</subtitle>
+    <logo>https://hualiang.online/images/avatar.png</logo>
+    <icon>https://hualiang.online/favicon.ico</icon>
+    <rights>All rights reserved 2025, Hualiang&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[Succinct Trie - 基于 LOUDS 编码的压缩字典树]]></title>
+        <id>https://hualiang.online/post/java-shi-xian-ji-yu-louds-bian-ma-de-ya-suo-qian-zhui-shu/</id>
+        <link href="https://hualiang.online/post/java-shi-xian-ji-yu-louds-bian-ma-de-ya-suo-qian-zhui-shu/">
+        </link>
+        <updated>2025-08-27T15:54:39.000Z</updated>
+        <summary type="html"><![CDATA[<p>最近在学习 ElasticSearch 的 <strong>FST</strong> 结构发现，虽然它压缩了前后缀可以让占用空间极大缩小，但依然有对象头和指针的开销，如果能把这部分开销去掉，压缩率还能再上一层楼。于是经过调研发现一种叫“<strong>简洁数据结构</strong>”（Succinct Data Structure）的东西，它在占用<strong>极小空间</strong>下还能提供<strong>高效查询</strong>操作。对此比较好奇它的实现原理，遂深入探索，想用 Java 实现一个比 FST 占用更小的 Trie 结构，于是就有了这篇文章。</p>
+<p><em>p.s. 部分参考图和代码源自《<a href="https://blog.csdn.net/u014470403/article/details/147883426">基于 LOUDS 的 Succinct Set 详解</a>》</em></p>
+]]></summary>
+        <content type="html"><![CDATA[<p>最近在学习 ElasticSearch 的 <strong>FST</strong> 结构发现，虽然它压缩了前后缀可以让占用空间极大缩小，但依然有对象头和指针的开销，如果能把这部分开销去掉，压缩率还能再上一层楼。于是经过调研发现一种叫“<strong>简洁数据结构</strong>”（Succinct Data Structure）的东西，它在占用<strong>极小空间</strong>下还能提供<strong>高效查询</strong>操作。对此比较好奇它的实现原理，遂深入探索，想用 Java 实现一个比 FST 占用更小的 Trie 结构，于是就有了这篇文章。</p>
+<p><em>p.s. 部分参考图和代码源自《<a href="https://blog.csdn.net/u014470403/article/details/147883426">基于 LOUDS 的 Succinct Set 详解</a>》</em></p>
+<!-- more -->
+<h2 id="简介">简介</h2>
+<p><strong>什么是 Succinct 数据结构？</strong></p>
+<p>简洁数据结构（Succinct Data Structures）是指一类在存储数据时接近信息熵下界，同时保持高效查询性能的数据结构，也就是说一个结构表示的所占空间<strong>接近</strong>信息熵下限，那么就可以称其为“简洁的”。其核心原理就是使用 Bitmap 来表示数据结构以节省大量空间。</p>
+<p>Succinct 思想常被应用于对<strong>列表</strong>和<strong>树</strong>的存储以压缩空间，也就是 “Succinct Vector” 和 “<strong>Succinct Tree</strong>”</p>
+<p>一些常见的简洁数据结构实现包括：</p>
+<ul>
+<li><strong>小波树</strong>：在压缩的序列上支持丰富的<strong>序列查询</strong>操作，如第k小查询，区间统计</li>
+<li><strong>FM-Index</strong>：在一个压缩后的文本索引中，极快地查找一个模式串 P 出现的所有位置（全文索引）</li>
+<li><strong>简洁树</strong>：用极小的空间存储<strong>树结构</strong>，并支持高效的基础<strong>导航操作</strong></li>
+<li><strong>简洁图</strong>：基于<strong>邻接表</strong>的简洁表示，以极小空间占用支持图的各种基本操作</li>
+<li><strong>简洁向量</strong>：就是简洁数组，比一般的基本数据类型数组还要小</li>
+</ul>
+<h2 id="原理">原理</h2>
+<blockquote>
+<p><strong>Succinct Trie</strong> = Succinct Tree + Trie Label</p>
+</blockquote>
+<p>因为我探索的主要是如何让 FST 更省空间，FST 本质上也是个 Trie 树，就打算从 Trie 出发，结合上文简介中说到的 “Succinct Tree”，探索能否将 Trie 树和 Succinct Tree 结合在一起。当然，最终结果当然是可以的，已经有很多篇文章实现了。因此接下来我将从核心原理开始讲起，一步步去实现一个占用极小空间又能高效查询的 <strong>Succinct Trie</strong></p>
+<h3 id="编码">编码</h3>
+<p>结合简洁数据结构的核心思想，我们不难推测：Succinct Trie 核心原理是使用 <strong>Bitmap</strong> 来表示 Trie 树结构，因此我们先要将<strong>树结构</strong>编码成 <strong>bit 序列</strong></p>
+<p>目前有两种主流编码方式，DFOUS 支持更多的功能，LOUDS 有更快的性能：</p>
+<ul>
+<li><strong>LOUDS</strong>：按 BFS 遍历树，对于每个节点，用一元编码（一串 1 加一个 0）表示它的度数。适用于<strong>度数大、深度浅</strong>的树，如 <strong>Trie</strong> <strong>树</strong></li>
+<li><strong>DFUDS</strong>：按 DFS 遍历树，对每个有 d 个子节点的节点，用一个 “<strong>(</strong>” 和 d 个 “<strong>)</strong>” 来表示，但整个序列用额外的 “<strong>(</strong>“ 开头以保证平衡。可以理解为特殊的括号序列，编码时 “<strong>(</strong>” 为 1，“<strong>)</strong>” 为 0。适用于要深度优先遍历的场景，如<strong>语法分析树、DOM 树</strong></li>
+</ul>
+<p>因为我们的目标在 Trie 树上，所以我们这里主要探讨 LOUDS 编码方式</p>
+<hr>
+<p><strong>什么是 LOUDS 编码？</strong></p>
+<p><strong>L</strong>evel-<strong>O</strong>rder <strong>U</strong>nary <strong>D</strong>egree <strong>S</strong>equence，层序一元度序列，简称 LOUDS。听起来高大上，实际内容非常简单</p>
+<p>以下图这一颗 Trie 树为例，对于每个节点，用 <code>0</code> 表示子节点，<code>1</code> 表示结束。比如，节点 1 有两个子节点，那么就表示成 <code>001</code>。 最终按照 BFS 顺序把所有编码排列一起就是这棵树的 LOUDS 编码</p>
+<p>综上，该树的 LOUDS 编码为 <code>001 001 01 01 01 01 01 1 1 1</code></p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1757527679745.png" alt="图一" loading="lazy"></figure>
+<p><em>注 1：节点标签，即图中节点间边上的那些字符，本身并不属于树结构的一部分，所以需要另外使用一个数组 <code>labels</code> 存储</em></p>
+<p><em>注 2：原论文中的标准形式应该是用 <strong>1</strong> 表示子节点，<strong>0</strong> 表示结束</em></p>
+<h3 id="导航">导航</h3>
+<p>现在我们把一个 Trie 树压成一串 bit 序列装进位图里，那么我们现在如何从这一坨序列中还原出 Trie 树呢？或者说我们如何在这一坨被压缩的 Trie 树中进行导航操作？</p>
+<p>这时候就需要额外定义<strong>四个辅助方法</strong>来操作：</p>
+<p><code>rank1(pos)</code>：返回位图 <code>[0, pos]</code> 下标范围内 <code>1</code> 的个数；<code>rank0</code> 则是 <code>0</code> 的个数</p>
+<p><code>select1(k)</code>：返回位图里第 <code>k</code> 个 <code>1</code> 的下标位置；<code>select0</code> 则是 <code>0</code> 的位置</p>
+<p>实际进行导航中会频繁调用这几个方法，因此为了提高性能，我们会<strong>预计算</strong>这些方法的值</p>
+<hr>
+<p>我们用上文图一的 Trie 树来展示如何通过这四个方法来在树节点之间随意转移</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1757527757315.png" alt="图二" loading="lazy"></figure>
+<p>上图是该 Trie 树经过 LOUDS 编码出的 <strong>bit 序列与其源节点的对应关系</strong>，可以帮助理解</p>
+<p>以<strong>节点</strong> <strong>1</strong> 为例，它的子节点是 <strong>3</strong>、<strong>4</strong>，父节点是 <strong>0</strong>，那么：</p>
+<ul>
+<li>节点 1 起始 bit 位置 = <code>select1(1)</code> + <code>1</code> = <code>3</code></li>
+<li>节点 1 第一子节点编号 = <code>rank0(3 + 0)</code> = <code>3</code></li>
+<li>节点 1 第二子节点编号 = <code>rank0(3 + 1)</code> = <code>4</code></li>
+<li>节点 1 的父节点起始 bit 位置 = <code>select0(1)</code> = <code>0</code>，父节点编号 = <code>rank1(select0(1))</code> = <code>rank1(0)</code> = <code>0</code></li>
+<li>如果知道<strong>当前节点编码</strong>和<strong>当前 bit 位置</strong>，那么<strong>当前节点标签</strong> = <code>labels[index - nodeId]</code></li>
+</ul>
+<p>以上操作说明如何从节点 1 向上（回溯）和向下（递归）两个方向的导航，并且展示了当获取到<strong>当前节点编码</strong>和<strong>当前 bit 位置</strong>，如何获取<strong>当前节点标签</strong>。既然上下节点都能遍历，那遍历整棵树自然不在话下</p>
+<h2 id="实现">实现</h2>
+<p>我们在上文已经简单讲解了 Succinct Trie 的压缩方式（编码）和遍历方法（导航），说白了就是通过一种精心设计过的编码方式将树型结构的节点信息存储到 bit 序列中，然后通过四个辅助方法提取这些信息直接计算出原始信息，理解后其实也没那么难</p>
+<p>下面是用 Java 简单实现的一个基于 LOUDS 编码的静态压缩 Trie 树，按照简洁数据结构的分类，可以被称为 <strong>Succinct Trie</strong>。该实现无第三方依赖，创建后不可更改结构，理论上支持各种前缀树特性，目前只实现一些主要功能：</p>
+<ul>
+<li><code>boolean contains(String key)</code>：判断 key 是否存在</li>
+<li><code>int index(String key)</code>：若 key 存在，则会返回内部对应的节点 ID；否则，返回 -1</li>
+<li><code>String get(int nodeId)</code>：通过给定节点 ID 反向搜索 key</li>
+<li><code>Iterator&lt;String&gt; iterator(boolean orderly)</code>：以字典序或层序的顺序遍历 Trie 中所有的 key</li>
+<li><code>Iterator&lt;String&gt; prefixKeysOf(String str)</code>：查询给定字符串在 Trie 内所有的前缀</li>
+<li><code>Iterator&lt;String&gt; prefixSearch(String prefix)</code>：查询所有以给定前缀开头的 key</li>
+</ul>
+<pre><code class="language-java">import java.nio.CharBuffer;
+import java.util.*;
+
+public class SuccinctTrie {
+    private final char[] labels;         // 存储 Trie 树的字符标签
+    private final BitVector labelBitmap; // 存储 LOUDS 编码的位向量
+    private final BitVector isLeaf;      // 存储所有叶子节点标记的位向量
+
+    public static SuccinctTrie of(String... keys) {
+        return new SuccinctTrie(keys);
+    }
+
+    private SuccinctTrie(String[] keys) {
+        for (int i = 1; i &lt; keys.length; i++) {
+            assert keys[i].compareTo(keys[i - 1]) &gt;= 0 : &quot;The inputs are not ordered!&quot;;
+        }
+        List&lt;Character&gt; labelsList = new ArrayList&lt;&gt;();
+        BitVector.Builder labelBitmapBuilder = new BitVector.Builder();
+        BitVector.Builder isLeafBuilder = new BitVector.Builder();
+
+        Queue&lt;Range&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.add(new Range(0, keys.length, 0));
+        int bitPos = 0, nodeId = 0;
+        while (!queue.isEmpty()) {
+            Range range = queue.poll();
+            int L = range.L, R = range.R, index = range.index;
+            isLeafBuilder.set(nodeId, keys[L].length() == index);
+            // 处理子节点
+            int start = L;
+            while (start &lt; R) {
+                // 跳过长度不足的键
+                if (keys[start].length() &lt;= index) {
+                    start++;
+                    continue;
+                }
+                char currentChar = keys[start].charAt(index);
+                int end = start + 1;
+                while (end &lt; R) {
+                    if (keys[end].length() &lt;= index || keys[end].charAt(index) != currentChar) {
+                        break;
+                    }
+                    end++;
+                }
+                // 添加子节点标签
+                labelsList.add(currentChar);
+                // 设置子节点标记(0)
+                // labelBitmapBuilder.set(bitPos, false);
+                bitPos++;
+                // 将子节点范围加入队列
+                queue.add(new Range(start, end, index + 1));
+                start = end;
+            }
+            // 设置节点结束标记(1)
+            labelBitmapBuilder.set(bitPos++, true);
+            nodeId++;
+        }
+        // 转换并初始化位图
+        this.labels = new char[labelsList.size()];
+        for (int i = 0; i &lt; labelsList.size(); i++) {
+            labels[i] = labelsList.get(i);
+        }
+        this.labelBitmap = labelBitmapBuilder.build(true);
+        this.isLeaf = isLeafBuilder.build(false);
+    }
+
+    /**
+     * 存储的 key 的个数
+     */
+    public int size() {
+        return isLeaf.oneCount;
+    }
+
+    /**
+     * 该 Trie 树的节点个数
+     */
+    public int nodeCount() {
+        return isLeaf.size;
+    }
+
+    /**
+     * 判断 key 是否存在
+     *
+     * @param key 要查询的键值
+     * @return 是否存在
+     */
+    public boolean contains(String key) {
+        return index(key) &gt;= 0;
+    }
+
+    /**
+     * 精确查询给定 key 在内部唯一对应的节点 ID
+     *
+     * @param key 要查询的 key
+     * @return 如果 key 存在，则返回对应的节点 ID；否则，返回 -1
+     */
+    public int index(String key) {
+        int nodeId = extract(key);
+        return nodeId &gt;= 0 &amp;&amp; isLeaf.get(nodeId) ? nodeId : -1;
+    }
+
+    /**
+     * 反向查询给定节点 ID 在内部唯一对应的 key
+     *
+     * @param nodeId 要查询的节点 ID
+     * @return 如果节点 ID 在合法范围内，则返回对应的 key；否则，返回 null
+     */
+    public String get(int nodeId) {
+        if (isLeaf.get(nodeId)) {
+            StringBuilder str = new StringBuilder();
+            int bitmapIndex;
+            while ((bitmapIndex = labelBitmap.select0(nodeId)) &gt;= 0) {
+                nodeId = labelBitmap.rank1(bitmapIndex);
+                str.append(labels[bitmapIndex - nodeId]);
+            }
+            return str.reverse().toString();
+        }
+        return null;
+    }
+
+    /**
+     * &lt;p&gt;以字典序或层序的方式遍历 Trie 中所有的 key&lt;/p&gt;
+     * &lt;b&gt;注意&lt;/b&gt;：层序遍历的性能要优于字典序遍历，如果不追求有序，请将 {@code orderly} 设为 false 以获得最佳性能
+     *
+     * @param orderly 如果为 true，则按（DFS）字典序遍历；如果为 false，则按层序遍历。
+     * @return 一个用于遍历所有 key 的迭代器
+     */
+    public Iterator&lt;String&gt; iterator(boolean orderly) {
+        if (orderly) {
+            return traverse(0, &quot;&quot;);
+        } else {
+            return new Iterator&lt;&gt;() {
+                private int index = isLeaf.nextSetBit(0);
+
+                @Override
+                public boolean hasNext() {
+                    return index &gt;= 0;
+                }
+
+                @Override
+                public String next() {
+                    String str = get(index);
+                    index = isLeaf.nextSetBit(index + 1);
+                    return str;
+                }
+            };
+        }
+    }
+
+    /**
+     * 查询给定字符串在 Trie 内所有的前缀
+     *
+     * @param str 要查询的字符串
+     * @return 一个用于遍历所有前缀的迭代器
+     */
+    public Iterator&lt;String&gt; prefixKeysOf(String str) {
+        return new TermIterator() {
+            private final char[] chars = str.toCharArray();
+            private int pos = 0;
+            private int nodeId = 0;
+            private int bitmapIndex = 0;
+
+            {
+                advance(); // 初始化查找第一个前缀
+            }
+
+            @Override
+            protected void advance() {
+                while (pos &lt; chars.length) {
+                    int index = labelSearch(nodeId, bitmapIndex, chars[pos]);
+                    if (index &lt; 0) {
+                        break;
+                    }
+                    nodeId = index + 1 - nodeId;
+                    bitmapIndex = labelBitmap.select1(nodeId) + 1;
+                    pos++;
+                    if (isLeaf.get(nodeId)) {
+                        next = new String(chars, 0, pos);
+                        return;
+                    }
+                }
+                next = null;
+            }
+        };
+    }
+
+    /**
+     * 查询所有以给定前缀开头的 key
+     *
+     * @param prefix 要搜索的前缀
+     * @return 一个用于遍历所有匹配前缀的 key 的迭代器
+     */
+    public Iterator&lt;String&gt; prefixSearch(String prefix) {
+        return traverse(extract(prefix), prefix);
+    }
+
+    private int extract(String key) {
+        int nodeId = 0, bitmapIndex = 0;
+        for (char c : key.toCharArray()) {
+            if ((bitmapIndex = labelSearch(nodeId, bitmapIndex, c)) &lt; 0) {
+                return -1;
+            }
+            // 向子节点转移
+            nodeId = bitmapIndex + 1 - nodeId;
+            bitmapIndex = labelBitmap.select1(nodeId) + 1;
+        }
+        return nodeId;
+    }
+
+    private Iterator&lt;String&gt; traverse(int rootId, String prefix) {
+        return new TermIterator() {
+            private final CharBuffer charBuffer = CharBuffer.allocate(256);
+            private int nodeId = rootId;
+            private int bitmapIndex = rootId &lt; 0 ? labelBitmap.size : labelBitmap.select1(rootId) + 1;
+
+            {
+                charBuffer.append(prefix);
+                charBuffer.flip();
+                if (!isLeaf.get(rootId)) {
+                    advance();
+                }
+            }
+
+            @Override
+            protected void advance() {
+                // 切换写模式
+                charBuffer.position(charBuffer.limit());
+                charBuffer.limit(charBuffer.capacity());
+                while (true) {
+                    // 撞墙
+                    while (bitmapIndex &gt;= labelBitmap.size || labelBitmap.get(bitmapIndex)) {
+                        // 到达根节点，遍历结束
+                        if (nodeId == rootId) {
+                            next = null;
+                            return;
+                        }
+                        // 回溯并向右转移
+                        bitmapIndex = labelBitmap.select0(nodeId) + 1;
+                        nodeId = bitmapIndex - nodeId;
+                        charBuffer.position(charBuffer.position() - 1);
+                    }
+                    charBuffer.put(labels[bitmapIndex - nodeId]);
+                    // 向下转移
+                    nodeId = bitmapIndex + 1 - nodeId;
+                    bitmapIndex = labelBitmap.select1(nodeId) + 1;
+                    if (isLeaf.get(nodeId)) {
+                        charBuffer.flip();
+                        next = charBuffer.toString();
+                        return;
+                    }
+                }
+            }
+        };
+    }
+
+    /**
+     * 搜索标签向下层转移
+     *
+     * @param nodeId      当前节点ID
+     * @param bitmapIndex 当前节点在 {@code labelBitmap} 中的起始下标
+     * @param b           要搜索的标签
+     * @return 目标标签在 {@code labelBitmap} 中的下标，否则返回 -1
+     */
+    private int labelSearch(int nodeId, int bitmapIndex, char b) {
+        while (true) {
+            if (bitmapIndex &gt;= labelBitmap.size || labelBitmap.get(bitmapIndex)) {
+                return -1;
+            }
+            int labelIndex = bitmapIndex - nodeId;
+            if (labelIndex &lt; labels.length &amp;&amp; labels[labelIndex] == b) {
+                break;
+            }
+            bitmapIndex++;
+        }
+        return bitmapIndex;
+    }
+
+    // 辅助类：表示键范围
+    private record Range(int L, int R, int index) {
+    }
+
+    // 词项迭代器
+    private abstract static class TermIterator implements Iterator&lt;String&gt; {
+        String next = &quot;&quot;;
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public String next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            String term = next;
+            advance();
+            return term;
+        }
+
+        abstract void advance();
+    }
+
+    // 自实现位向量（位图）
+    public static class BitVector {
+        /**
+         * 数值越小，selects 预计算的间距越小，占用更高，select1 的性能越好
+         * 经测试，设为 1 或 2 时，性能提升明显，但占用极高，其余数值影响不大
+         */
+        private static final int GAP = 64;
+
+        private final long[] bits;
+        private final int[] ranks;   // 预计算rank1
+        private final int[] selects; // 部分预计算select1
+        public final int oneCount;
+        public final int size;
+
+        // 构建器模式
+        public static class Builder {
+            private final List&lt;Long&gt; bits = new ArrayList&lt;&gt;();
+            private int size = 0;
+            private int count = 0;
+
+            public void set(int position, boolean value) {
+                ensureCapacity(position);
+                int block = position &gt;&gt; 6;
+                int offset = position &amp; 0x3F;
+                long mask = 1L &lt;&lt; offset;
+                long oldBlock = bits.get(block);
+                if (value) {
+                    bits.set(block, oldBlock | mask); // 设置位为1
+                } else {
+                    bits.set(block, oldBlock &amp; ~mask); // 设置位为0
+                }
+                // 仅当位的值实际发生变化时更新计数器
+                if ((oldBlock &amp; mask) == 0 == value) {
+                    count += value ? 1 : 0;
+                }
+            }
+
+            private void ensureCapacity(int position) {
+                int requiredBlocks = (position &gt;&gt; 6) + 1;
+                while (bits.size() &lt; requiredBlocks) {
+                    bits.add(0L);
+                }
+                size = Math.max(size, position + 1);
+            }
+
+            public BitVector build(boolean rankSelect) {
+                long[] array = new long[bits.size()];
+                for (int i = 0; i &lt; bits.size(); i++) {
+                    array[i] = bits.get(i);
+                }
+                return new BitVector(array, size, count, rankSelect);
+            }
+        }
+
+        private BitVector(long[] bits, int size, int count, boolean rankSelect) {
+            this.bits = bits;
+            this.size = size;
+            this.oneCount = count;
+
+            // 预计算rank和select
+            if (rankSelect) {
+                int totalOnes = 0;
+                int oneCount = 0;
+                this.ranks = new int[bits.length + 1];
+                List&lt;Integer&gt; selectList = new ArrayList&lt;&gt;();
+                for (int i = 0; i &lt; bits.length; i++) {
+                    ranks[i] = totalOnes;
+                    int blockOnes = Long.bitCount(bits[i]);
+                    totalOnes += blockOnes;
+
+                    long block = bits[i];
+                    for (int j = 0; j &lt; 64; j++) {
+                        if ((block &amp; (1L &lt;&lt; j)) != 0) {
+                            oneCount++;
+                            if (oneCount % GAP == 0) {
+                                selectList.add(i * 64 + j);
+                            }
+                        }
+                    }
+                }
+                ranks[bits.length] = totalOnes;
+
+                this.selects = new int[selectList.size()];
+                for (int i = 0; i &lt; selectList.size(); i++) {
+                    selects[i] = selectList.get(i);
+                }
+            } else {
+                this.ranks = null;
+                this.selects = null;
+            }
+        }
+
+        public int nextSetBit(int from) {
+            if (from &lt; 0 || from &gt;= size) {
+                return -1;
+            }
+            int u = from &gt;&gt; 6;
+            long word;
+            for (word = this.bits[u] &amp; -1L &lt;&lt; from; word == 0L; word = this.bits[u]) {
+                if (++u == bits.length) {
+                    return -1;
+                }
+            }
+            return (u &lt;&lt; 6) + Long.numberOfTrailingZeros(word);
+        }
+
+        public boolean get(int pos) {
+            if (pos &gt;= size) return false;
+            int block = pos &gt;&gt; 6;
+            int offset = pos &amp; 0x3F;
+            return (bits[block] &amp; (1L &lt;&lt; offset)) != 0;
+        }
+
+        public int rank1(int pos) {
+            if (pos &lt; 0 || pos &gt;= size) {
+                return 0;
+            }
+            int block = pos + 1 &gt;&gt; 6;
+            int offset = pos + 1 &amp; 0x3F;
+            int count = ranks[block];
+
+            if (offset &gt; 0) {
+                long mask = (1L &lt;&lt; offset) - 1;
+                count += Long.bitCount(bits[block] &amp; mask);
+            }
+            return count;
+        }
+
+        // 性能较差
+        public int select1(int k) {
+            if (k &lt;= 0 || k &gt; ranks[bits.length]) {
+                return -1;
+            }
+            // 使用预计算的select加速
+            if (k % GAP == 0) {
+                int idx = k / GAP - 1;
+                if (idx &lt; selects.length)
+                    return selects[idx];
+            }
+            // 二分查找块
+            int low = 0, high = ranks.length - 1;
+            while (low &lt; high) {
+                int mid = low + high &gt;&gt;&gt; 1;
+                if (ranks[mid] &lt; k) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+            int block = low - 1;
+            // 在块内查找
+            int remaining = k - ranks[block];
+            long word = bits[block];
+            for (int i = 0; i &lt; 64; i++) {
+                if ((word &amp; (1L &lt;&lt; i)) != 0) {
+                    if (--remaining == 0) {
+                        return block * 64 + i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        public int rank0(int pos) {
+            if (pos &gt;= size) {
+                pos = size - 1;
+            }
+            return pos + 1 - rank1(pos);
+        }
+
+        // 性能极差
+        public int select0(int k) {
+            if (k &lt;= 0 || k &gt; ranks[bits.length]) {
+                return -1;
+            }
+            int low = 0, high = size - 1;
+            while (low &lt;= high) {
+                int mid = (low + high) &gt;&gt;&gt; 1;
+                // 计算[0, mid]区间内的0的个数
+                if (rank0(mid) &lt; k) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+            // 满足rank0(low) &gt;= k的最小位置即第k个0的位置
+            return low;
+        }
+    }
+}
+</code></pre>
+<p>没有全面的测试，简单测试大致结果如下，测试很粗糙，仅供参考：</p>
+<ul>
+<li><strong>中文 key</strong>：内存占用比 FSA 小 <strong>40%</strong> 左右，查询性能比 FSA 要低 <strong>76%</strong></li>
+<li><strong>英文 key</strong>：内存占用比 FSA 大 <strong>8.8%</strong> 左右，查询性能比 FSA 要低 <strong>64%</strong>（英文字符在 char 类型也是用 2 字节存，比较吃亏）</li>
+</ul>
+<p>因为是最简实现，没有进行任何优化，但确实能看出在内存方面有一定优势，后续引入第三方库（Sux4J）优化，表现肯定会强上不少，有很大的发展潜力</p>
+<p><em>注：FSA 是没有输出 FST，即不存 Value 的 FST，因为 Succinct Trie 只能存 Key，相当于 Set 集合，直接跟存储键值对的 FST 对比不合适</em></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于我脑洞大开去用多线程优化快速排序这件事]]></title>
+        <id>https://hualiang.online/post/guan-yu-nao-dong-da-kai-qu-yong-duo-xian-cheng-you-hua-kuai-su-pai-xu-zhe-jian-shi/</id>
+        <link href="https://hualiang.online/post/guan-yu-nao-dong-da-kai-qu-yong-duo-xian-cheng-you-hua-kuai-su-pai-xu-zhe-jian-shi/">
+        </link>
+        <updated>2024-10-25T14:50:34.000Z</updated>
+        <summary type="html"><![CDATA[<p>今晚在复习 TopK 问题手写快排时，突发奇想：“既然快排每次都要划分出两个区间重复进行快排，那么我可不可以将新划分出的两个区间用两个新线程去跑 ? ” 于是就有了这篇文章。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>今晚在复习 TopK 问题手写快排时，突发奇想：“既然快排每次都要划分出两个区间重复进行快排，那么我可不可以将新划分出的两个区间用两个新线程去跑 ? ” 于是就有了这篇文章。</p>
+<!-- more -->
+<h1 id="初次尝试">初次尝试</h1>
+<p>如果每次划分新区间都开线程跑，那最后的线程数肯定会爆炸式增长，所以我首先想到用线程池去跑。在线程池中，多余的任务放在阻塞队列执行，保证最大执行线程数不超过 CPU 核心数。既能最大利用 CPU 多核，又不至于让线程数溢出，一举两得。</p>
+<p>理论可行，开始实践！</p>
+<h1 id="代码">代码</h1>
+<p>下面是一个原生的快排，我的写法可能跟常规写法不一样，不过效率是一样的：</p>
+<pre><code class="language-java">public static void quickSort(int nums, int l, int r) {
+    if (l &gt;= r) return;
+    int x = nums[i], i = l, j = r + 1;
+    while (i &lt; j) {
+        while (nums[--j] &gt; x &amp;&amp; i != j);
+        if (i == j) nums[j] = x;
+        else {
+            nums[i] = nums[j];
+            while (nums[++i] &lt; x &amp;&amp; i != j);
+            if (i == j) nums[i] = x;
+            else nums[j] = nums[i];
+        }
+    }
+    quickSort(nums, l, j - 1);
+    quickSort(nums, j + 1, r);
+}
+</code></pre>
+<p>那如何将线程池用到快排里去呢？其实用栈实现迭代写法会更易于理解。</p>
+<p>这里线程池也起到了一个存储任务的作用，即任务队列。每次对区间进行划分后，将划分的区间的左右位置存到队列中，留到之后执行，类似于迭代法中的栈。不过线程池的好处就是，它会自动执行，而不需要我们通过循环去取任务执行。</p>
+<p>那么先写一个线程需要执行的方法，我们不需要返回值，所以实现 Runnable，如下：</p>
+<pre><code class="language-java">class Task implements Runnable {
+
+    private int left;
+
+    private int right;
+
+    private int[] nums;
+
+    private AtomicInteger count;
+
+    private ExecutorService executor;
+
+    // 传参
+    public Task(int left, int right, int[] nums, AtomicInteger count, ExecutorService executor) {
+        this.left = left;
+        this.right = right;
+        this.nums = nums;
+        this.count = count;
+        this.executor = executor;
+    }
+
+    @Override
+    public void run() {
+        // 划分区间前的移位操作
+        int x = nums[left], i = left, j = right + 1;
+        while (i &lt; j) {
+            while (nums[--j] &gt; x &amp;&amp; i != j);
+            if (i == j) nums[j] = x;
+            else {
+                nums[i] = nums[j];
+                while (nums[++i] &lt; x &amp;&amp; i != j);
+                if (i == j) nums[i] = x;
+                else nums[j] = nums[i];
+            }
+        }
+        if (left &lt; i - 1) {
+            count.getAndIncrement(); // 将未完成任务数 + 1
+            // 将下个区间的排序任务交给新线程执行
+            executor.execute(new Task(left, i - 1, nums, count, executor));
+        }
+        if (i + 1 &lt; right) {
+            count.getAndIncrement();
+            executor.execute(new Task(i + 1, right, nums, count, executor));
+        }
+        count.getAndDecrement(); // 最后记得扣除任务数
+    }
+}
+</code></pre>
+<p>因为线程需要传参，所以我们通过构造函数给字段赋值来传，这里一个个解释：</p>
+<ul>
+<li><code>left</code> 和 <code>right</code> ：区间左右两边的索引</li>
+<li><code>nums</code> ：数组</li>
+<li><code>count</code> ：计数器，用来判断线程池何时将所有任务执行完成</li>
+<li><code>executor</code> ：线程池</li>
+</ul>
+<p>接着，我们来写出主类的结构，如下：</p>
+<pre><code class="language-java">public class ParallelQuickSort {
+    public static void main(String[] args) {
+        // 生成随机数据
+        int[] nums = generateRandomArray(10000000);
+        double start = System.currentTimeMillis();
+        // Arrays.sort(nums);
+        parallelQuickSort(nums);
+        double end = System.currentTimeMillis();
+        System.out.println(((end - start) / 1000) + &quot; seconds&quot;);
+        // 验证排序结果
+        for (int i = 1; i &lt; nums.length; i++) {
+            if (nums[i] &lt; nums[i - 1]) {
+                System.out.println(&quot;排序失败！&quot;);
+                break;
+            }
+        }
+    }
+
+    public static void parallelQuickSort(int[] nums) {
+        if (nums == null || nums.length == 0) return;
+        // 这里图简单，直接用内置线程池
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        // count其实代表了未完成的任务数，包括正在执行和等待执行的
+        AtomicInteger count = new AtomicInteger(1);
+        executor.execute(new Task(0, nums.length - 1, nums, count, executor));
+        // 自旋判断是否已经执行完毕
+        while (count.get() &gt; 0) {
+            try {
+                System.out.println(&quot;count：&quot; + count.get());
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        // 以下皆为关闭线程池的措施
+        executor.shutdown();
+        try {
+            executor.awaitTermination(60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 随机生成数据
+    public static int[] generateRandomArray(int size) {
+        Random random = new Random();
+        int[] array = new int[size];
+        for (int i = 0; i &lt; size; i++) {
+            array[i] = random.nextInt(size) + 1;
+        }
+        return array;
+    }
+}
+</code></pre>
+<p>整个流程其实就是将迭代法中的队列换成了可以自动执行的线程池，而计数器因为存在并发操作，所以使用原子类确保线程安全。</p>
+<h1 id="测试">测试</h1>
+<p>我们利用随机函数生成随机整型数据，分别使用原生的 <code>Arrays.sort</code> 和我们的多线程快排来测试，结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>数据量</th>
+<th>Arrays.sort</th>
+<th>ParallelQuickSort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10000000</td>
+<td>1.466 秒</td>
+<td>2.305 秒</td>
+</tr>
+<tr>
+<td>1000000</td>
+<td>0.112 秒</td>
+<td>0.208 秒</td>
+</tr>
+</tbody>
+</table>
+<p>可以看出，我们的多线程竟然比单线程的原生方法还慢，几乎差了一倍，这是什么原因呢？</p>
+<p>经过我的一波分析和查阅资料，基本锁定原因：多线程的频繁上下文切换。</p>
+<p>在代码中，我们可以看到我并没有对“划分区间给新线程跑”这一行为做限制，以至于即使区间再小也会扔到线程池去执行。而这之间消耗的线程切换时间可要比直接用单线程跑要多。所以我们可以针对这一点进行优化。</p>
+<h1 id="二次优化">二次优化</h1>
+<p>我们只需要对 <code>run()</code> 作以下修改并且添加一个普通的快排方法即可，经过我测试，当区间长度小于 10000 时直接使用快排效果最好，如下：</p>
+<pre><code class="language-java">@Override
+public void run() {
+    int x = nums[left], i = left, j = right + 1;
+    while (i &lt; j) {
+        while (nums[--j] &gt; x &amp;&amp; i != j);
+        if (i == j) nums[j] = x;
+        else {
+            nums[i] = nums[j];
+            while (nums[++i] &lt; x &amp;&amp; i != j);
+            if (i == j) nums[i] = x;
+            else nums[j] = nums[i];
+        }
+    }
+    // 当区间长度小于 10000 时直接使用快排效果
+    if (right - left &lt;= 10000) {
+        quicksort(nums, left, i - 1);
+        quicksort(nums, i + 1, right);
+    } else {
+        if (left &lt; i - 1) {
+            count.getAndIncrement();
+            executor.execute(new MyRunnable(left, i - 1, nums, count, executor));
+        }
+        if (i + 1 &lt; right) {
+            count.getAndIncrement();
+            executor.execute(new MyRunnable(i + 1, right, nums, count, executor));
+        }
+    }
+    count.getAndDecrement();
+}
+
+public static void quicksort(int[] nums, int l, int r) {
+    if (l &gt;= r) return;
+    int x = nums[l], i = l, j = r + 1;
+    while (i &lt; j) {
+        while (nums[--j] &gt; x &amp;&amp; i != j);
+        if (i == j) nums[j] = x;
+        else {
+            nums[i] = nums[j];
+            while (nums[++i] &lt; x &amp;&amp; i != j);
+            if (i == j) nums[i] = x;
+            else nums[j] = nums[i];
+        }
+    }
+    quicksort(nums, l, j - 1);
+    quicksort(nums, j + 1, r);
+}
+</code></pre>
+<h1 id="最终测试">最终测试</h1>
+<p>优化完后，我们再来测试，依旧是五次结果取平均，结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>数据量</th>
+<th>Arrays.sort</th>
+<th>ParallelQuickSort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10000000</td>
+<td>1.544 秒</td>
+<td>0.339 秒</td>
+</tr>
+<tr>
+<td>1000000</td>
+<td>0.111 秒</td>
+<td>0.054 秒</td>
+</tr>
+</tbody>
+</table>
+<p>可以看出，在千万级数据量下快了将近五倍，只能说成效非常明显。</p>
+<h1 id="总结">总结</h1>
+<p>最后我思考了一下，<s>为什么原生的快排方法不使用多线程</s>，可能的原因又如下几点：</p>
+<ul>
+<li>大量数据放在内存中很占空间的，更多会采用多路归并排序（外部排序）</li>
+<li>多线程会消耗 CPU 资源，仅仅用来排序感觉多少有点浪费</li>
+<li>两者的差距在千万级数据量下才开始有明显差距，大部分情况下不会有这么高</li>
+</ul>
+<p>p.s. 我后来才知道 Java 的 <code>Arrays.parallelSort()</code> 方法就是原生的多线程快排😂</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Javascript 逆向之 woff 字体反爬破解]]></title>
+        <id>https://hualiang.online/post/python-pa-chong-js-ni-xiang-zhi-woff-zi-ti-fan-pa-po-jie/</id>
+        <link href="https://hualiang.online/post/python-pa-chong-js-ni-xiang-zhi-woff-zi-ti-fan-pa-po-jie/">
+        </link>
+        <updated>2024-08-25T09:56:36.000Z</updated>
+        <summary type="html"><![CDATA[<p>转自个人博客 “<a href="https://home.cnblogs.com/u/Eeyhan">Eeyhan</a>” 的<a href="https://www.cnblogs.com/Eeyhan/p/15576450.html">《python爬虫 - js逆向之woff字体反爬破解》</a></p>
+]]></summary>
+        <content type="html"><![CDATA[<p>转自个人博客 “<a href="https://home.cnblogs.com/u/Eeyhan">Eeyhan</a>” 的<a href="https://www.cnblogs.com/Eeyhan/p/15576450.html">《python爬虫 - js逆向之woff字体反爬破解》</a></p>
+<!-- more -->
+<h1 id="一-前言">一、前言</h1>
+<p>本篇博文的主题就是处理字体反爬的，其实这种网上已经很多了，那为什么我还要写呢？因为无聊啊，最近是真没啥事，并且我看了下，还是有点难度的，然后这个字体反爬系列会出两到三篇博文，针对市面上主流的字体反爬，一一讲清楚</p>
+<p>不多bb，先看目标站</p>
+<blockquote>
+<p>http://www.dianping.com/member/79399592/reviews</p>
+</blockquote>
+<h1 id="二-分析">二、分析</h1>
+<p>打开网站发现，如下地址在源码里不显示</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1724637148523.png" alt="img" loading="lazy"></figure>
+<p>再看下面的文字，网页源码里面也没有正常显示</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1724637202451.png" alt="img" loading="lazy"></figure>
+<p>这种就很秀了啊，对于没搞过字体反爬的朋友来说，估计就迷糊了，不用怕，跟着我的思路来</p>
+<p>先看地址栏，点下那个标签，看右边的css样式（对这个不理解的，看看html前端基础吧，最多一周就懂了），或者看看我的之前的博文，https://www.cnblogs.com/Eeyhan/category/1339041.html</p>
+<figure data-type="image" tabindex="3"><img src="https://hualiang.online/post-images/1724637280564.png" alt="img" loading="lazy"></figure>
+<p>在看下面的内容：</p>
+<figure data-type="image" tabindex="4"><img src="https://hualiang.online/post-images/1724637365331.png" alt="img" loading="lazy"></figure>
+<p>这种啥意思呢，首先哈，看到这种源码里面看不到的，那一定是在css样式里，用的@font-face自定义的字体，所以，上面圈出来的两个css就很重要了，点进去看看，点这个</p>
+<figure data-type="image" tabindex="5"><img src="https://hualiang.online/post-images/1724637386208.png" alt="img" loading="lazy"></figure>
+<p>进去之后，格式化一下，然后就看到如下：</p>
+<figure data-type="image" tabindex="6"><img src="https://hualiang.online/post-images/1724637415873.png" alt="img" loading="lazy"></figure>
+<p>果然有个@font-face，就看这个后面的url引入了啥样式的字体文件，往后面拉下滚动条，果然看到一个woff的字体文件</p>
+<p>补充一下，字体文件格式有哪几种呢？常见的有woff，svg，ttf，其他的就不细说了，好的，先把这个字体下载下来，复制链接浏览器打开直接下载，不用补齐http协议直接下载：</p>
+<figure data-type="image" tabindex="7"><img src="https://hualiang.online/post-images/1724637439593.png" alt="img" loading="lazy"></figure>
+<p>这个字体先放着，目前这个是地址相关的，再看内容的字体文件，同样的方式点击那个css，进入里面把链接复制出来下载：</p>
+<figure data-type="image" tabindex="8"><img src="https://hualiang.online/post-images/1724637462046.png" alt="img" loading="lazy"></figure>
+<p>因为我之前分析的时候已经下载过了，所以，文件名会有个（1）。</p>
+<p>好的，这两个字体文件，梳理一下，f76的是地址的，924的是内容的，这种文件怎么打开呢？用这个地址：<a href="http://font.qqe2.com/index-en.html">点我</a> ，（百度的在线字体编辑器网址已经打不开了，另外找的一个）在线打开：</p>
+<figure data-type="image" tabindex="9"><img src="https://hualiang.online/post-images/1724637481773.png" alt="img" loading="lazy"></figure>
+<p>当然你也可以用fontcreator软件打开：</p>
+<figure data-type="image" tabindex="10"><img src="https://hualiang.online/post-images/1724637502129.png" alt="img" loading="lazy"></figure>
+<p>果然哈，这里面就是定义好的字体了，而可以看到，这种有编码，有实际字体的，只要找到映射关系，就可以把我们要的内容给映射出来了，那么，我们怎么去找映射关系呢？</p>
+<p>先看看规律哈，提前说下，这里直接是中文字，而不是网上有些老哥针对字体反爬讲解的数字，然后找到映射关系之后减2哈，所以还是要自己去找那套映射逻辑</p>
+<p>怎么找？直接用一个字来看吧，就找这个【广】字</p>
+<figure data-type="image" tabindex="11"><img src="https://hualiang.online/post-images/1724637525609.png" alt="img" loading="lazy"></figure>
+<p>先看网页源码里这个广是啥编码，好的，<code>&amp;#xe2c9</code>，先放一放</p>
+<figure data-type="image" tabindex="12"><img src="https://hualiang.online/post-images/1724637550423.png" alt="img" loading="lazy"></figure>
+<p>看这边woff字体里这个广是啥</p>
+<p>在线网站看到的，还好，第一页就有，是 <code>unie2c9</code></p>
+<figure data-type="image" tabindex="13"><img src="https://hualiang.online/post-images/1724637587200.png" alt="img" loading="lazy"></figure>
+<p><code>unie2c9</code> 跟 <code>&amp;#xe2c9</code>，好像有点像，先不急，看下，fontCreator 软件里是啥：</p>
+<figure data-type="image" tabindex="14"><img src="https://hualiang.online/post-images/1724637652821.png" alt="img" loading="lazy"></figure>
+<p>看着有点不一样哈，这不重要，接下来，我们用 Python 的库看看，有一个大佬写好的字体映射文件库，fontTools（自己用pip安装，不多介绍了）</p>
+<figure data-type="image" tabindex="15"><img src="https://hualiang.online/post-images/1724637670683.png" alt="img" loading="lazy"></figure>
+<p>打印结果如下，然后它生成了一个 font 的 xml 文件，打开看看：</p>
+<figure data-type="image" tabindex="16"><img src="https://hualiang.online/post-images/1724637687037.png" alt="img" loading="lazy"></figure>
+<p>里面有两个关键的节点就是 <code>GlyphOrder</code> 和 <code>cmap</code>，而这两个，刚才的代码里已经打印出来了，结果：</p>
+<figure data-type="image" tabindex="17"><img src="https://hualiang.online/post-images/1724637734981.png" alt="img" loading="lazy"></figure>
+<p>那行，我们找下这个【广】在哪，搜从在线字体文件编辑网里拿到的 <code>unie2c9</code>，发现有两个：</p>
+<figure data-type="image" tabindex="18"><img src="https://hualiang.online/post-images/1724637753741.png" alt="img" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://hualiang.online/post-images/1724637776491.png" alt="img" loading="lazy"></figure>
+<p>哪个才是呢？再搜下，字体文件拿到的 <code>glyph86</code>，发现没有</p>
+<figure data-type="image" tabindex="20"><img src="https://hualiang.online/post-images/1724638532426.png" alt="img" loading="lazy"></figure>
+<p>但是，目前感觉有点联系，<code>&amp;#xe2c9</code> - <code>unie2c9</code> - <code>86</code></p>
+<p>这种是啥呀，就不多说了，<code>unie2c9</code> 前面的 <code>uni</code> 就是 unicode 编码的意思，姑且认定为 &amp;<code>#xe2c9</code> = <code>unie2c9</code> ，那 86 呢，怎么映射出【广】字的，大胆猜测，这个 86 就是索引位置，在那个 woff 文件里数一下，看是不是第 86 个，先看这个，一行是 10 个，然后第一行是没有任何编码的，所以第一行只有 9 个，</p>
+<figure data-type="image" tabindex="21"><img src="https://hualiang.online/post-images/1724637801401.png" alt="img" loading="lazy"></figure>
+<p>往下数，数到第8行倒数第四个，也就是87，但是第一行只有9个，那就是86了</p>
+<figure data-type="image" tabindex="22"><img src="https://hualiang.online/post-images/1724637916709.png" alt="img" loading="lazy"></figure>
+<p>哈哈哈，刚好对上，那现在就说得通了，那我们先拿到源码，然后去找映射关系，找到索引位置，再从索引位置里找到真实的文字内容就行了。</p>
+<p>但有个很繁琐的，这些实际的文字内容，我们要一个一个的手写映射关系（哭了），没法啊，找好之后，写成一个 json，然后 load 吧</p>
+<figure data-type="image" tabindex="23"><img src="https://hualiang.online/post-images/1724638148671.png" alt="img" loading="lazy"></figure>
+<h1 id="三-调试">三、调试</h1>
+<p>先把刚才打开网页源码，直接copy到本地保存成html文件测试吧，免得一改什么就请求下，因为这个站的风控还挺强的</p>
+<p>废话不多说，直接处理保存在本地的html，然后我只打印了地址信息</p>
+<figure data-type="image" tabindex="24"><img src="https://hualiang.online/post-images/1724638167364.png" alt="img" loading="lazy"></figure>
+<p>感觉跟在源码里看到的&amp;#开头的有点不一样，好像给处理成了【\u】，先看看能不能处理吧：</p>
+<p>复制一个 <code>['\ue2c9', '\uef20', '\ue801', '5', '\ued77', '\ue150', '42']</code> ，拿来处理下，</p>
+<figure data-type="image" tabindex="25"><img src="https://hualiang.online/post-images/1724638205464.png" alt="img" loading="lazy"></figure>
+<p>卧槽，这咋回事，打断点一看，这个参数并不是我们预期的，</p>
+<figure data-type="image" tabindex="26"><img src="https://hualiang.online/post-images/1724638222729.png" alt="img" loading="lazy"></figure>
+<p>那多半就是那个被转义成【\u】的问题了，那我们直接在读取内容的时候，直接就替换一下：</p>
+<figure data-type="image" tabindex="27"><img src="https://hualiang.online/post-images/1724638245820.png" alt="img" loading="lazy"></figure>
+<p>执行下：</p>
+<figure data-type="image" tabindex="28"><img src="https://hualiang.online/post-images/1724638266448.png" alt="img" loading="lazy"></figure>
+<p>然后同样的，拿第一个来处理：</p>
+<figure data-type="image" tabindex="29"><img src="https://hualiang.online/post-images/1724638286373.png" alt="img" loading="lazy"></figure>
+<p>完美，跟原网站的数据对上</p>
+<figure data-type="image" tabindex="30"><img src="https://hualiang.online/post-images/1724638302887.png" alt="img" loading="lazy"></figure>
+<p>接着再处理内容的，这个内容原理一样，只是把woff文件替换下即可</p>
+<p>打印下内容的：</p>
+<figure data-type="image" tabindex="31"><img src="https://hualiang.online/post-images/1724638321482.png" alt="img" loading="lazy"></figure>
+<p>选第一个，然后执行：</p>
+<figure data-type="image" tabindex="32"><img src="https://hualiang.online/post-images/1724638339615.png" alt="img" loading="lazy"></figure>
+<p>对比原网站：</p>
+<figure data-type="image" tabindex="33"><img src="https://hualiang.online/post-images/1724638355148.png" alt="img" loading="lazy"></figure>
+<p>然后，有朋友要问了，那后面的emoji怎么没有搞出来，看看源码哈：</p>
+<figure data-type="image" tabindex="34"><img src="https://hualiang.online/post-images/1724638369168.png" alt="img" loading="lazy"></figure>
+<p>这个emoji，是个图片资源，你要处理肯定是可以的，拼接一下就可以了</p>
+<h1 id="四-python-实现">四、Python 实现</h1>
+<p>提一句，那两个字体文件经过我的发现，是会不定期变的，所以你需要去请求源码，用正则匹配指定位置，然后请求css文件，再去把woff文件url匹配出来，单独请求，下载下来，接着完成后续的工作即可</p>
+<p>最后用 Python 完整实现，完整的代码就不贴出来了，后续的都是一些常规且简单的操作了，再一个就是，我根本就没写完整的代码（哈哈哈哈哈），只贴出部分：</p>
+<pre><code class="language-python">from fontTools.ttLib import TTFont
+import re
+import requests
+from lxml import etree
+import json
+
+
+def parser_woff_font(font='4375cf76.woff', something=None):
+    font = TTFont(font)
+    glyph = font.getReverseGlyphMap()
+    f = open('font_template.json', encoding='utf-8')
+    font_template = json.load(f)
+    f.close()
+    new_str = ''
+    for item in something:
+        if not item:
+            continue
+        if item.endswith(';'):
+            item = item.replace(';', '')
+        if item in glyph:
+            index = glyph.get(item)
+            if index:
+                real = font_template.get(str(index))
+                if real:
+                    new_str += real
+        else:
+            new_str += item
+    print(12312312, new_str)
+    return new_str
+
+
+def get_real_data():
+    f = open('content.html', encoding='utf-8')
+    source_data = f.read()
+    source_data = source_data.replace('&amp;#x', 'uni')
+    f.close()
+    html = etree.HTML(source_data)
+    data = html.xpath('//div[@class=&quot;txt J_rptlist&quot;]')
+    for item in data:
+        temp_dict = dict()
+        shop_name = item.xpath('./div[1]/h6//text()')
+        shop_addr = item.xpath('.//div[@class=&quot;mode-tc addres&quot;]/p//text()')
+        shop_score = item.xpath('.//div[@class=&quot;mode-tc comm-rst&quot;]/span/@class')
+        shop_comment = item.xpath('.//div[@class=&quot;mode-tc comm-entry&quot;]//text()')
+        comment_photo_url = item.xpath('.//div[@class=&quot;mode-tc comm-photo&quot;]/a/@href')
+        comment_photo_url = ''.join(comment_photo_url) if comment_photo_url else ''
+        create_time = item.xpath('.//div[@class=&quot;mode-tc info&quot;]/span[1]/text()')
+        create_time = ''.join(create_time) if create_time else ''
+        if create_time:
+            create_time = create_time.replace('发表于', '')
+        temp_dict['shop_name'] = shop_name
+        temp_dict['shop_addr'] = shop_addr
+        temp_dict['shop_score'] = shop_score
+        temp_dict['shop_comment'] = shop_comment
+        temp_dict['comment_photo_url'] = comment_photo_url
+        temp_dict['create_time'] = create_time
+        print(123123, temp_dict['shop_comment'])
+
+
+# get_real_data()
+
+
+s = ['unif1af;', 'unif147;', 'uniecc0;', 'unie635;', 'unif083;', 'unie3c5;', 'unif802;', ' ', 'unie931;', 'uniea55;', 'unif534;', 'unied79;', 'unie1bd;', ' ', 'unie1e4;', 'unie7b0;', 'unie65d;', 'unif534;', 'unie3c5;', 'unie66f;', 'unif52d;', ' ', 'unif765;', 'unif49d;', 'unieb19;', 'unie2de;', 'unie66f;', '闹', 'unie8ee;', 'unie3a4;', 'unif759;', ' ', 'unif195;', 'unif195;', 'unif195;', 'unif195;']
+
+parser_woff_font('2f66e924.woff', s)
+</code></pre>
+<p>那个映射的font_template.json文件，<a href="https://files.cnblogs.com/files/Eeyhan/font_template.json">点我</a></p>
+<p>说明一下，这个json映射关系是只针对这一个站，并不通用网上所有的字体反爬哈，而且，这个站的映射，说不定以后还会改变，所以，你懂我意思吧</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[记一次对 DataX 向 ES 同步对象型数据的探索过程]]></title>
+        <id>https://hualiang.online/post/ji-yi-ci-dui-datax-xiang-es-tong-bu-dui-xiang-xing-shu-ju-de-jie-jue-guo-cheng/</id>
+        <link href="https://hualiang.online/post/ji-yi-ci-dui-datax-xiang-es-tong-bu-dui-xiang-xing-shu-ju-de-jie-jue-guo-cheng/">
+        </link>
+        <updated>2024-08-12T08:02:10.000Z</updated>
+        <summary type="html"><![CDATA[<p>今天开完产品审议会，Leader 表示让我来负责工作台模块自定义地理查询的功能开发时，已经学完 ES 的地理查询的我当即表示莫得问题👌。可就在我想先同步坐标在写业务代码时才发现，“这个 DataX 怎么同步对象型数据嘞？”🤔</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>今天开完产品审议会，Leader 表示让我来负责工作台模块自定义地理查询的功能开发时，已经学完 ES 的地理查询的我当即表示莫得问题👌。可就在我想先同步坐标在写业务代码时才发现，“这个 DataX 怎么同步对象型数据嘞？”🤔</p>
+<!-- more -->
+<h1 id="介绍">介绍</h1>
+<p>DataX 是阿里巴巴开源的一个异构数据源离线同步工具，致力于实现包括关系型数据库(MySQL、Oracle等)、HDFS、Hive、ODPS、HBase、FTP等各种异构数据源之间稳定高效的数据同步功能。使用插件增强功能，这里我需要从 MySQL 同步数据到 ES，就要用到 MySQL 的输入端插件和 ES 的输出端插件。</p>
+<h1 id="用法">用法</h1>
+<p>这里演示从 MySQL 同步到 ES，DataX 的同步很简单，只需要一个配置脚本并运行下面地命令即可</p>
+<pre><code>python /datax/bin/datax.py job.json
+</code></pre>
+<p>DataX 就会自动按照配置文件里的信息连接对应服务获取和同步数据。示例如下：</p>
+<pre><code class="language-json">// job.json
+{
+  &quot;job&quot;: {
+    &quot;setting&quot;: {
+      &quot;speed&quot;: {
+        &quot;channel&quot;: 2
+      }
+    },
+    &quot;content&quot;: [
+      {
+        &quot;reader&quot;: {
+          &quot;name&quot;: &quot;mysqlreader&quot;,
+          &quot;parameter&quot;: {
+            &quot;username&quot;: &quot;root&quot;,
+            &quot;password&quot;: &quot;123456&quot;,
+            &quot;connection&quot;: [
+              {
+                &quot;querySql&quot;: [&quot;select * from user_t&quot;],
+                &quot;jdbcUrl&quot;: [&quot;jdbc:mysql://127.0.0.1:3306/db_user&quot;]
+              }
+            ]
+          }
+        },
+        &quot;writer&quot;: {
+          &quot;name&quot;: &quot;elasticsearchwriter&quot;,
+          &quot;parameter&quot;: {
+            &quot;endpoint&quot;: &quot;http://127.0.0.1:9200&quot;,
+            &quot;accessId&quot;: &quot;elastic&quot;,
+            &quot;accessKey&quot;: &quot;123456&quot;,
+            &quot;index&quot;: &quot;user&quot;,
+            &quot;column&quot;: [
+              { &quot;name&quot;: &quot;pk&quot;, &quot;type&quot;: &quot;id&quot; },
+              { &quot;name&quot;: &quot;col_ip&quot;, &quot;type&quot;: &quot;ip&quot; },
+              { &quot;name&quot;: &quot;col_double&quot;, &quot;type&quot;: &quot;double&quot; },
+              { &quot;name&quot;: &quot;col_long&quot;, &quot;type&quot;: &quot;long&quot; },
+              { &quot;name&quot;: &quot;col_integer&quot;, &quot;type&quot;: &quot;integer&quot; },
+              { &quot;name&quot;: &quot;col_keyword&quot;, &quot;type&quot;: &quot;keyword&quot; },
+              { &quot;name&quot;: &quot;col_text&quot;, &quot;type&quot;: &quot;text&quot;, &quot;analyzer&quot;: &quot;ik_max_word&quot; },
+              { &quot;name&quot;: &quot;col_geo_point&quot;, &quot;type&quot;: &quot;geo_point&quot; },
+              { &quot;name&quot;: &quot;col_date&quot;, &quot;type&quot;: &quot;date&quot;, &quot;format&quot;: &quot;yyyy-MM-dd HH:mm:ss&quot; },
+              { &quot;name&quot;: &quot;col_nested1&quot;, &quot;type&quot;: &quot;nested&quot; },
+              { &quot;name&quot;: &quot;col_nested2&quot;, &quot;type&quot;: &quot;nested&quot; },
+              { &quot;name&quot;: &quot;col_object1&quot;, &quot;type&quot;: &quot;object&quot; },
+              { &quot;name&quot;: &quot;col_object2&quot;, &quot;type&quot;: &quot;object&quot; },
+              { &quot;name&quot;: &quot;col_integer_array&quot;, &quot;type&quot;: &quot;integer&quot;, &quot;array&quot;: true },
+              { &quot;name&quot;: &quot;col_geo_shape&quot;, &quot;type&quot;: &quot;geo_shape&quot;, &quot;tree&quot;: &quot;quadtree&quot;, &quot;precision&quot;: &quot;10m&quot; }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+</code></pre>
+<h1 id="问题">问题</h1>
+<p>看起来是不是很简单？如果只是针对普通字符串，数字，或是日期字段，那确实没啥问题，通过 SQL 语句 都能正确地查出并同步。但问题就出在最后一个字段 <code>col_geo_shape</code>，它的类型是 <code>geo_shape</code>。了解 ES 的人都知道，这是 ES 用于地理查询的一个重要类型，用它我们可以实现判断坐标和坐标，坐标和区域以及区域和区域之间的空间关系。</p>
+<p>但问题是，在 ES 中，geo_shape 类型的数据长下面这样：</p>
+<pre><code class="language-json">&quot;col_geo_shape&quot;: {
+    &quot;type&quot;: &quot;point&quot;,
+    &quot;coordinates&quot;: [
+        108.374854,
+        30.809156
+    ]
+}
+</code></pre>
+<p>没错，它是一个遵循 GeoJson 格式的 Json 对象，这里的类型除了 <code>point</code> 外，还有 <code>circle</code>，<code>envelope</code>，<code>polygon</code> 等等</p>
+<p>对于 SQL 语句的查询结果，我们都知道是一个个字段，默认情况下，它们都可以作为字符串，也就是对应 ES 的 <code>keyword</code> 或 <code>text</code> 类型。但 SQL 如何查出一个对象？</p>
+<p>我相信到多数人的第一反应拼出来一个 json 串。如果你想到了，那么恭喜你答对了！可惜的是，当时的我并没有那么聪明，再加上每一次测试同步数据都要等很长的时间，我可不想为了一个猜测去冒这么大的时间成本（其实就是想追求一次通过）</p>
+<p>于是，漫长的探索过程就开始了......</p>
+<h1 id="探索">探索</h1>
+<p>原本我以为这样一个小问题，广大网友应该已经踩过坑了，大不了官方文档应该有写怎么用吧。</p>
+<p>但直到我搜索了无数次，就是没有找到向 ES 同步对象型数据的具体示例。大部分都是在同步普通类型，如：<code>integer</code>，<code>date</code>，<code>keyword</code>，<code>long</code> 等等。还有一些介绍也只是提了一嘴能同步 <code>geo_shape</code> 类型，但却依然没有给出具体的示例。</p>
+<p>这时，我想到，既然官方有提供这样一个类型，那么一定有同步它的办法。所以我决定去 GitHub 找找<a href="https://github.com/alibaba/DataX/blob/master/elasticsearchwriter/doc/elasticsearchwriter.md">官方文档</a>。令我大失所望的是，官方仅提供了 ES 输出端的配置信息，我仍不清楚 mysql 到底怎么同步对象给 ES。</p>
+<p>最终，我决定看源码。</p>
+<h1 id="分析">分析</h1>
+<p>经过一番寻找，我最终找到了相关的代码，位于 <a href="https://github.com/alibaba/DataX/blob/master/elasticsearchwriter/src/main/java/com/alibaba/datax/plugin/writer/elasticsearchwriter/ElasticSearchWriter.java#L301">ElasticSearchWriter.java</a> 如下：</p>
+<pre><code class="language-java">// ElasticSearchWriter.java
+switch (colType) {
+    case STRING:
+        // 兼容string类型,ES5之前版本
+        break;
+    case KEYWORD:
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-search-speed.html#_warm_up_global_ordinals
+        field.put(&quot;eager_global_ordinals&quot;, jo.getBoolean(&quot;eager_global_ordinals&quot;));
+        break;
+    case TEXT:
+        field.put(&quot;analyzer&quot;, jo.getString(&quot;analyzer&quot;));
+        // 优化disk使用,也同步会提高index性能
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-disk-usage.html
+        field.put(&quot;norms&quot;, jo.getBoolean(&quot;norms&quot;));
+        field.put(&quot;index_options&quot;, jo.getBoolean(&quot;index_options&quot;));
+        if(jo.getString(&quot;fields&quot;) != null) {
+            field.put(&quot;fields&quot;, jo.getJSONObject(&quot;fields&quot;));
+        }
+        break;
+    case DATE:
+        if (Boolean.TRUE.equals(jo.getBoolean(&quot;origin&quot;))) {
+            if (jo.getString(&quot;format&quot;) != null) {
+                field.put(&quot;format&quot;, jo.getString(&quot;format&quot;));
+            }
+            // es原生format覆盖原先来的format
+            if (jo.getString(&quot;dstFormat&quot;) != null) {
+                field.put(&quot;format&quot;, jo.getString(&quot;dstFormat&quot;));
+            }
+            if(jo.getBoolean(&quot;origin&quot;) != null) {
+                columnItem.setOrigin(jo.getBoolean(&quot;origin&quot;));
+            }
+        } else {
+            columnItem.setTimeZone(jo.getString(&quot;timezone&quot;));
+            columnItem.setFormat(jo.getString(&quot;format&quot;));
+        }
+        break;
+    case GEO_SHAPE:
+        field.put(&quot;tree&quot;, jo.getString(&quot;tree&quot;));
+        field.put(&quot;precision&quot;, jo.getString(&quot;precision&quot;));
+        break;
+    case OBJECT:
+    case NESTED:
+        if (jo.getString(&quot;dynamic&quot;) != null) {
+            field.put(&quot;dynamic&quot;, jo.getString(&quot;dynamic&quot;));
+        }
+        break;
+    default:
+        break;
+}
+if (jo.containsKey(&quot;other_params&quot;)) {
+    field.putAll(jo.getJSONObject(&quot;other_params&quot;));
+}
+</code></pre>
+<p>注意看最后一个 if 语句，它会将除固定配置外的其余参数当成 json 串进行反序列化。这也坐实了，你只需要在 SQL 语句中通过 <code>CONCAT</code> 等字符串函数拼出一个字符串即可同步对象型数据。</p>
+<h1 id="结尾">结尾</h1>
+<p>总之，这件事给我的启发就是：<strong>在行动前一定要做好可行性分析</strong>，否则到时候代码写一半发现方法行不通，那就白写了🤣</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[记一次 Wrangler CLI 创建 Cloudflare Worker 模板启动失败原因]]></title>
+        <id>https://hualiang.online/post/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin/</id>
+        <link href="https://hualiang.online/post/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin/">
+        </link>
+        <updated>2024-08-04T07:46:57.000Z</updated>
+        <summary type="html"><![CDATA[<p>因为想用 Worker API 绑定 Cloudflare R2 便于使用，所有遵循<a href="https://developers.cloudflare.com/r2/api/workers/workers-api-usage/">官方文档</a>创建模板。</p>
+<p>但是遇上了一个莫名其妙的 Bug 报错...</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>因为想用 Worker API 绑定 Cloudflare R2 便于使用，所有遵循<a href="https://developers.cloudflare.com/r2/api/workers/workers-api-usage/">官方文档</a>创建模板。</p>
+<p>但是遇上了一个莫名其妙的 Bug 报错...</p>
+<!-- more -->
+<h1 id="报错过程">报错过程</h1>
+<p>使用脚手架创建模板</p>
+<pre><code class="language-shell">npm create cloudflare@latest r2-worker
+</code></pre>
+<p>按步骤创建好后，运行 <code>npm run dev</code> 遭遇一下报错：</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1722760104914.png" alt="Bug" loading="lazy"></figure>
+<p>通过查看日志文件详细信息如下：</p>
+<pre><code>--- 2024-06-30T19:28:07.425Z debug
+🪵  Writing logs to &quot;C:\Users\...\.wrangler\logs\wrangler-2024-06-30_19-28-07_302.log&quot;
+---
+
+--- 2024-06-30T19:28:07.425Z debug
+Failed to load .env file &quot;.env&quot;: Error: ENOENT: no such file or directory, open 'C:\Cycles of Seasons\100 - Virtues\110 - Demiourgia\test-wrangler\hello-world-js\.env'
+    at Object.openSync (node:fs:573:18)
+    at Object.readFileSync (node:fs:452:35)
+    at tryLoadDotEnv (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:158768:72)
+    at loadDotEnv (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:158777:12)
+    at C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:202740:20
+    at C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:162911:16
+    at maybeAsyncResult (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:161132:44)
+    at C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:162910:14
+    at C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:161119:22
+    at Array.reduce (&lt;anonymous&gt;) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\...\\test-wrangler\\hello-world-js\\.env'
+}
+---
+
+--- 2024-06-30T19:28:07.432Z log
+
+ ⛅️ wrangler 3.62.0
+[38;2;255;136;0m-------------------[39m
+
+---
+
+--- 2024-06-30T19:28:07.450Z debug
+Metrics dispatcher: Posting data {&quot;type&quot;:&quot;event&quot;,&quot;name&quot;:&quot;run dev&quot;,&quot;properties&quot;:{&quot;local&quot;:true,&quot;usesTypeScript&quot;:false}}
+---
+
+--- 2024-06-30T19:28:07.455Z debug
+Failed to load .env file &quot;C:\...\test-wrangler\hello-world-js\.dev.vars&quot;: Error: ENOENT: no such file or directory, open 'C:\...\test-wrangler\hello-world-js\.dev.vars'
+    at Object.openSync (node:fs:573:18)
+    at Object.readFileSync (node:fs:452:35)
+    at tryLoadDotEnv (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:158768:72)
+    at loadDotEnv (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:158777:12)
+    at getVarsForDev (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:200152:18)
+    at getBindings (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:207740:10)
+    at getBindingsAndAssetPaths (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:207621:20)
+    at getDevReactElement (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:207276:40)
+    at startDev (C:\...\test-wrangler\hello-world-js\node_modules\wrangler\wrangler-dist\cli.js:207343:60)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\...\\test-wrangler\\hello-world-js\\.dev.vars'
+}
+---
+
+--- 2024-06-30T19:28:07.571Z log
+[2m⎔ Starting local server...[22m
+---
+
+--- 2024-06-30T19:28:07.580Z debug
+*** Received structured exception #0xc0000005: access violation; stack: 7ffcf4ed2f57 7ff7e9e1643b 7ff7e9e16503 7ff7e9e0588c 7ff7e9e05837 7ff7e9649c1e 7ff7e9649f2f 7ff7e8531ad6 7ff7e85318ba 7ff7e97cb6ef 7ff7e97d28a6 7ff7e97cbc0c 7ff7e97d28a6 7ff7e97c957c 7ff7e8521551 7ff7eaf00f7f 7ffd07c2257c 7ffd0824af27
+---
+
+--- 2024-06-30T19:28:07.632Z debug
+*** Received structured exception #0xc0000005: access violation; stack: 7ffcf4ed2f57 7ff7e9e1643b 7ff7e9e16503 7ff7e9e0588c 7ff7e9e05837 7ff7e9649c1e 7ff7e9649f2f 7ff7e8531ad6 7ff7e85318ba 7ff7e97cb6ef 7ff7e97d28a6 7ff7e97cbc0c 7ff7e97d28a6 7ff7e97c957c 7ff7e8521551 7ff7eaf00f7f 7ffd07c2257c 7ffd0824af27
+---
+</code></pre>
+<p>明显可以看到因缺少 <code>.env</code> 和 <code>.dev.vars</code> 报错，但这不是重点，即使添加了文件依旧报错。</p>
+<p>问题出在这：</p>
+<pre><code>--- 2024-06-30T19:28:07.580Z debug
+*** Received structured exception #0xc0000005: access violation; stack: 7ffcf4ed2f57 7ff7e9e1643b 7ff7e9e16503 7ff7e9e0588c 7ff7e9e05837 7ff7e9649c1e 7ff7e9649f2f 7ff7e8531ad6 7ff7e85318ba 7ff7e97cb6ef 7ff7e97d28a6 7ff7e97cbc0c 7ff7e97d28a6 7ff7e97c957c 7ff7e8521551 7ff7eaf00f7f 7ffd07c2257c 7ffd0824af27
+---
+
+--- 2024-06-30T19:28:07.632Z debug
+*** Received structured exception #0xc0000005: access violation; stack: 7ffcf4ed2f57 7ff7e9e1643b 7ff7e9e16503 7ff7e9e0588c 7ff7e9e05837 7ff7e9649c1e 7ff7e9649f2f 7ff7e8531ad6 7ff7e85318ba 7ff7e97cb6ef 7ff7e97d28a6 7ff7e97cbc0c 7ff7e97d28a6 7ff7e97c957c 7ff7e8521551 7ff7eaf00f7f 7ffd07c2257c 7ffd0824af27
+---
+</code></pre>
+<p>这个报错有点不明所以，只能去官方 Github 仓库 <a href="https://github.com/cloudflare/workers-sdk">woker-sdk</a> 下的 issues 寻找解决方法。</p>
+<h1 id="解决方法">解决方法</h1>
+<p>经过一番查找，最终在 <a href="https://github.com/cloudflare/workers-sdk/issues/6170">#6170</a> 下找到了解决方法。</p>
+<p>该报错可能是由于电脑的 Microsoft Visual C++ 与 wrangler 的依赖包版本不兼容导致的，大多发生在 Windows 11 系统，所以有两种解决方法。</p>
+<hr>
+<h2 id="使用更低版本的-wrangler">使用更低版本的 wrangler</h2>
+<p>经测试，使用 3.57.1 版本的 wrangler，可以正常运行。可以直接运行下面的命令来降级：</p>
+<pre><code class="language-shell">npm uninstall wrangler &amp;&amp; npm install wrangler@3.57.1 -D
+</code></pre>
+<p>不过该方法指标不治本，只能用于临时应急，不太推荐。</p>
+<hr>
+<h2 id="更新-microsoft-visual-c-到最新版本">更新 Microsoft Visual C++ 到最新版本</h2>
+<p>wrangler 引用的是下面两个版本的库，所以我们只需要更新它们即可。</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1722759393446.png" alt="Microsoft Visual C++" loading="lazy"></figure>
+<p>图中是 wrangler 能够正常运行的版本，也是我现在的最新版本，建议更新时选择该版本及以上版本。</p>
+<p>这里推荐直接去“<a href="https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version">官方下载地址</a>”下载最新软件包更新。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ElasticSearch 实现地理位置搜索]]></title>
+        <id>https://hualiang.online/post/elasticsearch-java-api-shi-xian-di-li-wei-zhi-cha-xun/</id>
+        <link href="https://hualiang.online/post/elasticsearch-java-api-shi-xian-di-li-wei-zhi-cha-xun/">
+        </link>
+        <updated>2024-08-03T02:34:55.000Z</updated>
+        <summary type="html"><![CDATA[<p>最近，实习时涉及到了在地图上显示客户锚点的需求，想到 ES 有这么个功能可以用，便想来试试。但网上的教程太少了，我自己也是琢磨半点才看懂的，在此分享一下。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>最近，实习时涉及到了在地图上显示客户锚点的需求，想到 ES 有这么个功能可以用，便想来试试。但网上的教程太少了，我自己也是琢磨半点才看懂的，在此分享一下。</p>
+<!-- more -->
+<h1 id="创建映射和文档">创建映射和文档</h1>
+<p>ES 的地理位置类型分为 <code>geo_point</code> 和 <code>geo_shape</code> 两种。前者表示一个地图上的点，即坐标；后者则表示多个点框出的一篇区域。功能上讲，后者的功能更强。</p>
+<p>我们先创建一个带有这两种类型的索引映射：</p>
+<pre><code class="language-json">{
+    &quot;properties&quot;: {
+        &quot;location&quot;: {
+            &quot;type&quot;: &quot;geo_point&quot;
+        },
+        &quot;area&quot;: {
+            &quot;type&quot;: &quot;geo_shape&quot;
+        }
+    }
+}
+</code></pre>
+<h2 id="geo_point">geo_point</h2>
+<p>对于 geo_point 类型插入文档很简单，有三种方法，如下：</p>
+<pre><code class="language-json">&quot;location&quot;: &quot;34.247232,108.945872&quot; // 第一种，直接插入该格式的字符串
+
+&quot;location&quot;: [108.945872, 34.247232] // 第二种，可以用数组 [lon, lat] 的形式表示
+
+&quot;location&quot;: { // 第三种，以对象形式插入
+    &quot;lat&quot;: 34.247232,
+    &quot;lon&quot;: 108.945872
+}
+</code></pre>
+<h2 id="geo_shape">geo_shape</h2>
+<p>对于 geo_shape 类型插入文档较复杂，因为它有很多子类型，如，<code>point</code>，<code>circle</code>，<code>envelope</code>，<code>linestring</code>，<code>polygon</code>，<code>multipoint</code>，<code>multilinestring</code>，<code>multipolygon</code> 等。</p>
+<p>下面就介绍几种常用的类型：</p>
+<pre><code class="language-json">&quot;area&quot;: {
+    &quot;type&quot;: &quot;point&quot;, // 点
+    &quot;coordinates&quot;: [108.945872, 34.247232]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;circle&quot;, // 圆
+    &quot;radius&quot;: &quot;10km&quot;,
+    &quot;coordinates&quot;: [-74.0059, 40.7128]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;envelope&quot;, // 矩形
+    &quot;coordinates&quot; : [
+        [108.945872, 34.247232],
+        [108.374854, 30.809156]
+    ]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;linestring&quot;, // 线，至少两个点
+    &quot;coordinates&quot;: [
+        [108.945872, 34.247232],
+        [108.374854, 30.809156],
+        [108.378368, 30.809938]
+    ]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;polygon&quot;, // 封闭多边形，其首点和末点必须匹配，最少需要 4 个顶点
+    &quot;coordinates&quot;: [
+        [ // 第一个多边形，作为主体
+            [-77.03653, 38.897676],
+            [-77.03653, 37.897676],
+            [-76.03653, 38.897676],
+            [-77.03653, 38.997676],
+            [-77.03653, 38.897676]
+        ]
+        // 若存在第二个及以后的多边形，则作为主体中的“洞”，排除主体中不需要包含的面积
+    ]
+}
+</code></pre>
+<p>其余的 multi 类型就是在外围多加一个中括号即可。</p>
+<h1 id="地理位置搜索">地理位置搜索</h1>
+<p>geo_point 的查询方式与 geo_shape 不同，两者常用的查询方式有半径，矩形和多边形查询。但 geo_shape 查询可以兼容 geo_point 类型，而且 geo_shape 不仅可以搜索选定区域的点，还可以搜索区域，查询的空间关系如下：</p>
+<ul>
+<li>INTERSECTS -（默认）返回其 geo_shape 或 geo_point 字段与查询几何相交的所有文档。</li>
+<li>DISJOINT - 返回其 geo_shape 或 geo_point 字段与查询几何没有共同点的所有文档。</li>
+<li>WITHIN - 返回其 geo_shape 或 geo_point 字段在查询几何内的所有文档。 不支持线几何。</li>
+<li>CONTAINS - 返回其 geo_shape 或 geo_point 字段包含查询几何的所有文档。</li>
+</ul>
+<h2 id="半径搜索">半径搜索</h2>
+<p>geo_point 的半径搜索就是在地图上标定一个中心点，再标出半径，查询在这个圆内的坐标点。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_distance&quot;: {
+            &quot;distance&quot;: &quot;500km&quot;, // 半径，可以附带单位
+            &quot;location&quot;: { // 中心点，此处使用的是第三种写法
+                &quot;lat&quot;: &quot;38.993443&quot;,
+                &quot;lon&quot;: &quot;117.158558&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;circle&quot;,
+                    &quot;radius&quot;: &quot;10km&quot;,
+                    &quot;coordinates&quot;: [-74.0059, 40.7128]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="矩形搜索">矩形搜索</h2>
+<p>geo_point 的矩形搜索只要给出左上角和右下角两个坐标即可。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_bounding_box&quot;: {
+          &quot;location&quot;: {
+            &quot;top_left&quot;: {
+              &quot;lat&quot;: 47.7328,
+              &quot;lon&quot;: -122.448
+            },
+            &quot;bottom_right&quot;: {
+              &quot;lat&quot;: 47.468,
+              &quot;lon&quot;: -122.0924
+            }
+          }
+        }
+    }
+}
+</code></pre>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;envelope&quot;, // 矩形
+                    &quot;coordinates&quot; : [
+                        [108.945872, 34.247232],
+                        [108.374854, 30.809156]
+                    ]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="多边形搜索">多边形搜索</h2>
+<p>geo_point 的多边形搜索需要给出组成多边形的所有边界点。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_polygon&quot;: {  
+          &quot;location&quot;: {  
+            &quot;points&quot; : [  
+              {&quot;lat&quot; : 40, &quot;lon&quot; : -70},  
+              {&quot;lat&quot; : 30, &quot;lon&quot; : -80},  
+              {&quot;lat&quot; : 20, &quot;lon&quot; : -90}  
+            ]  
+          }  
+        } 
+    }
+}
+</code></pre>
+<p><strong>注意</strong>：geo_point 的多边形，其首点和末点是无需匹配的，而 geo_shape 的必须要匹配。</p>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;polygon&quot;,
+                    &quot;coordinates&quot;: [
+                        [
+                            [-77.03653, 38.897676],
+                            [-77.03653, 37.897676],
+                            [-76.03653, 38.897676],
+                            [-77.03653, 38.997676],
+                            [-77.03653, 38.897676]
+                        ]
+                    ]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h1 id="java-api-实现地理位置搜索">Java API 实现地理位置搜索</h1>
+<p>ElasticSearch 提供了一套 API 给 Java 用于操作，需要引入下面的依赖：</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.elasticsearch.client&lt;/groupId&gt;
+    &lt;artifactId&gt;elasticsearch-rest-high-level-client&lt;/artifactId&gt;
+    &lt;version&gt;7.15.2&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>因为业务场景中，ES 中的数据大多是从其他数据源同步过来的，而非用 Java 手动创建，所以下面仅介绍如何实现地理位置搜索。</p>
+<p>首先，搭建好框架，便于测试:</p>
+<pre><code class="language-java">@SuppressWarnings(&quot;deprecation&quot;)
+public class ESTest_Doc_Geo_Query {
+
+    public static final double[][][][] coordinates = {
+        {
+            {
+                { 116.53, 39.67 },
+                { 117.05, 39.67 },
+                { 116.39, 39.42 },
+                { 117.48, 39.16 },
+                { 116.53, 39.67 }
+            }
+        },
+        {
+            {
+                { 116.53, 39.67 },
+                { 117.05, 39.67 },
+                { 116.39, 39.42 },
+                { 117.48, 39.16 },
+                { 116.53, 39.67 }
+            }
+        }
+    };
+
+    public static void main(String[] args) {
+        RestClientBuilder builder = RestClient.builder(new HttpHost(&quot;127.0.0.1&quot;, 9200, &quot;http&quot;));
+        try (RestHighLevelClient client = new RestHighLevelClient(builder)) {
+            // 接下来，只需要调用不同的方法就行实现不同的搜索
+            QueryBuilder geoShapeQuery = geoShapePolygonQuery(coordinates);
+
+            BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(QueryBuilders.matchAllQuery())
+                    .filter(geoShapeQuery);
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().query(boolQuery);
+            SearchRequest request = new SearchRequest().indices(&quot;geo&quot;).source(searchSourceBuilder);
+            SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+            SearchHits hits = response.getHits();
+
+            System.out.println(response.getTook());
+
+            for (SearchHit hit : hits) {
+                System.out.println(hit.getSourceAsString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+</code></pre>
+<p>因为半径搜索和多边形搜索更常用，所以就不介绍矩形搜索了，感兴趣自行搜索。</p>
+<h2 id="半径搜索-2">半径搜索</h2>
+<p>我们创建两个方法 <code>geoPointCircleQuery</code>，<code>geoShapeCircleQuery</code> 来代表两种类型的搜索：</p>
+<pre><code class="language-java">public static GeoDistanceQueryBuilder geoPointCircleQuery(String name, double lon, double lat, String distance) {
+    return QueryBuilders.geoDistanceQuery(name).distance(distance).point(lat, lon);
+}
+
+public static GeoShapeQueryBuilder geoShapeCircleQuery(String name, double lon, double lat, double radius) throws IOException {
+    return QueryBuilders.geoIntersectionQuery(name, new Circle(lon, lat, radius * 1000));
+}
+</code></pre>
+<p>geo_point 的每种搜索都会有一个专门的 Builder 类，而 geo_shape 只有一种。</p>
+<p><code>geoIntersectionQuery</code> 等价于 使用 <code>builder.relation(ShapeRelation.INTERSECTS)</code> 设置空间关系为<strong>相交</strong>的 <code>geoShapeQuery</code>。同理，其余关系也有专门的查询类。当然，你也可以选择手动设置。</p>
+<h2 id="多边形搜索-2">多边形搜索</h2>
+<p>同上，还是封装两个方法实现：</p>
+<pre><code class="language-java">public static GeoPolygonQueryBuilder geoPointPolygonQuery(String name, double[][] points) {
+    List&lt;GeoPoint&gt; geoPoints = Arrays.stream(points).map(point -&gt; new GeoPoint(point[1], point[0]))
+            .collect(Collectors.toList());
+    return QueryBuilders.geoPolygonQuery(name, geoPoints);
+}
+
+public static GeoShapeQueryBuilder geoShapePolygonQuery(String name, double[][] points) throws IOException {
+    double[] lat = Arrays.stream(points).mapToDouble(point -&gt; point[1]).toArray();
+    double[] lon = Arrays.stream(points).mapToDouble(point -&gt; point[0]).toArray();
+    return QueryBuilders.geoIntersectionQuery(name, new Polygon(new LinearRing(lon, lat)));
+}
+</code></pre>
+<p><code>LinearRing</code> 代表一个闭合的线，仅作为创建 <code>Polygon</code> 的边界，不能直接应用于搜索。</p>
+<p><em>p.s. <code>Polygon</code> 还提供了 <code>Polygon(LinearRing polygon, List&lt;LinearRing&gt; holes)</code> 的构造方法来创建具有“洞”的多边形。</em></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[如何用超星云盘做外链直链]]></title>
+        <id>https://hualiang.online/post/ru-he-yong-chao-xing-yun-pan-zuo-wai-lian-zhi-lian/</id>
+        <link href="https://hualiang.online/post/ru-he-yong-chao-xing-yun-pan-zuo-wai-lian-zhi-lian/">
+        </link>
+        <updated>2024-06-29T04:56:19.000Z</updated>
+        <summary type="html"><![CDATA[<p>转自个人博客 “<a href="https://zxz.ee">小言u</a>” 的<a href="https://zxz.ee/100.html">《用超星云盘做外链直链》</a></p>
+]]></summary>
+        <content type="html"><![CDATA[<p>转自个人博客 “<a href="https://zxz.ee">小言u</a>” 的<a href="https://zxz.ee/100.html">《用超星云盘做外链直链》</a></p>
+<!-- more -->
+<h1 id="注意">注意</h1>
+<p>仅是尝试阶段，具体什么时候会时效我也不知道，仅供参考使用，如果想要真正的投入到日常使用还是建议选择购买对象存储。</p>
+<h1 id="图片方法步骤">图片方法步骤</h1>
+<p>① 打开超星云盘网址：http://pan-yz.chaoxing.com/ 进行登入</p>
+<p>② 随便上传一个图片 -&gt; 双击预览 -&gt; 右键 -&gt; 在新标签页中打开 -&gt; 复制新标签页中的图片网址</p>
+<figure data-type="image" tabindex="1"><a href="https://p.itxe.net/images/2022/11/14/cx1.gif"><img src="https://p.itxe.net/images/2022/11/14/cx1.gif" alt="img" loading="lazy"></a></figure>
+<p>复制出来的网址：<code>https://imageproxy.chaoxing.com/0x0,q15,jpeg,soE2Z31QoUXrtu-Pp15uwU6Lyr-Jk4wc01pXMqFqLG_I/http://p.ananas.chaoxing.com/star3/origin/093846f84d5608bb6d995a8828f4eb8b.png</code></p>
+<p>你会发现图片被压缩了，接下来进行真实图片直链提取。</p>
+<p>在复制出来的链接尾部里找到类似于 <code>https://p.ananas.chaoxing.com/XXXXXXXX</code> 上面的链接里的就是：<code>https://p.ananas.chaoxing.com/star3/origin/093846f84d5608bb6d995a8828f4eb8b.png</code></p>
+<p>这个链接就是图片直链了，而且是没有被压缩过的原图</p>
+<h1 id="视频方法步骤">视频方法步骤</h1>
+<p>上传那些操作我就不阐述了，直接开始提取步骤。</p>
+<p>点击视频文件进行预览，然后按F12审查元素 -&gt; 捕捉出视频的真实链接</p>
+<figure data-type="image" tabindex="2"><a href="https://p.itxe.net/images/2022/11/14/cx2.gif"><img src="https://p.itxe.net/images/2022/11/14/cx2.gif" alt="img" loading="lazy"></a></figure>
+<p>复制出来的视频直链网址：<code>https://s1.ananas.chaoxing.com/video/51/6e/5d/c13198119fd05ddc7c7966b6c20b7af7/sd.mp4?at_=1605929018942&amp;ak_=d8b1f503f6ba01b1f60995a2e38471f9&amp;ad_=e794ddb198db30558298ddbc8c564b2a</code></p>
+<p>然后删除这条链接里的没用信息：<code>sd.mp4</code> 后面的，并将前面的 <code>s1.ananas</code> 改为 <code>s138.ananas</code>。</p>
+<p>删除无用信息后的链接：<code>https://s138.ananas.chaoxing.com/video/51/6e/5d/c13198119fd05ddc7c7966b6c20b7af7/sd.mp4</code></p>
+<h1 id="文件方法步骤">文件方法步骤</h1>
+<p>txt、zip、7z等格式无法直接在浏览器预览的文件直链提取方法</p>
+<p>需使用IDM配合提取，将IDM捕捉文件类型中加入自己想要提取的文件格式后缀，并点击下载，就会弹出下载提示框</p>
+<figure data-type="image" tabindex="3"><a href="https://p.itxe.net/images/2022/11/14/cx3.png"><img src="https://p.itxe.net/images/2022/11/14/cx3.png" alt="img" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="4"><a href="https://p.itxe.net/images/2022/11/14/cx4.gif"><img src="https://p.itxe.net/images/2022/11/14/cx4.gif" alt="img" loading="lazy"></a></figure>
+<p>复制出来的链接：<code>https://d0.ananas.chaoxing.com/download/270d7c5a4776acf040a285208c52934f?fn=Test</code>，<code>?fn=</code> 后面的是文件名</p>
+<h1 id="提取的直链整合">提取的直链整合</h1>
+<p>图片：<code>https://p.ananas.chaoxing.com/star3/origin/093846f84d5608bb6d995a8828f4eb8b.png</code></p>
+<p>视频：<code>https://s138.ananas.chaoxing.com/video/51/6e/5d/c13198119fd05ddc7c7966b6c20b7af7/sd.mp4</code></p>
+<p>文件：<code>https://d0.ananas.chaoxing.com/download/270d7c5a4776acf040a285208c52934f?fn=Test</code></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Git 提交规范]]></title>
+        <id>https://hualiang.online/post/git-ti-jiao-gui-fan/</id>
+        <link href="https://hualiang.online/post/git-ti-jiao-gui-fan/">
+        </link>
+        <updated>2024-06-17T14:59:48.000Z</updated>
+        <summary type="html"><![CDATA[<p>经常看到别人提交的代码记录里面包含一些feat、fix、chore等等，而我在提交时也不会区分什么，直接写下提交信息，今天就来看一下怎么个事，就拿 element-plus 举例来看一下</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>经常看到别人提交的代码记录里面包含一些feat、fix、chore等等，而我在提交时也不会区分什么，直接写下提交信息，今天就来看一下怎么个事，就拿 element-plus 举例来看一下</p>
+<!-- more -->
+<p>其实这么写是一种代码提交规范，当然不是为了炫技，主要目的是为了提高提交记录的可读性和自动化处理能力。当然如果团队没有要求，不这么写也可以。</p>
+<pre><code>commit message = subject + ：+ 空格 + message 主体
+</code></pre>
+<p>常见的 subject 种类以及含义如下：</p>
+<ol>
+<li>feat: 新功能（feature）
+<ul>
+<li>用于提交新功能。</li>
+<li>例如：feat: 增加用户注册功能</li>
+</ul>
+</li>
+<li>fix: 修复 bug
+<ul>
+<li>用于提交 bug 修复。</li>
+<li>例如：fix: 修复登录页面崩溃的问题</li>
+</ul>
+</li>
+<li>docs: 文档变更
+<ul>
+<li>用于提交仅文档相关的修改。</li>
+<li>例如：docs: 更新README文件</li>
+</ul>
+</li>
+<li>style: 代码风格变动（不影响代码逻辑）
+<ul>
+<li>用于提交仅格式化、标点符号、空白等不影响代码运行的变更。</li>
+<li>例如：style: 删除多余的空行</li>
+</ul>
+</li>
+<li>refactor: 代码重构（既不是新增功能也不是修复bug的代码更改）
+<ul>
+<li>用于提交代码重构。</li>
+<li>例如：refactor: 重构用户验证逻辑</li>
+</ul>
+</li>
+<li>perf: 性能优化
+<ul>
+<li>用于提交提升性能的代码修改。</li>
+<li>例如：perf: 优化图片加载速度</li>
+</ul>
+</li>
+<li>test: 添加或修改测试
+<ul>
+<li>用于提交测试相关的内容。</li>
+<li>例如：test: 增加用户模块的单元测试</li>
+</ul>
+</li>
+<li>chore: 杂项（构建过程或辅助工具的变动）
+<ul>
+<li>用于提交构建过程、辅助工具等相关的内容修改。</li>
+<li>例如：chore: 更新依赖库</li>
+</ul>
+</li>
+<li>build: 构建系统或外部依赖项的变更
+<ul>
+<li>用于提交影响构建系统的更改。</li>
+<li>例如：build: 升级webpack到版本5</li>
+</ul>
+</li>
+<li>ci: 持续集成配置的变更
+<ul>
+<li>用于提交CI配置文件和脚本的修改。</li>
+<li>例如：ci: 修改GitHub Actions配置文件</li>
+</ul>
+</li>
+<li>revert: 回滚
+<ul>
+<li>用于提交回滚之前的提交。</li>
+<li>例如：revert: 回滚feat: 增加用户注册功能</li>
+</ul>
+</li>
+</ol>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[DelayQueue 实现临时上传文件的过期定时清理]]></title>
+        <id>https://hualiang.online/post/delayqueue-shi-xian-lin-shi-shang-chuan-wen-jian-de-ding-shi-qing-li/</id>
+        <link href="https://hualiang.online/post/delayqueue-shi-xian-lin-shi-shang-chuan-wen-jian-de-ding-shi-qing-li/">
+        </link>
+        <updated>2024-06-07T12:49:03.000Z</updated>
+        <summary type="html"><![CDATA[<p>学院的智慧党建项目要实现图片上传功能，为了解决图片临时上传后的清理问题，考虑到数据量不大，我想到了用 Java 的 DelayQueue 延迟队列来处理。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>学院的智慧党建项目要实现图片上传功能，为了解决图片临时上传后的清理问题，考虑到数据量不大，我想到了用 Java 的 DelayQueue 延迟队列来处理。</p>
+<!-- more -->
+<h1 id="需求分析">需求分析</h1>
+<p>前端在编辑器里编辑文章时，有时需要上传本地图片，如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1717766874461.png" alt="1" loading="lazy"></figure>
+<p>上传图片：</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1717767213521.png" alt="2" loading="lazy"></figure>
+<p>要求：</p>
+<ol>
+<li>上传到后端后，后端需要返回一个可访问的 URL 链接给前端用来在文章中引用</li>
+<li>临时上传到后端的图片若一定时间内未被任何文章引用，需要定时清理</li>
+</ol>
+<h1 id="技术选型">技术选型</h1>
+<p>说到定时任务，首先想到两种方案：</p>
+<ol>
+<li>SpringBoot 提供的定时任务实现</li>
+<li>Java 提供的延迟队列来实现</li>
+</ol>
+<p>考虑到该项目原本就是在学院内使用，数据量不大。而且定时任务时效性差，不能针对单独文件进行计时，故选择第二种方案。</p>
+<h1 id="代码实现">代码实现</h1>
+<p>延迟队列实现的思路还是很简单的：</p>
+<p>将临时上传的图片都放入队列中并设置好过期时间，一旦图片过期就从队列中取出并删除。如果在过期前有文章引用了该图片，那么从队列中将其删除即可。</p>
+<h2 id="ttlfile">TTLFile</h2>
+<p>我们先创建一个过期文件类 <code>TTLFile</code> 实现 <code>Delayed</code> 接口，这里我们定义的是抽象类，实现一些基础功能，留下一些关键功能，如 <code>clean()</code> 方法，便于后续拓展功能。比如，用于清理本地文件的 <code>LocalFile</code>，或是存储在 Minio 上的 <code>MinioFile</code></p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+
+import lombok.Getter;
+// 延迟队列中的元素都需要实现 Delayed 接口来判断过期时间
+public abstract class TTLFile implements Delayed {
+
+    protected final String uuid;
+
+    protected long ttl; // 过期时间
+
+    @Getter
+    protected int failedCount = 0; // 任务失败次数
+
+    public TTLFile(String uuid, long delay) {
+        this.uuid = uuid;
+        this.ttl = System.currentTimeMillis() + delay;
+    }
+
+    /**
+     * 查看当前任务还有多久到期
+     * 
+     * @param unit
+     * @return 剩余时间
+     */
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(ttl - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 延迟队列需要到期时间升序入队，所以我们需要实现compareTo进行到期时间比较
+     * 
+     * @param delayed
+     * @return 比较结果
+     */
+    @Override
+    public int compareTo(Delayed delayed) {
+        return Long.compare(this.ttl, ((TTLFile) delayed).ttl);
+    }
+
+    /**
+     * 判断任务是否失败
+     * 
+     * @return 是否失败
+     */
+    public boolean isFailed() {
+        return ++failedCount &gt;= 3;
+    }
+
+    /**
+     * 延时
+     */
+    public void delay(long delay) {
+        ttl = System.currentTimeMillis() + delay;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TTLFile other = (TTLFile) obj;
+        if (uuid == null) {
+            if (other.uuid != null)
+                return false;
+        } else if (!uuid.equals(other.uuid))
+            return false;
+        return true;
+    }
+
+    /**
+     * 清理文件
+     * 
+     * @return 是否清理成功
+     */
+    public abstract boolean clean();
+
+    /**
+     * 获取文件路径
+     * 
+     * @return 文件路径
+     */
+    public abstract String getPath();
+
+}
+</code></pre>
+<p>注意：这里重写的 <code>hashCode()</code> 和 <code>equal()</code> 只将 <code>uuid</code> 作为唯一标识，因为要想从延迟队列中移除元素，我们就必须传入一个等价的元素才行。将 <code>uuid</code> 作为唯一标识，到时候移除元素只需要传入一个具有相同 <code>uuid</code> 的对象实例即可。</p>
+<p><em>p.s. 一般情况，文件的存储路径都是唯一的，可以用来作为 uuid</em></p>
+<h2 id="localfile">LocalFile</h2>
+<p>因为一开始该项目并未使用 Minio 这种专门的文件存储服务，直接将文件存在本地，所以我先实现的是清理本地文件的功能。</p>
+<p>得益于抽象类已经实现了一些基本功能，我们只需要实现 <code>clean()</code> 和 <code>getPath()</code> 即可。</p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import java.io.File;
+
+public class LocalFile extends TTLFile {
+
+    // 任务
+    private File file;
+
+    public LocalFile(String uuid, String path, long delay) {
+        super(uuid, delay);
+        this.file = new File(path);
+    }
+
+    /**
+     * 删除文件
+     * 
+     * @return 是否清理成功
+     */
+    @Override
+    public boolean clean() {
+        return file.exists() ? file.delete() : true;
+    }
+
+    /**
+     * 获取文件路径
+     * 
+     * @return 文件路径
+     */
+    @Override
+    public String getPath() {
+        return file.getPath();
+    }
+
+}
+</code></pre>
+<p>内置一个 <code>File</code> 类用来操作文件，<code>clean()</code> 也是判断文件存在后直接删除，实现起来并不难。</p>
+<p>这样一个定时清理本地文件的类就写好了~</p>
+<h2 id="cleaner">Cleaner</h2>
+<p>根据之前的思路，要想从延迟队列里不断取出过期元素删除，我们就需要一个后台线程异步获取队列中的元素，而且需要在 SpringBoot 一启动就要开始执行。这里我们可以用 SpringBoot 提供的 <code>ApplicationRunner</code> 接口来实现。</p>
+<p>在 SpringBoot 应用程序启动时，有时我们需要执行一些特定的任务，如加载配置、建立连接等。SpringBoot 提供了 <code>ApplicationRunner</code> 接口，允许我们在应用程序完全启动后执行自定义的逻辑。</p>
+<p>下面我们通过实现该接口来定义一个“清洁工”</p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+
+import com.dangjian.utils.FileUtil;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.concurrent.DelayQueue;
+
+@Slf4j
+@Component
+public class Cleaner implements ApplicationRunner {
+
+    private DelayQueue&lt;TTLFile&gt; cleanQueue = new DelayQueue&lt;&gt;();
+
+    public void addTask(TTLFile ttlFile) {
+        cleanQueue.add(ttlFile);
+    }
+
+    public void addTask(List&lt;TTLFile&gt; ttlFile) {
+        cleanQueue.addAll(ttlFile);
+    }
+
+    public boolean removeTask(TTLFile ttlFile) {
+        return cleanQueue.remove(ttlFile);
+    }
+
+    public boolean removeTask(List&lt;TTLFile&gt; ttlFile) {
+        return cleanQueue.removeAll(ttlFile);
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        Thread thread = new Thread(() -&gt; {
+            while (true) {
+                try {
+                    TTLFile ttlFile = cleanQueue.take();
+                    if (ttlFile.clean()) {
+                        log.info(&quot;成功清理：{}&quot;, ttlFile.getPath());
+                    } else {
+                        if (ttlFile.isFailed()) {
+                            log.error(&quot;清理失败，文件路径：{}&quot;, ttlFile.getPath());
+                            String info = String.format(&quot;[%s] - 清理失败，文件路径：%s&quot;, LocalTime.now(), ttlFile.getPath());
+                            FileUtil.writeLog(FileUtil.getCurrentPath(), info);
+                        } else {
+                            log.warn(&quot;清理失败，重试次数：{}，文件路径：{}&quot;, ttlFile.getFailedCount(), ttlFile.getPath());
+                            ttlFile.delay(60000); // 1分钟后重试
+                            cleanQueue.put(ttlFile);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.setName(&quot;Cleaner&quot;);
+        thread.start();
+    }
+
+}
+</code></pre>
+<p>在上面的代码中，我们内置了一个延迟队列，还定义了一些往队列里添加定时任务的方法。</p>
+<p>其中，在重写的方法中，我们直接创建一个死循环的线程不断从队列中提取任务，这里调用的是延迟队列的 <code>take()</code> 方法，该方法在队列中没有可以取出的过期元素时，会阻塞消费者，直到有元素过期。所以并不会过多损耗 CPU 资源。</p>
+<p>对于清理失败的情况，还会通过 <code>TTLFile</code> 内含的计数字段来重试 3 次清理操作。若依旧不成功，则该报错报错，该写日志写日志。</p>
+<h1 id="实战">实战</h1>
+<p>在我们的项目中，有一个专门的临时上传文件接口，我们可以在接收文件后将其加入到队列里。</p>
+<pre><code class="language-java">@Operation(summary = &quot;临时上传文件&quot;)
+@PostMapping(&quot;/upload&quot;)
+public Result upload(@Parameter(description = &quot;上传的文件&quot;) @RequestPart MultipartFile file) {
+    Optional.ofNullable(file).orElseThrow(() -&gt; new CustomException(&quot;上传文件为空！&quot;));
+
+    String tempPath = FileUtil.tempUpload(file);
+    String uuid = UUID.randomUUID().toString();
+    redisTemplate.opsForValue().set(uuid, tempPath, 10, TimeUnit.MINUTES);
+    
+    // 将临时路径作为唯一标识
+    cleaner.addTask(new LocalFile(tempPath, 10 * 60 * 1000)); // 10分钟后删除
+
+    log.info(&quot;文件上传成功，临时路径：{}&quot;, tempPath);
+    return Result.ok(uuid);
+}
+</code></pre>
+<p><em>p.s. Cleaner 带有 @Component 注解，可直接注入</em></p>
+<p>而当我们引用临时文件，需要将他从队列中移除时，只需要用相同的路径作为表示传入一个新对象即可。</p>
+<p>下面的代码是用来设置支部活动附件，附件已经临时上传到后端了</p>
+<pre><code class="language-java">@Override
+public void setActivityFile(String actId, Activity activity) {
+    // 通过活动 ID 从 Redis 里拿到预先存在里面的临时路径
+    String path = redisTemplate.opsForValue().getAndDelete(actId);
+    if (StringUtils.hasLength(path) &amp;&amp; cleaner.removeTask(new LocalFile(path, 1000))) { // 传入一个具有相同临时路径的对象来删除队列中的临时文件
+        Optional.ofNullable(activity.getFile()).ifPresent(FileUtil::delete);
+        activity.setFile(path);
+    } else {
+        throw new CustomException(&quot;临时上传的活动文件已过期，请重新上传！&quot;);
+    }
+}
+</code></pre>
+<p>经测试，在不出现 <code>IOException</code> 的情况下，只要提前将任务加入队列，一旦到期，临时上传的文件就能被成功删除。</p>
+<h1 id="总结">总结</h1>
+<p>清理文件时记得做好异常处理以及回滚机制，防止清理失败后未将任务重新添加回队列导致垃圾文件堆积。</p>
+<p>延迟队列底层使用的无界队列，基于 JVM 内存，数据量少的情况下，这种方法简单且使用。若在企业级场景下，可能更多的会使用像 Kafka，RocketMQ 这种高性能消息队列提供的延迟队列来实现。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Vite 多页面实战]]></title>
+        <id>https://hualiang.online/post/zhen-zheng-you-ya-de-vite-duo-ye-mian-shi-zhan/</id>
+        <link href="https://hualiang.online/post/zhen-zheng-you-ya-de-vite-duo-ye-mian-shi-zhan/">
+        </link>
+        <updated>2024-06-01T07:58:44.000Z</updated>
+        <summary type="html"><![CDATA[<p>转自稀土掘金 “<a href="https://juejin.cn/user/1099167356957885/posts">我想写文章啊</a>” 的<a href="https://juejin.cn/post/7128999848564981796">《真正优雅的 Vite 多页面实战》</a></p>
+]]></summary>
+        <content type="html"><![CDATA[<p>转自稀土掘金 “<a href="https://juejin.cn/user/1099167356957885/posts">我想写文章啊</a>” 的<a href="https://juejin.cn/post/7128999848564981796">《真正优雅的 Vite 多页面实战》</a></p>
+<!-- more -->
+<h1 id="vite如何支持多页">Vite如何支持多页？</h1>
+<p><a href="https://link.juejin.cn?target=https%3A%2F%2Fcn.vitejs.dev%2Fguide%2Fbuild.html%23multi-page-app">cn.vitejs.dev/guide/build…</a></p>
+<p>官方文档对于多页模式的描述中说到，如果想要新建一个单页，只需要在<strong>项目根目录</strong>（注意：不是 <code>src</code> 目录！）新建：</p>
+<ul>
+<li>nested
+<ul>
+<li><strong>index.html</strong></li>
+<li><strong>main.js</strong></li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>然后通过访问：<code>http://localhost:5173/nested/</code>即可。</p>
+<p>这里要说明两个问题：</p>
+<p><em>为什么在根目录新建目录，而不是 <code>src</code> 目录？</em></p>
+<p>因为vite启动时，会以根目录启动一个开发服务器，可以简单理解为开发服务器托管了整个项目的文件（但其实内部做了一些其他处理如处理public目录等）。</p>
+<p>因此，在项目目录下的文件，都可以通过链接访问到，你可以访问<code>http://localhost:5173/package.json</code> 试试。</p>
+<p>所以，你可以在任意目录放置自己的单页，但是开发时的访问地址也必须受限于单页的目录结构，如果你的单页入口文件放在<code>src/hello/index.html</code> ，也就只能通过<code>http://localhost:5173/src/hello/</code> 来进行访问。</p>
+<p><em>为什么使用 <code>/nested/</code> 访问而不是 <code>nested</code>？</em></p>
+<p>访问<code>/nested/</code> 相当于访问<code>nested</code>目录下的入口文件（一般静态服务器都会将 <code>index.html</code> 作为入口文件）。</p>
+<h1 id="官方例子不符合实际开发场景">官方例子不符合实际开发场景</h1>
+<p>vite官方给出的项目模板是这样的：</p>
+<ul>
+<li>src
+<ul>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>index.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>按照官方例子，如果要新增一个单页，需要这样组织目录结构：</p>
+<ul>
+<li>src
+<ul>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+<li>index.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>新的单页居然与<code>src</code> 目录是平行的！这显然不符合正常的项目结构，一般而言，开发相关的源代码都会放在<code>src</code>目录下。因此，这个方案不适用，废弃。</p>
+<p>那么，试试看第二种方案：</p>
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>这种方案的好处是，单页互为平行关系，而且可以通过访问<code>/index/</code>与<code>/nested/</code>访问到对应的单页。</p>
+<p>但是，其缺点就是：如何管理公共资源？</p>
+<p>例如，<code>index</code> 单页与<code>nested</code>单页都使用到同一款公共组件，应该放在哪里管理呢？</p>
+<p>显然，这种项目结构缺陷明显，因此，这个方案也不适用，废弃。</p>
+<h1 id="项目结构最佳实践">项目结构最佳实践</h1>
+<p>按照以往的开发经验，这样组织项目结构可以让开发的可扩展达到最好：</p>
+<ul>
+<li>src
+<ul>
+<li>components</li>
+<li>pages
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>这种项目结构，可以在<code>src</code>目录下管理多个单页需要使用到的公共资源，引用非常方便，并且扩展新的单页也非常方便。</p>
+<p>但是！这种结构下，访问对应的单页需要使用<code>http://localhost:5173/src/pages/index/</code> 来访问，这种开发体验虽说不好，但尚且能忍受。最致命的问题是，当我们在<code>vite.config.js</code>中配置多页打包时：</p>
+<pre><code class="language-typescript">export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'src/pages/index/index.html'),
+        nested: path.resolve(__dirname, 'src/pages/nested/index.html'),
+      }
+    }
+  }
+})
+</code></pre>
+<p>打出来的包是这样的：</p>
+<ul>
+<li>dist
+<ul>
+<li>src
+<ul>
+<li>pages
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>assets</li>
+</ul>
+</li>
+</ul>
+<p>也就是说，线上用于也必须通过<code>http://localhost/src/pages/index/</code> 来访问！这显然不符合预期，我们预期的输出应该是：</p>
+<ul>
+<li>dist
+<ul>
+<li>assets</li>
+<li>index.html</li>
+<li>nested.html</li>
+</ul>
+</li>
+</ul>
+<p>为了解决这个问题，网上的一篇热门文章，采用了一种更改打包后的文件路径的方法来解决此问题，此方案的基本思路是：</p>
+<ol>
+<li>将<code>src/pages</code>下所有子目录下的<code>index.html</code>文件复制到根目录，并且改名为其父目录的名称，如<code>src/pages/nested/index.html</code>复制到跟目录，改名为<code>nested.html</code></li>
+<li>将<code>nested.html</code> 下的样式、js等引用改为正确的引用路径。</li>
+</ol>
+<p>这个方案看似解决了打包后的路径问题，但是给开发人员带来了额外的认知成本，虽勉强解决了问题，但思路不够优雅。（居然是google搜索“vite 多页面”的第一篇文章，有点误人子弟了。）</p>
+<h1 id="优雅的解决方案">优雅的解决方案</h1>
+<p>首先，我们的项目结构必须以此为准：</p>
+<ul>
+<li>src
+<ul>
+<li>pages
+<ul>
+<li>index</li>
+<li>nested</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>其次，打包出来的结构必须以此为准：</p>
+<ul>
+<li>dist
+<ul>
+<li>assets</li>
+<li>index.html</li>
+<li>nested.html</li>
+</ul>
+</li>
+</ul>
+<p>为了实现第二点，必须要求项目根目录下至少有这两个文件：</p>
+<ul>
+<li>src</li>
+<li>index.html</li>
+<li>nested.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>然后，在<code>src/pages/index</code>目录下，不放置<code>index.html</code>，只放<code>main.js</code>、<code>App.vue</code>等，让<code>src/index.html</code> 反向引用<code>src/pages/index/main.js</code>即可：</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;/vite.svg&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Vite + Vue + TS&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;app&quot;&gt;&lt;/div&gt;
+    &lt;script type=&quot;module&quot; src=&quot;/src/pages/index/main.js&quot;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>至此，vite多页面架构的问题已完美解决！</p>
+<h1 id="总结">总结</h1>
+<ul>
+<li>官方文档虽然权威，但不一定适合所有场景</li>
+<li>在框架内解决问题，勉强的方案虽能解决问题，但后患无穷</li>
+</ul>
+]]></content>
+    </entry>
+</feed>

@@ -1,0 +1,335 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】九、数组 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】九、数组 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="在 Java 中，数组的声明和创建与 C 有些不同，所以这里单独来记录。
+
+声明数组
+首先必须声明数组变量，才能在程序中使用数组。下面是声明 double 数组变量的实例：
+double[] myList;         // 首选的方法..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】九、数组
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-01
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>在 Java 中，数组的声明和创建与 C 有些不同，所以这里单独来记录。</p>
+<!-- more -->
+<h2 id="声明数组">声明数组</h2>
+<p>首先必须声明数组变量，才能在程序中使用数组。下面是声明 <code>double</code> 数组变量的实例：</p>
+<pre><code class="language-java">double[] myList;         // 首选的方法
+double myList[];         //  效果相同，但不是首选方法
+</code></pre>
+<p><strong>注意:</strong> 建议使用 <code>dataType[] arrayRefVar</code> 的声明风格声明数组变量。 <code>dataType arrayRefVar[]</code> 风格是来自 C/C++ 语言 ，在Java中采用是为了让 C/C++ 程序员能够快速理解java语言。</p>
+<h2 id="创建数组">创建数组</h2>
+<p>Java 语言使用 <code>new</code> 操作符来创建数组，语法如下：</p>
+<pre><code class="language-java">array = new int[10];
+</code></pre>
+<p>上面的语法语句做了两件事：</p>
+<ol>
+<li>
+<p>使用 <code>int[10]</code> 创建了一个长度为10的整型数组。</p>
+</li>
+<li>
+<p>把新创建的数组的<strong>引用</strong>赋值给变量 <code>array</code> 。</p>
+</li>
+</ol>
+<p>数组的声明和创建也可以用一条语句完成，如下所示：</p>
+<pre><code class="language-java">int[] array = new int[10];
+</code></pre>
+<p>另外，你还可以使用如下的方式创建数组。</p>
+<pre><code class="language-java">int[] array = {1, 2, 3, 4, 5};
+</code></pre>
+<h2 id="数组长度">数组长度</h2>
+<p>在Java中，数组也是一个类，它拥有一个 <code>length</code> 属性来记录它的长度，这样便于处理数组，比如：</p>
+<pre><code class="language-java">// 打印所有数组元素
+for (int i = 0; i &lt; myList.length; i++) { // myList.length即是该数组的长度
+	System.out.println(myList[i] + &quot; &quot;);
+}
+</code></pre>
+<h2 id="增强型-for-循环-for-each-循环">增强型 for 循环 (For-Each 循环)</h2>
+<p>Java5引入了一种主要用于数组的增强型 for 循环，与Python的 For-In 循环类似，其基本语法格式如下：</p>
+<pre><code class="language-java">for(声明语句 : 表达式) {
+   //代码句子
+}
+</code></pre>
+<p>**声明语句：**声明新的局部变量，该变量的类型必须和数组元素的类型匹配。其作用域限定在循环语句块，其值与此时数组元素的值相等。</p>
+<p>**表达式：**表达式是要访问的数组名，或者是返回值为数组的方法。</p>
+<hr>
+<p>实例如下：</p>
+<pre><code class="language-java">public class Test {
+   public static void main(String[] args) {
+      int [] numbers = {10, 20, 30, 40, 50};
+ 
+      for(int x : numbers ) { // 每次循环都会将numbers数组的一个元素赋值给局部变量x
+         System.out.print( x );
+         System.out.print(&quot;,&quot;);
+      }
+      System.out.print(&quot;\n&quot;);
+      String [] names ={&quot;James&quot;, &quot;Larry&quot;, &quot;Tom&quot;, &quot;Lacy&quot;};
+      for( String name : names ) { // 同理，这样便于操作数组元素
+         System.out.print( name );
+         System.out.print(&quot;,&quot;);
+      }
+   }
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code>10,20,30,40,50,
+James,Larry,Tom,Lacy,
+</code></pre>
+<h2 id="其他不同点">其他不同点</h2>
+<p>整理一些与 C 仅有一点小差异的语法。</p>
+<hr>
+<h3 id="数组作为函数的参数">数组作为函数的参数</h3>
+<pre><code class="language-java">public static void printArray(int[] array) // 与声明时的写法一样
+</code></pre>
+<hr>
+<h3 id="多维数组的动态初始化">多维数组的动态初始化</h3>
+<ol>
+<li>
+<p>声明后可以直接为每一维分配空间，如：</p>
+<pre><code class="language-java">String[][] str = new String[3][4]; // 可以声明为基本数据类型或复合数据类型，且中括号内的长度必须为正整数
+</code></pre>
+</li>
+<li>
+<p>也可以从最高维开始，分别为每一维分配空间，如：</p>
+<pre><code class="language-java">String[][] s = new String[2][];
+s[0] = new String[2]; // 为第一维分配引用空间
+s[1] = new String[3]; // 为第二维分配引用空间
+s[0][0] = new String(&quot;Good&quot;);
+s[0][1] = new String(&quot;Luck&quot;);
+s[1][0] = new String(&quot;to&quot;);
+s[1][1] = new String(&quot;you&quot;);
+s[1][2] = new String(&quot;!&quot;);
+</code></pre>
+</li>
+</ol>
+<h2 id="arrays-类">Arrays 类</h2>
+<p><code>java.util.Arrays</code> 类能方便地操作数组，它提供的所有方法都是静态的。</p>
+<p>具有以下常用功能：</p>
+<ul>
+<li>给数组赋值：通过 <code>fill</code> 方法</li>
+<li>对数组排序：通过 <code>sort</code> 方法,按升序</li>
+<li>比较数组：通过 <code>equals</code> 方法比较数组中元素值是否相等</li>
+<li>查找数组元素：通过 <code>binarySearch</code> 方法能对排序好的数组进行二分查找法操作</li>
+</ul>
+<p>具体说明请查看下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">*</th>
+<th style="text-align:left">方法和说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:left"><strong>public static int binarySearch(Object[] a, Object key)</strong> 用二分查找算法在给定数组中搜索给定值的对象(<code>Byte</code>,<code>Int</code>,<code>double</code>等)。数组在调用前必须排序好的。如果查找值包含在数组中，则返回搜索键的索引；否则返回 (-(<em>插入点</em>) - 1)。</td>
+</tr>
+<tr>
+<td style="text-align:center">2</td>
+<td style="text-align:left"><strong>public static boolean equals(long[] a, long[] a2)</strong> 如果两个指定的 <code>long</code> 型数组彼此<em>相等</em>，则返回 <code>true</code>。如果两个数组包含相同数量的元素，并且两个数组中的所有相应元素对都是相等的，则认为这两个数组是相等的。换句话说，如果两个数组以相同顺序包含相同的元素，则两个数组是相等的。同样的方法适用于所有的其他基本数据类型（<code>Byte</code>，<code>short</code>，<code>Int</code> 等）。</td>
+</tr>
+<tr>
+<td style="text-align:center">3</td>
+<td style="text-align:left"><strong>public static void fill(int[] a, int val)</strong> 将指定的 <code>int</code> 值分配给指定 <code>int</code> 型数组指定范围中的每个元素。同样的方法适用于所有的其他基本数据类型（<code>Byte</code>，<code>short</code>，<code>Int</code> 等）。</td>
+</tr>
+<tr>
+<td style="text-align:center">4</td>
+<td style="text-align:left"><strong>public static void sort(Object[] a)</strong> 对指定对象数组根据其元素的自然顺序进行升序排列。同样的方法适用于所有的其他基本数据类型（<code>Byte</code>，<code>short</code>，<code>Int</code> 等）。</td>
+</tr>
+<tr>
+<td style="text-align:center">5</td>
+<td style="text-align:left"><strong>public static String toString(int[] a)</strong> 将指定 <code>int</code> 型数组的每个元素放在中括号内打印出来。其他基本数据类型同样适用。</td>
+</tr>
+</tbody>
+</table>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%A3%B0%E6%98%8E%E6%95%B0%E7%BB%84">声明数组</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E7%BB%84">创建数组</a></li>
+<li><a href="#%E6%95%B0%E7%BB%84%E9%95%BF%E5%BA%A6">数组长度</a></li>
+<li><a href="#%E5%A2%9E%E5%BC%BA%E5%9E%8B-for-%E5%BE%AA%E7%8E%AF-for-each-%E5%BE%AA%E7%8E%AF">增强型 for 循环 (For-Each 循环)</a></li>
+<li><a href="#%E5%85%B6%E4%BB%96%E4%B8%8D%E5%90%8C%E7%82%B9">其他不同点</a>
+<ul>
+<li><a href="#%E6%95%B0%E7%BB%84%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0">数组作为函数的参数</a></li>
+<li><a href="#%E5%A4%9A%E7%BB%B4%E6%95%B0%E7%BB%84%E7%9A%84%E5%8A%A8%E6%80%81%E5%88%9D%E5%A7%8B%E5%8C%96">多维数组的动态初始化</a></li>
+</ul>
+</li>
+<li><a href="#arrays-%E7%B1%BB">Arrays 类</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-liu-cheng-kong-zhi/">
+              <h3 class="post-title">
+                【Java SE】八、流程控制
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

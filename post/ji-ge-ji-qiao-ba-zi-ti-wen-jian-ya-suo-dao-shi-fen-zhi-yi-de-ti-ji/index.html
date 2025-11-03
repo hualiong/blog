@@ -1,0 +1,264 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>压缩字体文件的几个技巧 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="压缩字体文件的几个技巧 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="转自知乎 “MiningCattiva” 的《几个技巧把字体文件压缩到十分之一的体积》
+
+前言
+有时候我们需要让网页加载自定义字体文件，但是通常的字体格式（TTF、OTF）体积太大了，这就需要我们将其转换为更小体积的字体文件格式（WOFF2..." />
+    <meta name="keywords" content="优质文章收藏" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              压缩字体文件的几个技巧
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-05-24
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+                  # 优质文章收藏
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>转自知乎 “<a href="https://www.zhihu.com/people/MoyuScript">MiningCattiva</a>” 的<a href="https://zhuanlan.zhihu.com/p/577387539">《几个技巧把字体文件压缩到十分之一的体积》</a></p>
+<!-- more -->
+<h1 id="前言">前言</h1>
+<p>有时候我们需要让网页加载自定义字体文件，但是通常的字体格式（TTF、OTF）体积太大了，这就需要我们将其转换为更小体积的字体文件格式（WOFF2）。</p>
+<p>之前我尝试使用类似 CloudConvert 的在线工具去转换 OTF 字体文件，但是不知道为何转换出来的字体损坏了，无法使用。经过多方面研究，现在我找到了一种本地压缩字体可行的方法，因此分享给大家。</p>
+<h1 id="字体格式科普">字体格式科普</h1>
+<p>常见的字体格式有以下几种，这里只作简单介绍。</p>
+<h2 id="ttf">TTF</h2>
+<p>TTF（TrueTypeFont）是Apple 公司和Microsoft公司共同推出的字体文件格式，随着 windows 的流行，已经变成最常用的一种字体文件表示方式。（来源：百度百科）<br>
+这种格式的字体文件体积比较大，以思源宋体为例，字体文件可以达到 24MB+，通常只用作安装到计算机中的字体，或者在网页中设备不支持 WOFF2 字体情况的兜底处理。</p>
+<h2 id="otf">OTF</h2>
+<p>OpenType，是一种可缩放字体（scalable font）电脑字体类型，采用PostScript格式，是美国微软公司与Adobe公司联合开发，用来替代TrueType字体的新字体。这类字体的文件扩展名有.otf、.ttf、.ttc，类型代码是OTTO，现行标准为OpenType 1.9。（来源：维基百科）<br>
+可以理解为和 TTF 字体差不多，这里我们主要讨论体积问题，OTF 字体文件体积也很大，基本和 TTF 差不多。</p>
+<h2 id="woff-woff2">WOFF &amp; WOFF2</h2>
+<p>Web开放字体格式（Web Open Font Format，简称WOFF）是一种网页所采用的字体格式标准。此字体格式发展于2009年，[3]由万维网联盟的Web字体工作小组标准化，现在已经是推荐标准。[4]此字体格式不但能够有效利用压缩来减少文件大小，并且不包含加密也不受DRM（数字著作权管理）限制。这是专门给网页使用的字体格式，体积非常小，实测压缩思源宋体字体文件，可以把体积压缩到 OTF 字体 70% 的大小。</p>
+<p><strong>WOFF 和 WOFF2 的区别在于：</strong></p>
+<p>WOFF本质上是包含了基于SFNT的字体（如TrueType、OpenType或其他开放字体格式），且这些字体均经过WOFF的编码工具压缩，以便嵌入网页中。[3]WOFF 1.0使用zlib压缩，[3]文件大小一般比TTF小40%。[11]而WOFF 2.0使用Brotli压缩，文件大小比上一版小30%。（来源：维基百科）<br>
+因此，一般推荐直接使用 WOFF2。</p>
+<h2 id="svg">SVG</h2>
+<p>可缩放矢量图形（英语：Scalable Vector Graphics，缩写：SVG）是一种基于可扩展标记语言（XML），用于描述二维矢量图形的图形格式。SVG由W3C制定，是一个开放标准。</p>
+<p>这种字体是非常早期的标准，已经不推荐使用。我们可以从 Can i use 里面查到它的兼容性非常差：</p>
+<figure data-type="image" tabindex="1"><img src="https://pic2.zhimg.com/80/v2-2c871e94a049fc43c3c3a308c803ee21_1440w.webp" alt="image" loading="lazy"></figure>
+<h1 id="两步压缩">两步压缩</h1>
+<p>这部分是正式的压缩方法了，主要分为两步，分别是：取子集、压缩。</p>
+<p>这里我使用到的是 Python 的一个库：<a href="https://github.com/fonttools/fonttools">fonttools</a>，使用最新版 Python 的 pip 命令安装即可在 Shell 中使用：</p>
+<pre><code class="language-shell">pip install fonttools
+</code></pre>
+<h2 id="取子集">取子集</h2>
+<p>中文汉字数量很多，以思源宋体为例，思源宋体遵循 GB 18030 和通用规范汉字表，包含 8105 个规范字，可能还有其他语言的字符，实际字符数量肯定是远超这个数字的。</p>
+<p>实际上，常用汉字数量也就 3500 个左右，如果你的文本相对固定，可以考虑删减掉其他不常用的汉字。</p>
+<p>极端做法是只保留文本中出现的字符，其他的全部删掉，但是我个人更倾向于折中保留 3500 汉字，在未来如果修改了文本，也不至于每次都要重新压缩一遍字体。</p>
+<p>这种删减字符的做法叫“取子集”。取子集我们需要定义一个纯文本文件，里面包含所有要保留的字符，这里给大家分享一个自己正在使用的文件：<a href="https://gist.github.com/f94d0c594e47113b209156a653aaba93#file-%E7%8E%B0%E4%BB%A3%E6%B1%89%E8%AF%AD%E5%B8%B8%E7%94%A83500%E5%AD%97-txt">现代汉语常用 3500 字.txt</a>。</p>
+<p>使用以下命令即可对字体文件取子集：</p>
+<pre><code class="language-shell"> fonttools subset &quot;$input_file&quot; --text-file=&quot;$text_file&quot; --output-file=&quot;$output_file&quot;
+</code></pre>
+<p>变量含义：</p>
+<ul>
+<li>input_file：输入的字体文件。</li>
+<li>text_file：定义保留字符的纯文本文件路径。</li>
+<li>output_file：输出的字体文件路径。</li>
+</ul>
+<p>我测试对思源宋体取完子集后，文件体积从 25.4MB 减少到了 2.5MB，足足小了 1/10。</p>
+<h2 id="压缩">压缩</h2>
+<p>取完子集后，我们将对字体文件进行压缩，主要是压缩成 WOFF2 格式。</p>
+<p>压缩命令很简单：</p>
+<pre><code class="language-shell"> fonttools ttLib.woff2 compress &quot;$input_file&quot; -o &quot;$output_file&quot;
+</code></pre>
+<p>变量含义：</p>
+<ul>
+<li>input_file：输入的字体文件。</li>
+<li>output_file：输出的字体文件路径。</li>
+</ul>
+<p>对上面已取子集的字体经过压缩后，体积差不多减少了 70%，从 2.5MB 减小到了 1.9MB。</p>
+<h2 id="组合方法">组合方法</h2>
+<p>经过上面两个步骤后，字体体积大约减少了 1/10 还要小，极大提高了加载速度。</p>
+<p>但是有时候我们需要用到一些非常用但是又不是很生僻的汉字，这里分两种情况：如果文本是确定的，可以将这些字加入到定义保留字符的文件中即可；如果文本不确定（比如有用户输入），又对字体要求较高，我们也可以仅仅执行压缩步骤，也能将字体体积减小到 70%，总比没有好。</p>
+<h2 id="脚本">脚本</h2>
+<p>因为经常有需要压缩字体（批量）的需求，所以我自己写了个小脚本来使用。<br>
+现在分享给大家：<a href="https://gist.github.com/f94d0c594e47113b209156a653aaba93#file-%E5%8E%8B%E7%BC%A9%E8%84%9A%E6%9C%AC-sh">压缩脚本.sh</a>。</p>
+<p>这个脚本可以选择是否取子集，如果需要取子集，输入的第二个参数需要为 true，否则就不用提供。大家可以根据实际情况去进行修改。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a></li>
+<li><a href="#%E5%AD%97%E4%BD%93%E6%A0%BC%E5%BC%8F%E7%A7%91%E6%99%AE">字体格式科普</a>
+<ul>
+<li><a href="#ttf">TTF</a></li>
+<li><a href="#otf">OTF</a></li>
+<li><a href="#woff-woff2">WOFF &amp; WOFF2</a></li>
+<li><a href="#svg">SVG</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%A4%E6%AD%A5%E5%8E%8B%E7%BC%A9">两步压缩</a>
+<ul>
+<li><a href="#%E5%8F%96%E5%AD%90%E9%9B%86">取子集</a></li>
+<li><a href="#%E5%8E%8B%E7%BC%A9">压缩</a></li>
+<li><a href="#%E7%BB%84%E5%90%88%E6%96%B9%E6%B3%95">组合方法</a></li>
+<li><a href="#%E8%84%9A%E6%9C%AC">脚本</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/jie-jue-windows-10-duan-kou-bei-hyper-v-sui-ji-bao-liu-zhan-yong-de-wen-ti/">
+              <h3 class="post-title">
+                解决 Win 10 端口被 Hyper-V 随机占用的问题
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

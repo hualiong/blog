@@ -1,0 +1,387 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】二十、网络编程 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】二十、网络编程 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="这里记录一些 Java 中关于网络的基本流程，不含计算机网络基本知识，更多内容得去学 JavaWeb。
+
+InetAddress 类
+在 Java 中使用 InetAddress 类代表 IP 地址，该类的构造器私有化，要想获得实例，常调用..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】二十、网络编程
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-27
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>这里记录一些 Java 中关于网络的基本流程，不含计算机网络基本知识，更多内容得去学 JavaWeb。</p>
+<!-- more -->
+<h2 id="inetaddress-类">InetAddress 类</h2>
+<p>在 Java 中使用 InetAddress 类代表 IP 地址，该类的构造器私有化，要想获得实例，常调用提供的静态方法来返回对象</p>
+<pre><code class="language-java">try {
+    InetAddress inet1 = InetAddress.getByName(&quot;www.acfun.cn&quot;); // 也可以直接输入IP
+    InetAddress inet2 = InetAddress.getLocalHost(); // 获取本机地址
+    System.out.println(inet1);
+    System.out.println(inet1.getHostName()); // 获取域名
+    System.out.println(inet1.getHostAddress()); // 获取IP地址
+} catch (UnknownHostException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h2 id="tcp网络编程">TCP网络编程</h2>
+<p>IP + 端口号 = Socket，下面这个例子展示了 Socket 类的使用以及客户端和服务端的信息交流：</p>
+<pre><code class="language-java">public class TCPTest {
+    // 客户端
+    @Test
+    public void client() {
+        Socket socket = null;
+        OutputStream os = null;
+        InputStream is = null;
+        try {
+            InetAddress inet = InetAddress.getLocalHost();
+            socket = new Socket(inet, 8021); // 通过Socket与本机服务端建立连接，端口号由服务端设定
+            os = socket.getOutputStream(); // 获取输出流
+
+            os.write(&quot;Where are you?&quot;.getBytes()); // 发送信息，若是文件，则可以用文件流先读取
+            socket.shutdownOutput(); // 发送文件时，记得关闭数据输出，防止服务端一直接收
+
+            is = socket.getInputStream(); // 获取字节输入流，接收来自服务端的反馈
+            byte[] buffer = new byte[16];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                System.out.println(&quot;client &lt;- &quot; + new String(buffer, 0, len));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally { // 记得关闭资源
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+        }
+    }
+
+    // 服务端
+    @Test
+    public void server() {
+        ServerSocket ss = null;
+        Socket socket = null;
+        InputStream is = null;
+        ByteArrayOutputStream baos = null;
+        OutputStream os = null;
+        try {
+            ss = new ServerSocket(8021); // 建立服务端Socket
+            socket = ss.accept(); // 接收客户端Socket
+            is = socket.getInputStream(); // 获取字节流
+
+            baos = new ByteArrayOutputStream(); // 用字节数组流接收
+            byte[] buffer = new byte[16];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
+            }
+
+            System.out.println(&quot;server &lt;- &quot; + baos.toString() + &quot; &lt;- &quot; + socket.getInetAddress().getHostAddress()); // 获取客户端IP
+
+            os = socket.getOutputStream(); // 获取字节输出流
+            os.write(&quot;I'm here!&quot;.getBytes()); // 反馈信息
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally { // 记得关闭资源
+            if (ss != null) {
+                try {
+                    ss.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (baos != null) {
+                try {
+                    baos.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="udp网络编程">UDP网络编程</h2>
+<p>UDP 是一种不可靠的无连接协议，效率高。下例展示了 DatagramSocket 类的使用以及发送端和接收端的信息交流：</p>
+<pre><code class="language-java">public class UDPTest {
+	// 发送端
+    public void sender() throws IOException {
+        DatagramSocket socket = new DatagramSocket(); // 创建socket
+        byte[] data = &quot;Hello,receiver!&quot;.getBytes();
+        InetAddress inet = InetAddress.getLocalHost();
+        DatagramPacket packet = new DatagramPacket(data, 0, data.length, inet, 9090); // 打包成数据包
+        socket.send(packet); // 发送
+        socket.close();
+    }
+
+    // 接收端
+    public void receiver() throws IOException {
+        DatagramSocket socket = new DatagramSocket(9090); // 创建socket且声明端口
+        byte[] buffer = new byte[32];
+        DatagramPacket packet = new DatagramPacket(buffer, 0, buffer.length);
+        socket.receive(packet); // 接收
+        System.out.println(new String(packet.getData(), 0, packet.getLength()));
+        socket.close();
+    }
+}
+</code></pre>
+<p><em>注：上面的例子简化了异常处理的部分，但不建议这样做</em></p>
+<h2 id="url编程">URL编程</h2>
+<p>Java 提供一个 URL 类来处理 url 的网络编程部分，常用方法如下表：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>getProtocol()</strong></td>
+<td>获取该URL的协议名</td>
+</tr>
+<tr>
+<td><strong>getHost()</strong></td>
+<td>获取该URL的主机名</td>
+</tr>
+<tr>
+<td><strong>getPort()</strong></td>
+<td>获取该URL的端口号</td>
+</tr>
+<tr>
+<td><strong>getPath()</strong></td>
+<td>获取该URL的文件路径</td>
+</tr>
+<tr>
+<td><strong>getFile()</strong></td>
+<td>获取该URL的文件名</td>
+</tr>
+<tr>
+<td><strong>getQuery()</strong></td>
+<td>获取该URL的查询名</td>
+</tr>
+</tbody>
+</table>
+<p>下例展示了 URL 类的使用：</p>
+<pre><code class="language-java">public void URLTest() {
+    URL url = new URL(&quot;https://www.acfun.cn/beauty3.jpg&quot;);
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); // 打开url
+    urlConnection.connect(); // 连接url
+    InputStream is = urlConnection.getInputStream(); // 获取输入流
+    FileOutputStream fos = new FileOutputStream(&quot;beauty3.jpg&quot;);
+    byte[] buffer = new byte[1024];
+    int len;
+    while((len = is.read(buffer)) != -1) {
+    	fos.write(buffer, 0, len);
+    }
+    is.close();
+    fos.close();
+    urlConnection.disconnect(); // 记得关
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#inetaddress-%E7%B1%BB">InetAddress 类</a></li>
+<li><a href="#tcp%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B">TCP网络编程</a></li>
+<li><a href="#udp%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B">UDP网络编程</a></li>
+<li><a href="#url%E7%BC%96%E7%A8%8B">URL编程</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-io-liu/">
+              <h3 class="post-title">
+                【Java SE】十九、I/O 流
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,358 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】二、Javadoc | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】二、Javadoc | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 支持 3 种注释，分别是单行注释、多行注释和文档注释。文档注释以 /** 开头，并以 */ 结束，可以通过 Javadoc 生成 API 帮助文档，Java 帮助文档主要用来说明类、成员变量和方法的功能。
+
+文档注释与Javado..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】二、Javadoc
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-16
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 支持 3 种注释，分别是单行注释、多行注释和文档注释。文档注释以 <code>/**</code> 开头，并以 <code>*/</code> 结束，可以通过 Javadoc 生成 API 帮助文档，Java 帮助文档主要用来说明类、成员变量和方法的功能。</p>
+<!-- more -->
+<h2 id="文档注释与javadoc标签">文档注释与Javadoc标签</h2>
+<p>如下即为文档注释，用于说明该类的相关信息，如：作者、参数、版本、异常等。</p>
+<pre><code class="language-java">/**
+* @author :作者名
+* @version :版本号
+* @since :指明最早需要使用的jdk版本
+* @param ：参数
+* @return:返回值情况
+* @throws:异常抛出情况
+*/
+public class Test {
+    /**
+     * 求输入两个参数范围以内整数的和
+     * @param n 接收的第一个参数，范围起点
+     * @param m 接收的第二个参数，范围终点
+     * @return 两个参数范围以内整数的和
+     */
+    public int add(int n, int m) {
+        int sum = 0;
+        for (int i = n; i &lt;= m; i++) {
+            sum = sum + i;
+        }
+        return sum;
+    }
+} 
+</code></pre>
+<p>上述中存在的关键词则是文档注释中Javadoc 工具可以识别的一些特殊标签，这些标签一般以<code>@</code>开头，后跟一个指定的名字，有的也以<code>{@</code>开头，以<code>}</code>结束。Javadoc 可以识别的标签如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@author</td>
+<td>标识一个类的作者，一般用于类注释</td>
+<td>@author description</td>
+</tr>
+<tr>
+<td>@deprecated</td>
+<td>指名一个过期的类或成员，表明该类或方法不建议使用</td>
+<td>@deprecated description</td>
+</tr>
+<tr>
+<td>{@docRoot}</td>
+<td>指明当前文档根目录的路径</td>
+<td>Directory Path</td>
+</tr>
+<tr>
+<td>@exception</td>
+<td>可能抛出异常的说明，一般用于方法注释</td>
+<td>@exception exception-name explanation</td>
+</tr>
+<tr>
+<td>{@inheritDoc}</td>
+<td>从直接父类继承的注释</td>
+<td>Inherits a comment from the immediate surperclass.</td>
+</tr>
+<tr>
+<td>{@link}</td>
+<td>插入一个到另一个主题的链接</td>
+<td>{@link name text}</td>
+</tr>
+<tr>
+<td>{@linkplain}</td>
+<td>插入一个到另一个主题的链接，但是该链接显示纯文本字体</td>
+<td>Inserts an in-line link to another topic.</td>
+</tr>
+<tr>
+<td>@param</td>
+<td>说明一个方法的参数，一般用于方法注释</td>
+<td>@param parameter-name explanation</td>
+</tr>
+<tr>
+<td>@return</td>
+<td>说明返回值类型，一般用于方法注释，不能出现再构造方法中</td>
+<td>@return explanation</td>
+</tr>
+<tr>
+<td>@see</td>
+<td>指定一个到另一个主题的链接</td>
+<td>@see anchor</td>
+</tr>
+<tr>
+<td>@serial</td>
+<td>说明一个序列化属性</td>
+<td>@serial description</td>
+</tr>
+<tr>
+<td>@serialData</td>
+<td>说明通过 writeObject() 和 writeExternal() 方法写的数据</td>
+<td>@serialData description</td>
+</tr>
+<tr>
+<td>@serialField</td>
+<td>说明一个 ObjectStreamField 组件</td>
+<td>@serialField name type description</td>
+</tr>
+<tr>
+<td>@since</td>
+<td>说明从哪个版本起开始有了这个函数</td>
+<td>@since release</td>
+</tr>
+<tr>
+<td>@throws</td>
+<td>和 @exception 标签一样.</td>
+<td>The @throws tag has the same meaning as the @exception tag.</td>
+</tr>
+<tr>
+<td>{@value}</td>
+<td>显示常量的值，该常量必须是 static 属性。</td>
+<td>Displays the value of a constant, which must be a static field.</td>
+</tr>
+<tr>
+<td>@version</td>
+<td>指定类的版本，一般用于类注释</td>
+<td>@version info</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对两种标签格式的说明</strong>：</p>
+<ul>
+<li>
+<p>@tag 格式的标签（不被<code>{}</code>包围的标签）为块标签，只能在主要描述（类注释中对该类的详细说明为主要描述）后面的标签部分（如果块标签放在主要描述的前面，则生成 API 帮助文档时会检测不到主要描述）。</p>
+</li>
+<li>
+<p>{@tag} 格式的标签（由<code>{}</code>包围的标签）为内联标签，可以放在主要描述中的任何位置或块标签的注释中。</p>
+</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>
+<p>Javadoc 标签必须从一行的开头开始，否则将被视为普通文本。</p>
+</li>
+<li>
+<p>一般具有相同名称的标签放在一起。</p>
+</li>
+<li>
+<p>Javadoc 标签区分大小写，代码中对于大小写错误的标签不会发生编译错误，但是在生成 API 帮助文档时会检测不到该注释内容。</p>
+</li>
+</ul>
+<h2 id="生成api帮助文档的简单步骤">生成API帮助文档的简单步骤</h2>
+<p>Javadoc 用法格式如下：</p>
+<pre><code>javadoc [options] [packagenames] [sourcefiles]
+</code></pre>
+<p>对格式的说明：</p>
+<ul>
+<li>options 表示 Javadoc 命令的选项</li>
+<li>packagenames 表示包名</li>
+<li>sourcefiles 表示源文件名</li>
+</ul>
+<p>以上述的<code>Test.java</code>为例，从该目录到开cmd后输入如下命令：</p>
+<p><strong>输入命令时一定要加<code>-encoding UTF-8 -charset UTF-8</code>，否则可能会出现乱码</strong></p>
+<pre><code>javadoc -author -version Test.java
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="http://c.biancheng.net/uploads/allimg/191030/5-19103013361Q14.png" alt="cmd" loading="lazy"></figure>
+<p>打开 <code>Test.java </code>文件存储的位置，会发现多出了一个 <code>Test.html </code>文档。打开文档，文档页面如下图所示。</p>
+<figure data-type="image" tabindex="2"><img src="http://c.biancheng.net/uploads/allimg/191030/5-1910301340249B.png" alt="img1" loading="lazy"></figure>
+<p>下图是方法说明</p>
+<p><img src="http://c.biancheng.net/uploads/allimg/191030/5-19103013403LC.png" alt="img2" loading="lazy"><br>
+<strong>以上命令未考虑编码格式，汉字可能会乱码。使用<code>javadoc -encoding UTF-8 -charset UTF-8 Test.java</code>会解决编码问题。</strong></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%96%87%E6%A1%A3%E6%B3%A8%E9%87%8A%E4%B8%8Ejavadoc%E6%A0%87%E7%AD%BE">文档注释与Javadoc标签</a></li>
+<li><a href="#%E7%94%9F%E6%88%90api%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3%E7%9A%84%E7%AE%80%E5%8D%95%E6%AD%A5%E9%AA%A4">生成API帮助文档的简单步骤</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-shou-dong-yun-xing-dai-ma/">
+              <h3 class="post-title">
+                【Java SE】一、手动运行代码
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

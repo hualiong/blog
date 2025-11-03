@@ -1,0 +1,371 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>一个适用于 Win11 桌面通知的 Python 第三方库 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="一个适用于 Win11 桌面通知的 Python 第三方库 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="转自 CSDN “hence..” 的 《win11toast：Python 桌面通知工具》
+
+今天介绍一款python的通知工具，win11tosat,
+示例：
+
+一、安装方法
+pip install win11toast
+
+或者：
+
+二..." />
+    <meta name="keywords" content="优质文章收藏" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              一个适用于 Win11 桌面通知的 Python 第三方库
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-06
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+                  # 优质文章收藏
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>转自 CSDN “<a href="https://blog.csdn.net/qq_54423921">hence..</a>” 的 <a href="https://blog.csdn.net/qq_54423921/article/details/127309077">《win11toast：Python 桌面通知工具》</a></p>
+<!-- more -->
+<p>今天介绍一款python的通知工具，<code>win11tosat</code>,<br>
+示例：<br>
+<img src="https://typoracsdnzhihu.oss-cn-nanjing.aliyuncs.com/image-20221013190950295.png" alt="image" loading="lazy"></p>
+<h2 id="一-安装方法">一、安装方法</h2>
+<pre><code class="language-shell">pip install win11toast
+</code></pre>
+<p>或者：<br>
+<img src="https://hualiang.online/post-images/1716541656698.png" alt="" loading="lazy"></p>
+<h2 id="二-桌面通知">二、桌面通知</h2>
+<h3 id="1只有文字版">1.只有文字版：</h3>
+<pre><code class="language-python">from win11toast import toas
+toast('Hello Python🐍')
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1716541695900.png" alt="" loading="lazy"></figure>
+<h3 id="2点击链接进入一个网站">2.点击链接，进入一个网站</h3>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello Python', '点击进入python官网', on_click='https://www.python.org')
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1716541709598.png" alt="" loading="lazy"></figure>
+<h3 id="3显示一大段话">3.显示一大段话</h3>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello',
+      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Earum accusantium porro numquam aspernatur voluptates cum, odio in, animi nihil cupiditate molestias laborum. Consequatur exercitationem modi vitae. In voluptates quia obcaecati!')
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://hualiang.online/post-images/1716541718961.png" alt="" loading="lazy"></figure>
+<h3 id="4点击运行-python-脚本">4.点击运行 python 脚本</h3>
+<p>在 <code>on_click</code> 后面写 python 脚本地址讲一下这里文件的后缀为什么是 <code>pyw</code> 而不是 <code>pw</code>：<code>py</code> 脚本运行的时候要先打开，在运行，而 <code>pyw</code> 不会，所以我们要先把文件后缀改为 <code>pyw</code></p>
+<pre><code class="language-python">from win11toast import toast
+toast('你好啊', '点击运行京东签到脚本', on_click=r'D:\Pycharm\自动化\我的app\京东自动签到.pyw')
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://hualiang.online/post-images/1716541738009.gif" alt="" loading="lazy"></figure>
+<h3 id="5自定义图标">5.自定义图标</h3>
+<p>这里的图标是自己设置的，不过电脑里面应该有一个。在文件里搜一下 <code>python.ico</code> 就行了</p>
+<p>自定义的话有两种：</p>
+<ul>
+<li>进入网址：图标icon ico 免费下载 - 爱给网 (aigei.com)，下载到本地然后改下icon的地址</li>
+<li>jpg转ico：JPG转ICO - 在线转换图标文件 (aconvert.com)，下载到本地然后改下icon的地址</li>
+</ul>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello', 'Hello from Python', icon=r'C:\Users\kjl\Desktop\pity\app\venv\Lib\site-packages\win10toast\data\python.ico')
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://hualiang.online/post-images/1716541748050.png" alt="" loading="lazy"></figure>
+<h3 id="6展示图片">6.展示图片</h3>
+<p>在 image 里替换自己的图片地址就好了，不过 http 这种应该不支持</p>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello', 'Hello from Python', icon=r'C:\Users\kjl\Desktop\pity\app\venv\Lib\site-packages\win10toast\data\python.ico', image=r'D:\Pycharm\old爬虫\图片\次元岛\次元岛1\ 《王者荣耀》西施·游龙清影cosplay次元岛小助手.png')
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://hualiang.online/post-images/1716541758877.png" alt="" loading="lazy"></figure>
+<p>当然你也可以把图片放在上面：</p>
+<pre><code class="language-python">from win11toast import toast
+image = {
+    'src': 'D:\Pycharm\old爬虫\图片\次元岛\次元岛1\ 《王者荣耀》西施·游龙清影cosplay次元岛小助手.png',
+    'placement': 'hero'
+}
+toast('Hello', 'Hello from Python', image=image)
+</code></pre>
+<figure data-type="image" tabindex="7"><img src="https://hualiang.online/post-images/1716541766636.png" alt="" loading="lazy"></figure>
+<h3 id="7显示进度条">7.显示进度条</h3>
+<pre><code class="language-python">from time import sleep
+from win11toast import notify, update_progress
+
+notify(progress={
+    'title': 'YouTube',
+    'status': 'Downloading...',
+    'value': '0',
+    'valueStringOverride': '0/15 videos'
+})
+
+for i in range(1, 15 + 1):
+    sleep(1)
+    update_progress({'value': i / 15, 'valueStringOverride': f'{i}/15 videos'})
+
+update_progress({'status': 'Completed!'})
+</code></pre>
+<p>这里就不弄一个gif了，自己摸索吧<br>
+<img src="https://hualiang.online/post-images/1716541775507.png" alt="" loading="lazy"></p>
+<h3 id="8自定义播放播放音乐mp3文件">8.自定义播放，播放音乐，mp3文件</h3>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello', 'Hello from Python', audio='https://nyanpass.com/nyanpass.mp3')
+</code></pre>
+<p>注意这里的文件最好是下载到本地的文件</p>
+<ul>
+<li>当然你还可以循环播放：src后放文件地址<pre><code class="language-python">toast('Hello', 'Hello from Python', audio={'src': 'ms-winsoundevent:Notification.Looping.Alarm', 'loop': 'true'})
+</code></pre>
+</li>
+<li>保持静音：<pre><code class="language-python">toast('Hello Python🐍', audio={'silent': 'true'})
+</code></pre>
+</li>
+<li>自定义播放内容：<pre><code class="language-python">toast('Hello Python🐍', dialogue='我是你爹')
+</code></pre>
+</li>
+</ul>
+<h3 id="9文字识别">9.文字识别</h3>
+<p>这个功能看起来很强大<br>
+待识别图片如下：<br>
+<img src="https://hualiang.online/post-images/1716541789160.png" alt="" loading="lazy"></p>
+<pre><code class="language-python">from win11toast import toast
+toast(ocr='https://i.imgur.com/oYojrJW.png')
+</code></pre>
+<p>看到那个Sample Text了没，那就是识别结果<br>
+<img src="https://hualiang.online/post-images/1716541808973.png" alt="" loading="lazy"></p>
+<p>放大识别文字，只需将代码改为：</p>
+<pre><code class="language-python">toast(ocr={'lang': 'ja', 'ocr': r&quot;C:\Users\kjl\Desktop\12.png&quot;})
+</code></pre>
+<figure data-type="image" tabindex="8"><img src="https://hualiang.online/post-images/1716541825378.png" alt="" loading="lazy"></figure>
+<h3 id="10增加桌面通知的持续时间">10.增加桌面通知的持续时间</h3>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello Python🐍', duration='long')
+</code></pre>
+<h3 id="11添加按钮">11.添加按钮</h3>
+<p>这个好像只能打开某个网页，文件夹，播放某个音乐，视频，在 arguments 后面进行修改，可以是网页地址，文件夹</p>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello', 'Hello from Python', button={'activationType': 'protocol', 'arguments': 'https://google.com', 'content': 'Open Google'})
+</code></pre>
+<figure data-type="image" tabindex="9"><img src="https://hualiang.online/post-images/1716541856978.png" alt="" loading="lazy"></figure>
+<pre><code class="language-python">from win11toast import toast
+
+buttons = [
+    {'activationType': 'protocol', 'arguments': 'C:\Windows\Media\Alarm01.wav', 'content': 'Play'},
+    {'activationType': 'protocol', 'arguments': 'file:///C:/Windows/Media', 'content': 'Open Folder'}
+]
+
+toast('Music Player', 'Download Finished', buttons=buttons)
+</code></pre>
+<figure data-type="image" tabindex="10"><img src="https://hualiang.online/post-images/1716541862790.png" alt="" loading="lazy"></figure>
+<h3 id="12下拉挑选框">12.下拉挑选框</h3>
+<pre><code class="language-python">from win11toast import toast
+toast('Hello', 'Which do you like?', selection=['Apple', 'Banana', 'Grape'], button='Submit')
+# {'arguments': 'dismiss', 'user_input': {'selection': 'Grape'}}
+</code></pre>
+<figure data-type="image" tabindex="11"><img src="https://hualiang.online/post-images/1716541867926.png" alt="" loading="lazy"></figure>
+<h2 id="三可能遇到的问题">三.可能遇到的问题</h2>
+<h3 id="1缺少图标">1.缺少图标</h3>
+<p>我箭头所指的图表不显示，这个我也没有办法解决<br>
+<img src="https://hualiang.online/post-images/1716541873342.png" alt="" loading="lazy"></p>
+<h3 id="2图像不显示">2.图像不显示</h3>
+<ul>
+<li>把图片下载到本地，不要使用网页图片</li>
+<li>图片地址前添加r：<code>r&quot;C:\Users\kjl\Desktop\12.png&quot;</code></li>
+</ul>
+<h3 id="3打包问题">3.打包问题</h3>
+<p>这个我还没打包过，之前打包win10toast出现了问题：一个可能的解决方案：</p>
+<p>在 <code>C:\Users\kjl\Desktop\new\venv\Lib\site-packages_pyinstaller_hooks_contrib\hooks</code> 下新建 <code>hook-win10toast.py</code> ，并写入</p>
+<pre><code class="language-python">from PyInstaller.utils.hooks import copy_metadata
+datas = copy_metadata('win10toast')
+</code></pre>
+<figure data-type="image" tabindex="12"><img src="https://hualiang.online/post-images/1716541889764.png" alt="" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95">一、安装方法</a></li>
+<li><a href="#%E4%BA%8C-%E6%A1%8C%E9%9D%A2%E9%80%9A%E7%9F%A5">二、桌面通知</a>
+<ul>
+<li><a href="#1%E5%8F%AA%E6%9C%89%E6%96%87%E5%AD%97%E7%89%88">1.只有文字版：</a></li>
+<li><a href="#2%E7%82%B9%E5%87%BB%E9%93%BE%E6%8E%A5%E8%BF%9B%E5%85%A5%E4%B8%80%E4%B8%AA%E7%BD%91%E7%AB%99">2.点击链接，进入一个网站</a></li>
+<li><a href="#3%E6%98%BE%E7%A4%BA%E4%B8%80%E5%A4%A7%E6%AE%B5%E8%AF%9D">3.显示一大段话</a></li>
+<li><a href="#4%E7%82%B9%E5%87%BB%E8%BF%90%E8%A1%8C-python-%E8%84%9A%E6%9C%AC">4.点击运行 python 脚本</a></li>
+<li><a href="#5%E8%87%AA%E5%AE%9A%E4%B9%89%E5%9B%BE%E6%A0%87">5.自定义图标</a></li>
+<li><a href="#6%E5%B1%95%E7%A4%BA%E5%9B%BE%E7%89%87">6.展示图片</a></li>
+<li><a href="#7%E6%98%BE%E7%A4%BA%E8%BF%9B%E5%BA%A6%E6%9D%A1">7.显示进度条</a></li>
+<li><a href="#8%E8%87%AA%E5%AE%9A%E4%B9%89%E6%92%AD%E6%94%BE%E6%92%AD%E6%94%BE%E9%9F%B3%E4%B9%90mp3%E6%96%87%E4%BB%B6">8.自定义播放，播放音乐，mp3文件</a></li>
+<li><a href="#9%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB">9.文字识别</a></li>
+<li><a href="#10%E5%A2%9E%E5%8A%A0%E6%A1%8C%E9%9D%A2%E9%80%9A%E7%9F%A5%E7%9A%84%E6%8C%81%E7%BB%AD%E6%97%B6%E9%97%B4">10.增加桌面通知的持续时间</a></li>
+<li><a href="#11%E6%B7%BB%E5%8A%A0%E6%8C%89%E9%92%AE">11.添加按钮</a></li>
+<li><a href="#12%E4%B8%8B%E6%8B%89%E6%8C%91%E9%80%89%E6%A1%86">12.下拉挑选框</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98">三.可能遇到的问题</a>
+<ul>
+<li><a href="#1%E7%BC%BA%E5%B0%91%E5%9B%BE%E6%A0%87">1.缺少图标</a></li>
+<li><a href="#2%E5%9B%BE%E5%83%8F%E4%B8%8D%E6%98%BE%E7%A4%BA">2.图像不显示</a></li>
+<li><a href="#3%E6%89%93%E5%8C%85%E9%97%AE%E9%A2%98">3.打包问题</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/ji-ge-ji-qiao-ba-zi-ti-wen-jian-ya-suo-dao-shi-fen-zhi-yi-de-ti-ji/">
+              <h3 class="post-title">
+                压缩字体文件的几个技巧
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

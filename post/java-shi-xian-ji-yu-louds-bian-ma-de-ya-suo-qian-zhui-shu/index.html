@@ -1,0 +1,770 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Succinct Trie - 基于 LOUDS 编码的压缩字典树 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Succinct Trie - 基于 LOUDS 编码的压缩字典树 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="最近在学习 ElasticSearch 的 FST 结构发现，虽然它压缩了前后缀可以让占用空间极大缩小，但依然有对象头和指针的开销，如果能把这部分开销去掉，压缩率还能再上一层楼。于是经过调研发现一种叫“简洁数据结构”（Succinct Da..." />
+    <meta name="keywords" content="数据结构,ElasticSearch,Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Succinct Trie - 基于 LOUDS 编码的压缩字典树
+            </h2>
+            <div class="post-info">
+              <span>
+                2025-08-27
+              </span>
+              <span>
+                18 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/ihv9lhyoaI/" class="post-tag">
+                  # 数据结构
+                </a>
+              
+                <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+                  # ElasticSearch
+                </a>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>最近在学习 ElasticSearch 的 <strong>FST</strong> 结构发现，虽然它压缩了前后缀可以让占用空间极大缩小，但依然有对象头和指针的开销，如果能把这部分开销去掉，压缩率还能再上一层楼。于是经过调研发现一种叫“<strong>简洁数据结构</strong>”（Succinct Data Structure）的东西，它在占用<strong>极小空间</strong>下还能提供<strong>高效查询</strong>操作。对此比较好奇它的实现原理，遂深入探索，想用 Java 实现一个比 FST 占用更小的 Trie 结构，于是就有了这篇文章。</p>
+<p><em>p.s. 部分参考图和代码源自《<a href="https://blog.csdn.net/u014470403/article/details/147883426">基于 LOUDS 的 Succinct Set 详解</a>》</em></p>
+<!-- more -->
+<h2 id="简介">简介</h2>
+<p><strong>什么是 Succinct 数据结构？</strong></p>
+<p>简洁数据结构（Succinct Data Structures）是指一类在存储数据时接近信息熵下界，同时保持高效查询性能的数据结构，也就是说一个结构表示的所占空间<strong>接近</strong>信息熵下限，那么就可以称其为“简洁的”。其核心原理就是使用 Bitmap 来表示数据结构以节省大量空间。</p>
+<p>Succinct 思想常被应用于对<strong>列表</strong>和<strong>树</strong>的存储以压缩空间，也就是 “Succinct Vector” 和 “<strong>Succinct Tree</strong>”</p>
+<p>一些常见的简洁数据结构实现包括：</p>
+<ul>
+<li><strong>小波树</strong>：在压缩的序列上支持丰富的<strong>序列查询</strong>操作，如第k小查询，区间统计</li>
+<li><strong>FM-Index</strong>：在一个压缩后的文本索引中，极快地查找一个模式串 P 出现的所有位置（全文索引）</li>
+<li><strong>简洁树</strong>：用极小的空间存储<strong>树结构</strong>，并支持高效的基础<strong>导航操作</strong></li>
+<li><strong>简洁图</strong>：基于<strong>邻接表</strong>的简洁表示，以极小空间占用支持图的各种基本操作</li>
+<li><strong>简洁向量</strong>：就是简洁数组，比一般的基本数据类型数组还要小</li>
+</ul>
+<h2 id="原理">原理</h2>
+<blockquote>
+<p><strong>Succinct Trie</strong> = Succinct Tree + Trie Label</p>
+</blockquote>
+<p>因为我探索的主要是如何让 FST 更省空间，FST 本质上也是个 Trie 树，就打算从 Trie 出发，结合上文简介中说到的 “Succinct Tree”，探索能否将 Trie 树和 Succinct Tree 结合在一起。当然，最终结果当然是可以的，已经有很多篇文章实现了。因此接下来我将从核心原理开始讲起，一步步去实现一个占用极小空间又能高效查询的 <strong>Succinct Trie</strong></p>
+<h3 id="编码">编码</h3>
+<p>结合简洁数据结构的核心思想，我们不难推测：Succinct Trie 核心原理是使用 <strong>Bitmap</strong> 来表示 Trie 树结构，因此我们先要将<strong>树结构</strong>编码成 <strong>bit 序列</strong></p>
+<p>目前有两种主流编码方式，DFOUS 支持更多的功能，LOUDS 有更快的性能：</p>
+<ul>
+<li><strong>LOUDS</strong>：按 BFS 遍历树，对于每个节点，用一元编码（一串 1 加一个 0）表示它的度数。适用于<strong>度数大、深度浅</strong>的树，如 <strong>Trie</strong> <strong>树</strong></li>
+<li><strong>DFUDS</strong>：按 DFS 遍历树，对每个有 d 个子节点的节点，用一个 “<strong>(</strong>” 和 d 个 “<strong>)</strong>” 来表示，但整个序列用额外的 “<strong>(</strong>“ 开头以保证平衡。可以理解为特殊的括号序列，编码时 “<strong>(</strong>” 为 1，“<strong>)</strong>” 为 0。适用于要深度优先遍历的场景，如<strong>语法分析树、DOM 树</strong></li>
+</ul>
+<p>因为我们的目标在 Trie 树上，所以我们这里主要探讨 LOUDS 编码方式</p>
+<hr>
+<p><strong>什么是 LOUDS 编码？</strong></p>
+<p><strong>L</strong>evel-<strong>O</strong>rder <strong>U</strong>nary <strong>D</strong>egree <strong>S</strong>equence，层序一元度序列，简称 LOUDS。听起来高大上，实际内容非常简单</p>
+<p>以下图这一颗 Trie 树为例，对于每个节点，用 <code>0</code> 表示子节点，<code>1</code> 表示结束。比如，节点 1 有两个子节点，那么就表示成 <code>001</code>。 最终按照 BFS 顺序把所有编码排列一起就是这棵树的 LOUDS 编码</p>
+<p>综上，该树的 LOUDS 编码为 <code>001 001 01 01 01 01 01 1 1 1</code></p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1757527679745.png" alt="图一" loading="lazy"></figure>
+<p><em>注 1：节点标签，即图中节点间边上的那些字符，本身并不属于树结构的一部分，所以需要另外使用一个数组 <code>labels</code> 存储</em></p>
+<p><em>注 2：原论文中的标准形式应该是用 <strong>1</strong> 表示子节点，<strong>0</strong> 表示结束</em></p>
+<h3 id="导航">导航</h3>
+<p>现在我们把一个 Trie 树压成一串 bit 序列装进位图里，那么我们现在如何从这一坨序列中还原出 Trie 树呢？或者说我们如何在这一坨被压缩的 Trie 树中进行导航操作？</p>
+<p>这时候就需要额外定义<strong>四个辅助方法</strong>来操作：</p>
+<p><code>rank1(pos)</code>：返回位图 <code>[0, pos]</code> 下标范围内 <code>1</code> 的个数；<code>rank0</code> 则是 <code>0</code> 的个数</p>
+<p><code>select1(k)</code>：返回位图里第 <code>k</code> 个 <code>1</code> 的下标位置；<code>select0</code> 则是 <code>0</code> 的位置</p>
+<p>实际进行导航中会频繁调用这几个方法，因此为了提高性能，我们会<strong>预计算</strong>这些方法的值</p>
+<hr>
+<p>我们用上文图一的 Trie 树来展示如何通过这四个方法来在树节点之间随意转移</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1757527757315.png" alt="图二" loading="lazy"></figure>
+<p>上图是该 Trie 树经过 LOUDS 编码出的 <strong>bit 序列与其源节点的对应关系</strong>，可以帮助理解</p>
+<p>以<strong>节点</strong> <strong>1</strong> 为例，它的子节点是 <strong>3</strong>、<strong>4</strong>，父节点是 <strong>0</strong>，那么：</p>
+<ul>
+<li>节点 1 起始 bit 位置 = <code>select1(1)</code> + <code>1</code> = <code>3</code></li>
+<li>节点 1 第一子节点编号 = <code>rank0(3 + 0)</code> = <code>3</code></li>
+<li>节点 1 第二子节点编号 = <code>rank0(3 + 1)</code> = <code>4</code></li>
+<li>节点 1 的父节点起始 bit 位置 = <code>select0(1)</code> = <code>0</code>，父节点编号 = <code>rank1(select0(1))</code> = <code>rank1(0)</code> = <code>0</code></li>
+<li>如果知道<strong>当前节点编码</strong>和<strong>当前 bit 位置</strong>，那么<strong>当前节点标签</strong> = <code>labels[index - nodeId]</code></li>
+</ul>
+<p>以上操作说明如何从节点 1 向上（回溯）和向下（递归）两个方向的导航，并且展示了当获取到<strong>当前节点编码</strong>和<strong>当前 bit 位置</strong>，如何获取<strong>当前节点标签</strong>。既然上下节点都能遍历，那遍历整棵树自然不在话下</p>
+<h2 id="实现">实现</h2>
+<p>我们在上文已经简单讲解了 Succinct Trie 的压缩方式（编码）和遍历方法（导航），说白了就是通过一种精心设计过的编码方式将树型结构的节点信息存储到 bit 序列中，然后通过四个辅助方法提取这些信息直接计算出原始信息，理解后其实也没那么难</p>
+<p>下面是用 Java 简单实现的一个基于 LOUDS 编码的静态压缩 Trie 树，按照简洁数据结构的分类，可以被称为 <strong>Succinct Trie</strong>。该实现无第三方依赖，创建后不可更改结构，理论上支持各种前缀树特性，目前只实现一些主要功能：</p>
+<ul>
+<li><code>boolean contains(String key)</code>：判断 key 是否存在</li>
+<li><code>int index(String key)</code>：若 key 存在，则会返回内部对应的节点 ID；否则，返回 -1</li>
+<li><code>String get(int nodeId)</code>：通过给定节点 ID 反向搜索 key</li>
+<li><code>Iterator&lt;String&gt; iterator(boolean orderly)</code>：以字典序或层序的顺序遍历 Trie 中所有的 key</li>
+<li><code>Iterator&lt;String&gt; prefixKeysOf(String str)</code>：查询给定字符串在 Trie 内所有的前缀</li>
+<li><code>Iterator&lt;String&gt; prefixSearch(String prefix)</code>：查询所有以给定前缀开头的 key</li>
+</ul>
+<pre><code class="language-java">import java.nio.CharBuffer;
+import java.util.*;
+
+public class SuccinctTrie {
+    private final char[] labels;         // 存储 Trie 树的字符标签
+    private final BitVector labelBitmap; // 存储 LOUDS 编码的位向量
+    private final BitVector isLeaf;      // 存储所有叶子节点标记的位向量
+
+    public static SuccinctTrie of(String... keys) {
+        return new SuccinctTrie(keys);
+    }
+
+    private SuccinctTrie(String[] keys) {
+        for (int i = 1; i &lt; keys.length; i++) {
+            assert keys[i].compareTo(keys[i - 1]) &gt;= 0 : &quot;The inputs are not ordered!&quot;;
+        }
+        List&lt;Character&gt; labelsList = new ArrayList&lt;&gt;();
+        BitVector.Builder labelBitmapBuilder = new BitVector.Builder();
+        BitVector.Builder isLeafBuilder = new BitVector.Builder();
+
+        Queue&lt;Range&gt; queue = new ArrayDeque&lt;&gt;();
+        queue.add(new Range(0, keys.length, 0));
+        int bitPos = 0, nodeId = 0;
+        while (!queue.isEmpty()) {
+            Range range = queue.poll();
+            int L = range.L, R = range.R, index = range.index;
+            isLeafBuilder.set(nodeId, keys[L].length() == index);
+            // 处理子节点
+            int start = L;
+            while (start &lt; R) {
+                // 跳过长度不足的键
+                if (keys[start].length() &lt;= index) {
+                    start++;
+                    continue;
+                }
+                char currentChar = keys[start].charAt(index);
+                int end = start + 1;
+                while (end &lt; R) {
+                    if (keys[end].length() &lt;= index || keys[end].charAt(index) != currentChar) {
+                        break;
+                    }
+                    end++;
+                }
+                // 添加子节点标签
+                labelsList.add(currentChar);
+                // 设置子节点标记(0)
+                // labelBitmapBuilder.set(bitPos, false);
+                bitPos++;
+                // 将子节点范围加入队列
+                queue.add(new Range(start, end, index + 1));
+                start = end;
+            }
+            // 设置节点结束标记(1)
+            labelBitmapBuilder.set(bitPos++, true);
+            nodeId++;
+        }
+        // 转换并初始化位图
+        this.labels = new char[labelsList.size()];
+        for (int i = 0; i &lt; labelsList.size(); i++) {
+            labels[i] = labelsList.get(i);
+        }
+        this.labelBitmap = labelBitmapBuilder.build(true);
+        this.isLeaf = isLeafBuilder.build(false);
+    }
+
+    /**
+     * 存储的 key 的个数
+     */
+    public int size() {
+        return isLeaf.oneCount;
+    }
+
+    /**
+     * 该 Trie 树的节点个数
+     */
+    public int nodeCount() {
+        return isLeaf.size;
+    }
+
+    /**
+     * 判断 key 是否存在
+     *
+     * @param key 要查询的键值
+     * @return 是否存在
+     */
+    public boolean contains(String key) {
+        return index(key) &gt;= 0;
+    }
+
+    /**
+     * 精确查询给定 key 在内部唯一对应的节点 ID
+     *
+     * @param key 要查询的 key
+     * @return 如果 key 存在，则返回对应的节点 ID；否则，返回 -1
+     */
+    public int index(String key) {
+        int nodeId = extract(key);
+        return nodeId &gt;= 0 &amp;&amp; isLeaf.get(nodeId) ? nodeId : -1;
+    }
+
+    /**
+     * 反向查询给定节点 ID 在内部唯一对应的 key
+     *
+     * @param nodeId 要查询的节点 ID
+     * @return 如果节点 ID 在合法范围内，则返回对应的 key；否则，返回 null
+     */
+    public String get(int nodeId) {
+        if (isLeaf.get(nodeId)) {
+            StringBuilder str = new StringBuilder();
+            int bitmapIndex;
+            while ((bitmapIndex = labelBitmap.select0(nodeId)) &gt;= 0) {
+                nodeId = labelBitmap.rank1(bitmapIndex);
+                str.append(labels[bitmapIndex - nodeId]);
+            }
+            return str.reverse().toString();
+        }
+        return null;
+    }
+
+    /**
+     * &lt;p&gt;以字典序或层序的方式遍历 Trie 中所有的 key&lt;/p&gt;
+     * &lt;b&gt;注意&lt;/b&gt;：层序遍历的性能要优于字典序遍历，如果不追求有序，请将 {@code orderly} 设为 false 以获得最佳性能
+     *
+     * @param orderly 如果为 true，则按（DFS）字典序遍历；如果为 false，则按层序遍历。
+     * @return 一个用于遍历所有 key 的迭代器
+     */
+    public Iterator&lt;String&gt; iterator(boolean orderly) {
+        if (orderly) {
+            return traverse(0, &quot;&quot;);
+        } else {
+            return new Iterator&lt;&gt;() {
+                private int index = isLeaf.nextSetBit(0);
+
+                @Override
+                public boolean hasNext() {
+                    return index &gt;= 0;
+                }
+
+                @Override
+                public String next() {
+                    String str = get(index);
+                    index = isLeaf.nextSetBit(index + 1);
+                    return str;
+                }
+            };
+        }
+    }
+
+    /**
+     * 查询给定字符串在 Trie 内所有的前缀
+     *
+     * @param str 要查询的字符串
+     * @return 一个用于遍历所有前缀的迭代器
+     */
+    public Iterator&lt;String&gt; prefixKeysOf(String str) {
+        return new TermIterator() {
+            private final char[] chars = str.toCharArray();
+            private int pos = 0;
+            private int nodeId = 0;
+            private int bitmapIndex = 0;
+
+            {
+                advance(); // 初始化查找第一个前缀
+            }
+
+            @Override
+            protected void advance() {
+                while (pos &lt; chars.length) {
+                    int index = labelSearch(nodeId, bitmapIndex, chars[pos]);
+                    if (index &lt; 0) {
+                        break;
+                    }
+                    nodeId = index + 1 - nodeId;
+                    bitmapIndex = labelBitmap.select1(nodeId) + 1;
+                    pos++;
+                    if (isLeaf.get(nodeId)) {
+                        next = new String(chars, 0, pos);
+                        return;
+                    }
+                }
+                next = null;
+            }
+        };
+    }
+
+    /**
+     * 查询所有以给定前缀开头的 key
+     *
+     * @param prefix 要搜索的前缀
+     * @return 一个用于遍历所有匹配前缀的 key 的迭代器
+     */
+    public Iterator&lt;String&gt; prefixSearch(String prefix) {
+        return traverse(extract(prefix), prefix);
+    }
+
+    private int extract(String key) {
+        int nodeId = 0, bitmapIndex = 0;
+        for (char c : key.toCharArray()) {
+            if ((bitmapIndex = labelSearch(nodeId, bitmapIndex, c)) &lt; 0) {
+                return -1;
+            }
+            // 向子节点转移
+            nodeId = bitmapIndex + 1 - nodeId;
+            bitmapIndex = labelBitmap.select1(nodeId) + 1;
+        }
+        return nodeId;
+    }
+
+    private Iterator&lt;String&gt; traverse(int rootId, String prefix) {
+        return new TermIterator() {
+            private final CharBuffer charBuffer = CharBuffer.allocate(256);
+            private int nodeId = rootId;
+            private int bitmapIndex = rootId &lt; 0 ? labelBitmap.size : labelBitmap.select1(rootId) + 1;
+
+            {
+                charBuffer.append(prefix);
+                charBuffer.flip();
+                if (!isLeaf.get(rootId)) {
+                    advance();
+                }
+            }
+
+            @Override
+            protected void advance() {
+                // 切换写模式
+                charBuffer.position(charBuffer.limit());
+                charBuffer.limit(charBuffer.capacity());
+                while (true) {
+                    // 撞墙
+                    while (bitmapIndex &gt;= labelBitmap.size || labelBitmap.get(bitmapIndex)) {
+                        // 到达根节点，遍历结束
+                        if (nodeId == rootId) {
+                            next = null;
+                            return;
+                        }
+                        // 回溯并向右转移
+                        bitmapIndex = labelBitmap.select0(nodeId) + 1;
+                        nodeId = bitmapIndex - nodeId;
+                        charBuffer.position(charBuffer.position() - 1);
+                    }
+                    charBuffer.put(labels[bitmapIndex - nodeId]);
+                    // 向下转移
+                    nodeId = bitmapIndex + 1 - nodeId;
+                    bitmapIndex = labelBitmap.select1(nodeId) + 1;
+                    if (isLeaf.get(nodeId)) {
+                        charBuffer.flip();
+                        next = charBuffer.toString();
+                        return;
+                    }
+                }
+            }
+        };
+    }
+
+    /**
+     * 搜索标签向下层转移
+     *
+     * @param nodeId      当前节点ID
+     * @param bitmapIndex 当前节点在 {@code labelBitmap} 中的起始下标
+     * @param b           要搜索的标签
+     * @return 目标标签在 {@code labelBitmap} 中的下标，否则返回 -1
+     */
+    private int labelSearch(int nodeId, int bitmapIndex, char b) {
+        while (true) {
+            if (bitmapIndex &gt;= labelBitmap.size || labelBitmap.get(bitmapIndex)) {
+                return -1;
+            }
+            int labelIndex = bitmapIndex - nodeId;
+            if (labelIndex &lt; labels.length &amp;&amp; labels[labelIndex] == b) {
+                break;
+            }
+            bitmapIndex++;
+        }
+        return bitmapIndex;
+    }
+
+    // 辅助类：表示键范围
+    private record Range(int L, int R, int index) {
+    }
+
+    // 词项迭代器
+    private abstract static class TermIterator implements Iterator&lt;String&gt; {
+        String next = &quot;&quot;;
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public String next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            String term = next;
+            advance();
+            return term;
+        }
+
+        abstract void advance();
+    }
+
+    // 自实现位向量（位图）
+    public static class BitVector {
+        /**
+         * 数值越小，selects 预计算的间距越小，占用更高，select1 的性能越好
+         * 经测试，设为 1 或 2 时，性能提升明显，但占用极高，其余数值影响不大
+         */
+        private static final int GAP = 64;
+
+        private final long[] bits;
+        private final int[] ranks;   // 预计算rank1
+        private final int[] selects; // 部分预计算select1
+        public final int oneCount;
+        public final int size;
+
+        // 构建器模式
+        public static class Builder {
+            private final List&lt;Long&gt; bits = new ArrayList&lt;&gt;();
+            private int size = 0;
+            private int count = 0;
+
+            public void set(int position, boolean value) {
+                ensureCapacity(position);
+                int block = position &gt;&gt; 6;
+                int offset = position &amp; 0x3F;
+                long mask = 1L &lt;&lt; offset;
+                long oldBlock = bits.get(block);
+                if (value) {
+                    bits.set(block, oldBlock | mask); // 设置位为1
+                } else {
+                    bits.set(block, oldBlock &amp; ~mask); // 设置位为0
+                }
+                // 仅当位的值实际发生变化时更新计数器
+                if ((oldBlock &amp; mask) == 0 == value) {
+                    count += value ? 1 : 0;
+                }
+            }
+
+            private void ensureCapacity(int position) {
+                int requiredBlocks = (position &gt;&gt; 6) + 1;
+                while (bits.size() &lt; requiredBlocks) {
+                    bits.add(0L);
+                }
+                size = Math.max(size, position + 1);
+            }
+
+            public BitVector build(boolean rankSelect) {
+                long[] array = new long[bits.size()];
+                for (int i = 0; i &lt; bits.size(); i++) {
+                    array[i] = bits.get(i);
+                }
+                return new BitVector(array, size, count, rankSelect);
+            }
+        }
+
+        private BitVector(long[] bits, int size, int count, boolean rankSelect) {
+            this.bits = bits;
+            this.size = size;
+            this.oneCount = count;
+
+            // 预计算rank和select
+            if (rankSelect) {
+                int totalOnes = 0;
+                int oneCount = 0;
+                this.ranks = new int[bits.length + 1];
+                List&lt;Integer&gt; selectList = new ArrayList&lt;&gt;();
+                for (int i = 0; i &lt; bits.length; i++) {
+                    ranks[i] = totalOnes;
+                    int blockOnes = Long.bitCount(bits[i]);
+                    totalOnes += blockOnes;
+
+                    long block = bits[i];
+                    for (int j = 0; j &lt; 64; j++) {
+                        if ((block &amp; (1L &lt;&lt; j)) != 0) {
+                            oneCount++;
+                            if (oneCount % GAP == 0) {
+                                selectList.add(i * 64 + j);
+                            }
+                        }
+                    }
+                }
+                ranks[bits.length] = totalOnes;
+
+                this.selects = new int[selectList.size()];
+                for (int i = 0; i &lt; selectList.size(); i++) {
+                    selects[i] = selectList.get(i);
+                }
+            } else {
+                this.ranks = null;
+                this.selects = null;
+            }
+        }
+
+        public int nextSetBit(int from) {
+            if (from &lt; 0 || from &gt;= size) {
+                return -1;
+            }
+            int u = from &gt;&gt; 6;
+            long word;
+            for (word = this.bits[u] &amp; -1L &lt;&lt; from; word == 0L; word = this.bits[u]) {
+                if (++u == bits.length) {
+                    return -1;
+                }
+            }
+            return (u &lt;&lt; 6) + Long.numberOfTrailingZeros(word);
+        }
+
+        public boolean get(int pos) {
+            if (pos &gt;= size) return false;
+            int block = pos &gt;&gt; 6;
+            int offset = pos &amp; 0x3F;
+            return (bits[block] &amp; (1L &lt;&lt; offset)) != 0;
+        }
+
+        public int rank1(int pos) {
+            if (pos &lt; 0 || pos &gt;= size) {
+                return 0;
+            }
+            int block = pos + 1 &gt;&gt; 6;
+            int offset = pos + 1 &amp; 0x3F;
+            int count = ranks[block];
+
+            if (offset &gt; 0) {
+                long mask = (1L &lt;&lt; offset) - 1;
+                count += Long.bitCount(bits[block] &amp; mask);
+            }
+            return count;
+        }
+
+        // 性能较差
+        public int select1(int k) {
+            if (k &lt;= 0 || k &gt; ranks[bits.length]) {
+                return -1;
+            }
+            // 使用预计算的select加速
+            if (k % GAP == 0) {
+                int idx = k / GAP - 1;
+                if (idx &lt; selects.length)
+                    return selects[idx];
+            }
+            // 二分查找块
+            int low = 0, high = ranks.length - 1;
+            while (low &lt; high) {
+                int mid = low + high &gt;&gt;&gt; 1;
+                if (ranks[mid] &lt; k) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+            int block = low - 1;
+            // 在块内查找
+            int remaining = k - ranks[block];
+            long word = bits[block];
+            for (int i = 0; i &lt; 64; i++) {
+                if ((word &amp; (1L &lt;&lt; i)) != 0) {
+                    if (--remaining == 0) {
+                        return block * 64 + i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        public int rank0(int pos) {
+            if (pos &gt;= size) {
+                pos = size - 1;
+            }
+            return pos + 1 - rank1(pos);
+        }
+
+        // 性能极差
+        public int select0(int k) {
+            if (k &lt;= 0 || k &gt; ranks[bits.length]) {
+                return -1;
+            }
+            int low = 0, high = size - 1;
+            while (low &lt;= high) {
+                int mid = (low + high) &gt;&gt;&gt; 1;
+                // 计算[0, mid]区间内的0的个数
+                if (rank0(mid) &lt; k) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+            // 满足rank0(low) &gt;= k的最小位置即第k个0的位置
+            return low;
+        }
+    }
+}
+</code></pre>
+<p>没有全面的测试，简单测试大致结果如下，测试很粗糙，仅供参考：</p>
+<ul>
+<li><strong>中文 key</strong>：内存占用比 FSA 小 <strong>40%</strong> 左右，查询性能比 FSA 要低 <strong>76%</strong></li>
+<li><strong>英文 key</strong>：内存占用比 FSA 大 <strong>8.8%</strong> 左右，查询性能比 FSA 要低 <strong>64%</strong>（英文字符在 char 类型也是用 2 字节存，比较吃亏）</li>
+</ul>
+<p>因为是最简实现，没有进行任何优化，但确实能看出在内存方面有一定优势，后续引入第三方库（Sux4J）优化，表现肯定会强上不少，有很大的发展潜力</p>
+<p><em>注：FSA 是没有输出 FST，即不存 Value 的 FST，因为 Succinct Trie 只能存 Key，相当于 Set 集合，直接跟存储键值对的 FST 对比不合适</em></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%AE%80%E4%BB%8B">简介</a></li>
+<li><a href="#%E5%8E%9F%E7%90%86">原理</a>
+<ul>
+<li><a href="#%E7%BC%96%E7%A0%81">编码</a></li>
+<li><a href="#%E5%AF%BC%E8%88%AA">导航</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AE%9E%E7%8E%B0">实现</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/guan-yu-nao-dong-da-kai-qu-yong-duo-xian-cheng-you-hua-kuai-su-pai-xu-zhe-jian-shi/">
+              <h3 class="post-title">
+                关于我脑洞大开去用多线程优化快速排序这件事
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

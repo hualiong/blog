@@ -1,0 +1,258 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Git 提交规范 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Git 提交规范 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="经常看到别人提交的代码记录里面包含一些feat、fix、chore等等，而我在提交时也不会区分什么，直接写下提交信息，今天就来看一下怎么个事，就拿 element-plus 举例来看一下
+
+其实这么写是一种代码提交规范，当然不是为了炫技，主..." />
+    <meta name="keywords" content="Other" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Git 提交规范
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-06-17
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+                  # Other
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>经常看到别人提交的代码记录里面包含一些feat、fix、chore等等，而我在提交时也不会区分什么，直接写下提交信息，今天就来看一下怎么个事，就拿 element-plus 举例来看一下</p>
+<!-- more -->
+<p>其实这么写是一种代码提交规范，当然不是为了炫技，主要目的是为了提高提交记录的可读性和自动化处理能力。当然如果团队没有要求，不这么写也可以。</p>
+<pre><code>commit message = subject + ：+ 空格 + message 主体
+</code></pre>
+<p>常见的 subject 种类以及含义如下：</p>
+<ol>
+<li>feat: 新功能（feature）
+<ul>
+<li>用于提交新功能。</li>
+<li>例如：feat: 增加用户注册功能</li>
+</ul>
+</li>
+<li>fix: 修复 bug
+<ul>
+<li>用于提交 bug 修复。</li>
+<li>例如：fix: 修复登录页面崩溃的问题</li>
+</ul>
+</li>
+<li>docs: 文档变更
+<ul>
+<li>用于提交仅文档相关的修改。</li>
+<li>例如：docs: 更新README文件</li>
+</ul>
+</li>
+<li>style: 代码风格变动（不影响代码逻辑）
+<ul>
+<li>用于提交仅格式化、标点符号、空白等不影响代码运行的变更。</li>
+<li>例如：style: 删除多余的空行</li>
+</ul>
+</li>
+<li>refactor: 代码重构（既不是新增功能也不是修复bug的代码更改）
+<ul>
+<li>用于提交代码重构。</li>
+<li>例如：refactor: 重构用户验证逻辑</li>
+</ul>
+</li>
+<li>perf: 性能优化
+<ul>
+<li>用于提交提升性能的代码修改。</li>
+<li>例如：perf: 优化图片加载速度</li>
+</ul>
+</li>
+<li>test: 添加或修改测试
+<ul>
+<li>用于提交测试相关的内容。</li>
+<li>例如：test: 增加用户模块的单元测试</li>
+</ul>
+</li>
+<li>chore: 杂项（构建过程或辅助工具的变动）
+<ul>
+<li>用于提交构建过程、辅助工具等相关的内容修改。</li>
+<li>例如：chore: 更新依赖库</li>
+</ul>
+</li>
+<li>build: 构建系统或外部依赖项的变更
+<ul>
+<li>用于提交影响构建系统的更改。</li>
+<li>例如：build: 升级webpack到版本5</li>
+</ul>
+</li>
+<li>ci: 持续集成配置的变更
+<ul>
+<li>用于提交CI配置文件和脚本的修改。</li>
+<li>例如：ci: 修改GitHub Actions配置文件</li>
+</ul>
+</li>
+<li>revert: 回滚
+<ul>
+<li>用于提交回滚之前的提交。</li>
+<li>例如：revert: 回滚feat: 增加用户注册功能</li>
+</ul>
+</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/delayqueue-shi-xian-lin-shi-shang-chuan-wen-jian-de-ding-shi-qing-li/">
+              <h3 class="post-title">
+                DelayQueue 实现临时上传文件的过期定时清理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

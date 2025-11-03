@@ -1,0 +1,247 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】三、新增数据类型 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】三、新增数据类型 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="相较于 C 和 Python ，Java 新增了一些数据类型和表达方式，现记录说明。
+
+基本数据类型
+
+
+byte：关键字之一，占1个字节，用于对位的操作，使用前需声明
+
+
+0b：用于表达二进制数据的表达方式，如 0b1011
+
+
+BigD..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】三、新增数据类型
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-17
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>相较于 C 和 Python ，Java 新增了一些数据类型和表达方式，现记录说明。</p>
+<!-- more -->
+<h2 id="基本数据类型">基本数据类型</h2>
+<ul>
+<li>
+<p>byte：关键字之一，占1个字节，用于对位的操作，使用前需声明</p>
+</li>
+<li>
+<p>0b：用于表达二进制数据的表达方式，如 <code>0b1011</code></p>
+</li>
+<li>
+<p>BigDecimal：内置的大数<strong>类</strong>，用于储存和操作大数。这是个类，使用前需声明实例</p>
+</li>
+<li>
+<p>boolean：关键字之一，占1位，仅有 <code>true</code> 和 <code>false</code> 两个值，使用前需声明</p>
+</li>
+</ul>
+<h2 id="引用数据类型">引用数据类型</h2>
+<p>此处的引用可粗略理解为指针，也就是说该数据类型通过“指针”调用。该类型其实还包括<strong>数组</strong>，但不算新增，这里就不再赘述。</p>
+<ul>
+<li>
+<p>类：将同类对象的共同属性和行为抽象出来形成的一个相对复杂的数据类型，由**属性(变量)<strong>和</strong>方法(函数)**组成</p>
+</li>
+<li>
+<p>接口：一个抽象类型，是抽象方法的集合，通常以<code>interface</code>来声明。一个类通过继承接口的方式，从而来继承接口的抽象方法。因此它<strong>只能定义方法，而不能实现方法，方法的实现由子类通过重写完成</strong></p>
+</li>
+</ul>
+<h2 id="注意事项">注意事项</h2>
+<ul>
+<li>
+<p>在 Java 中，<strong>没有 <code>long long</code> 长长整型</strong>， 且定义 <code>long</code> 长整型数据和 <code>float</code> 浮点数需要在数值末尾分别加上一个 <code>L</code> 和 <code>F</code> ，如下：</p>
+<pre><code class="language-java">long a = 100000L; float b = -200000F; // L &amp; F理论上不分大小写，但通常情况大写比较规范且易分辨
+</code></pre>
+</li>
+<li>
+<p>在 Java 中，基本数据类型未初始化时，默认值为<strong>0</strong>；引用数据类型未初始化时，默认值为<strong>null</strong></p>
+</li>
+<li>
+<p>在 Java 中，所有逻辑判断都必须使用布尔值，如 if 语句和循环的条件等，不能将其他数据类型放入其中，如下：</p>
+<pre><code class="language-java">int a = 1; boolean b = true;
+if (b) {...} // 正确用法
+if (a) {...} // 错误用法，应该为 if (a == 1) {...}
+</code></pre>
+</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">基本数据类型</a></li>
+<li><a href="#%E5%BC%95%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">引用数据类型</a></li>
+<li><a href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">注意事项</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-javadoc/">
+              <h3 class="post-title">
+                【Java SE】二、Javadoc
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

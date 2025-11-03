@@ -1,0 +1,627 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】十七、集合框架 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】十七、集合框架 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="在处理大数据时，数组就显得比较垃圾，这时候就需要使用 Java 提供的集合框架来处理数据。
+
+Java 集合可分为 Collection 和 Map 两种体系：
+
+Collection 接口：单列数据，定义了存取一组对象的方法的集合
+
+Li..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】十七、集合框架
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-22
+              </span>
+              <span>
+                16 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>在处理大数据时，数组就显得比较垃圾，这时候就需要使用 Java 提供的集合框架来处理数据。</p>
+<!-- more -->
+<p>Java 集合可分为 Collection 和 Map 两种体系：</p>
+<ul>
+<li>Collection 接口：单列数据，定义了存取一组对象的方法的集合
+<ul>
+<li>List：元素有序、可重复的集合（ArrayList、LinkedList、Vector）</li>
+<li>Set：元素无序、不重复的集合（HashSet、LinkedHashSet、TreeSet）</li>
+</ul>
+</li>
+<li>Map 接口：双列数据，保存具有映射关系“键值对”的集合（HashMap、LinkedHashMap、TreeMap、Hashtable、Properties）</li>
+</ul>
+<h2 id="collection-接口">Collection 接口</h2>
+<h3 id="内置方法">内置方法</h3>
+<p>因为 Collection 是接口，其实现类都具有一样的实现方法，所以这里用 ArrayList 演示。</p>
+<p>下面的示例展示了实现类的实例化以及一些内置方法的使用：</p>
+<pre><code class="language-java">import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Collection coll = new ArrayList();
+        
+        // add([int index,] 0bject e)：将元素e添加到集合coll中的指定位置，默认为末尾
+        coll.add(&quot;AA&quot;);
+        coll.add(1, &quot;BB&quot;);
+        coll.add(123); // 自动装箱
+        
+        // size()：获取添加的元素的个数
+        System.out.println(coll.size()); // 3
+        
+        // addAll([int index,] Collection coll1)：将coll1集合中的元素添加到集合coll中的指定位置，默认为末尾
+        Collection coll1 = new ArrayList();
+
+        coll1.add(123);
+        coll1.add(456);
+        coll1.add(&quot;CC&quot;);
+        coll.addAll(coll1);
+		System.out.println(coll.size()); // 5
+        
+        // clear()：清空集合元素
+		coll.clear();
+        
+        // isEmpty()：判断当前集合是否为空
+		System.out.println(coll.isEmpty()); // true
+        
+        // contains(Object obj)：判断当前集合中是否包含obj（通过调用obj.equals()来判断）
+		System.out.println(coll.contains(&quot;12&quot;)); // false
+        
+        // containsAll(Collection coll1)：判断形参coll1中的所有元素是否都存在于当前集合中
+		Collection coll2 = new ArrayList(); // 返回一个ArrayList对象
+        coll2.add(123);
+        coll2.add(456);
+		System.out.println(coll1.containsAll(coll2)); // true
+
+		// remove(Object obj)：从当前集合中移除obj
+		coll2.remove(123); // 该方法调用时会先调用contains判断是否是指定元素
+        System.out.println(coll2.contains(123)); // false
+        
+        // removeAll(Collection coll1)：从当前集合中移除coll1中共有的所有的元素
+		coll2.removeAll(coll1); // 移除456
+        
+        // retainAll(Collection coll1)：获取当前集合和coll1集合的交集，井修改当前集合
+		coll1.retainAll(Arrays.asList(&quot;AA&quot;, &quot;BB&quot;, &quot;CC&quot;));
+        System.out.println(coll1); // [CC] 只有CC
+        
+        // equals(Object obj)：判断当前集合和obj集合的元素都是否相同，至于判断顺序相同则视集合类型而定
+		coll1.add(&quot;DD&quot;);
+        System.out.println(coll1.equals(Arrays.asList(&quot;CC&quot;, &quot;DD&quot;))); // true
+        System.out.println(coll1.equals(Arrays.asList(&quot;DD&quot;, &quot;CC&quot;))); // false 有序集合需要判断顺序
+        
+        // hashCode()：返回当前对象的哈希值
+		System.out.println(coll1.hashCode()); // 69601
+        
+        // toArray()：将集合转换为数组
+        Object[] arr = coll.toArray();
+        
+        // iterator()：返回Iterator接口的实例，用于遍历集合元素。这个我们单独来讲
+    }
+}
+</code></pre>
+<h3 id="迭代器">迭代器</h3>
+<p>上述代码展示了 Collection内置的 13 个常用方法，至于最后一个方法 <code>iterator()</code> ，我们首先要了解 Iterator 对象：</p>
+<ul>
+<li>Iterator 对象称为迭代器(设计模式的一种)，主要用于<strong>遍历集合中的元素</strong>。</li>
+<li>GOF 给迭代器模式的定义为：提供一种方法<strong>访问一个容器(container)对象中各个元素，而又不需暴露该对象的内部细节</strong>。迭代器模式，就是为容器而生。类似于“公交车上的售票员”、“火车上的乘务员”、“空姐 ”</li>
+<li>Collection 接口继承了 java.lang.lterable 接口，该接口有一个 <code>iterator()</code> 方法，那么所有实现了 Collection 接口的集合类都有一个 <code>iterator()</code> 方法，用以返回一个实现了 Iterator 接口的对象。</li>
+<li>Iterator 仅用于遍历集合，Iterator 本身并不提供承装对象的能力。<strong>如果需要创建 Iterator 对象，则必须有一个被迭代的集合</strong>。</li>
+<li>集合对象每次调用 <code>iterator()</code> 方法都得到一个全新的迭代器对象，默认游标都在集合的第一个元素之前。</li>
+</ul>
+<pre><code class="language-java">import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Collection coll = new ArrayList();
+        coll.add(&quot;AA&quot;);
+        coll.add(&quot;BB&quot;);
+        coll.add(123);
+        Iterator iterator = coll.iterator(), iterator1 = coll.iterator(), iterator2 = coll.iterator();
+        Iterator iterator3 = coll.iterator();
+        // next()：返回下一个元素
+        System.out.println(iterator.next()); // AA
+        System.out.println(iterator.next()); // BB
+        System.out.println(iterator.next()); // 123
+        
+        for (int i = 0; i &lt; coll.size(); i++) { // 可以避免游标越界，但不常用
+        	System.out.println(iterator1.next());
+        }
+        // hasNext()：判断是否存在下一个元素
+        while (iterator2.hasNext()) { // 常用方式，也常用ForEach循环
+            System.out.println(iterator2.next());
+        }
+        
+        // remove()：从集合中删除当前元素
+        while (iterator3.hasNext()) {
+            if (iterator2.next().equals(&quot;BB&quot;)) {
+                iterator3.remove(); // 从集合中删除BB
+            }
+        }
+    }
+}
+</code></pre>
+<p><strong>注：Iterator 仅用于 Collection ，不用于 Map</strong></p>
+<h3 id="list-接口">List 接口</h3>
+<p>该接口用于存储<strong>有序的、可重复</strong>的数据。 相当于“动态”数组，会替换原有的数组，其实现类有如下三个：</p>
+<ul>
+<li>ArrayList：作为 List 接口的主要实现类；<strong>线程不安全的，效率高</strong>；底层使用 <code>Object[] elementData</code> 存储
+<ul>
+<li>使用空参构造器时，底层会在调用 <code>add()</code> 时才创建一个 <code>Object[10] elementData</code> 来储存</li>
+<li>当添加的元素数量大于数组容量，则会将容量扩大 1.5 倍</li>
+<li>开发中使用，建议提前指定容量，避免扩容</li>
+</ul>
+</li>
+<li>LinkedList：<strong>对于频繁的插入、删除操作，使用此类效率比 ArrayList 高</strong>；底层使用双向链表存储
+<ul>
+<li>内部声明了 Node 类型的 <code>first</code> 和 <code>last</code> 属性，默认值为 null</li>
+<li>每次 <code>add()</code> 都会把数据封装到节点中并连接到链表里</li>
+</ul>
+</li>
+<li>Vector：作为 List 接口的古老实现类；<strong>线程安全的，效率低</strong>；底层使用 <code>Object[] elementData</code> 存储
+<ul>
+<li>使用空参构造器时，就创建一个 <code>Object[10] elementData</code> 来储存</li>
+<li>相比于 ArrayList ，扩容时会扩大 2 倍</li>
+<li>添加了 <code>synchronized</code> 的 ArrayList ，几乎没人用了......</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>List 除了从 Collection 集合继承的方法外，List 集合里添加了一些根据索引来操作集合元素的方法。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>void add(int index, Object ele)</strong></td>
+<td>在 index 位置插入 ele 元素</td>
+</tr>
+<tr>
+<td><strong>boolean addAll(int index, Collection eles)</strong></td>
+<td>从 index 位置开始将 eles 中</td>
+</tr>
+<tr>
+<td><strong>Object get(int index)</strong></td>
+<td>获取指定 index 位置的元素</td>
+</tr>
+<tr>
+<td><strong>int indexOf(Object obj)</strong></td>
+<td>返回 obj 在集合中首次出现的位置</td>
+</tr>
+<tr>
+<td><strong>int lastlndexOf(Object obj)</strong></td>
+<td>返回 obj 在当前集合中末次出现的位置</td>
+</tr>
+<tr>
+<td><strong>Object remove(int index)</strong></td>
+<td>移除指定 index 位置的元素，并返回此元素</td>
+</tr>
+<tr>
+<td><strong>Object set(int index, Object ele)</strong></td>
+<td>设置指定 index 位置的元素为 ele</td>
+</tr>
+<tr>
+<td><strong>List subList(int fromIndex, int tolndex)</strong></td>
+<td>返回从 fromIndex 到 tolndex 位置的子集合</td>
+</tr>
+<tr>
+<td><em>注：使用 List 类型创建引用，即可调用这些方法</em></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="set-接口">Set 接口</h3>
+<p>该接口用的比较少，用于存储<strong>无序的、无重复</strong>的数据。Set 接口判断两个对象是否相同不是使用 == 运算符，而是根据 <code>equals()</code> 方法。</p>
+<ul>
+<li>无序性：等于随机性。存储的数据在底层数组中并非按照数组索引的顺序添加，而是根据数据的哈希值排序</li>
+<li>不可重复性：保证添加的元素按照 <code>equaLs()</code> 判断时，不能返回 <code>true</code> ，即相同的元素只能添加一个</li>
+</ul>
+<p>其实现类有如下三个：</p>
+<ul>
+<li>HashSet：作为 Set 接口的主要实现类；<strong>线程不安全的</strong>；可以存储 null 值
+<ul>
+<li>内部使用 HashMap 实现的</li>
+</ul>
+</li>
+<li>LinkedHashSet：作为 HashSet 的子类；遍历其内部数据时，<strong>可以按照添加的顺序遍历</strong>
+<ul>
+<li>在添加数据的同时，每个数据还维护了两个引用(双向链表)，记录此数据前一个数据和后一个数据</li>
+<li>对于频繁的遍历操作，LinkedHashSet 效率高 HashSet</li>
+</ul>
+</li>
+<li>TreeSet：可以按照添加对象的指定属性<strong>自动进行排序</strong>，遍历结果默认为升序
+<ul>
+<li>因为涉及排序，所以要求添加的数据是相同类的对象，且所属类必须实现两个排序接口</li>
+<li>自然排序中，比较两个对象是否相同的标准为 <code>compareTo()</code> ，而不再是 <code>equals()</code></li>
+<li>定制排序中，可以将 Comparator 对象作为构造器参数传入，从而改变比较标准为 <code>compare()</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Set 接口添加元素的过程：</strong></p>
+<ol>
+<li>向 HashSet 中添加元素 a</li>
+<li>获取元素 a 的 hash 值</li>
+<li>此哈希值通过某种算法计算出底层数组中的存放位置</li>
+<li>判断数组此位置上是否已经有元素:
+<ol>
+<li>如果此位置上没有其他元素，则元素 a 添加成功</li>
+<li>如果此位置上有其他元素 b (或以链表形式存在的多个元素)，则比较元素 a 与元素 b 的 hash 值:
+<ol>
+<li>如果 hash 值不相同，则元素 a 添加成功</li>
+<li>如果 hash 值相同，进而需要调用元素 a 所在类的 equlas 方法:
+<ol>
+<li><code>equals()</code> 返回 <code>true</code> ，元素 a 添加失败</li>
+<li><code>equals()</code> 返回 <code>false</code> ，则元素 a 添加成功</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p>综上所述，Set 接口添加元素需要用到 <code>hashCode()</code> 和 <code>equals()</code> ，因此向 Set 中添加的数据，其所在的类一 定要重写这两个方法，且尽可能保证一致性。</p>
+<p><em>注：Set 接口没有添加额外的方法，只有继承来的方法</em></p>
+<h2 id="map-接口">Map 接口</h2>
+<p>该接口由于存储双列数据，也就是 key-value 对的数据，相当于 Python 的字典</p>
+<ul>
+<li>Map 中的 key：<strong>无序的、不可重复的</strong>，使用 Set 存储所有的 key（记得重写 equals 和 hashCode）</li>
+<li>Map 中的 value：<strong>无序的、可重复的</strong>，使用 List 存储所有 的 value（记得重写 equals）</li>
+<li>Map 中的 entry：无序的、不可重复的，使用 Set 存储所有的 entry（一个键值对构成了一个 Entry 对象 ）</li>
+</ul>
+<p>其实现类有如下五个：</p>
+<ul>
+<li>HashMap：作为Map的主要实现类；<strong>线程不安全的，效率高</strong>；<strong>能存储 null 的 key-value 对</strong>；底层用<strong>数组</strong>+<strong>链表</strong>+<strong>红黑树</strong>存储
+<ul>
+<li>使用空参构造器时，底层会在调用 <code>put()</code> 时才创建一个 <code>Node[16] table</code> 来储存</li>
+<li>在添加键值对时，会先按照 Set 接口的方式添加 key，再按 List 接口的方式添加 value；若添加相同的 key ，则会<strong>覆盖</strong>原有的值</li>
+<li>当添加的元素数量大于数组容量，则会将容量扩大 2 倍</li>
+<li>当数组的某一索引位置上用链表存储 <strong>8</strong> 个以上的数据且数组长度 &gt; <strong>64</strong> 时，此时此索引位置上的所有数据改为使用<strong>红黑树</strong>存储</li>
+</ul>
+</li>
+<li>LinkedHashMap：作为 HashMap 的子类；保证在遍历元素时，可以按照添加的顺序实现遍历
+<ul>
+<li>底层用了双向链表，对于频繁的遍历操作，此类执行效率高 HashMap</li>
+</ul>
+</li>
+<li>TreeMap：保证按照添加的 key-value 对进行排序，实现排序遍历。
+<ul>
+<li>因为涉及排序，所以要求添加的 key 是相同类的对象，且所属类必须实现两个排序接口</li>
+<li>至于如何排序，则与 TreeSet 相同</li>
+<li>与 TreeSet 一样，底层使用红黑树，要考虑自然排序和定制排序</li>
+</ul>
+</li>
+<li>Hashtable：作为古老的实现类；<strong>线程安全的，效率低</strong>；<strong>不能存储 null 的 key-value 对</strong>
+<ul>
+<li>添加了 <code>synchronized</code> 的 HashMap ，不咋用...</li>
+</ul>
+</li>
+<li>Properties：作为 Hashtable 的子类；常用来处理配置文件。key 和 value 都是 String 类型</li>
+</ul>
+<h3 id="内置方法-2">内置方法</h3>
+<p>因为 Map 是接口，其实现类都具有一样的实现方法，所以这里用 HashMap 演示。</p>
+<p>下面的示例展示了实现类的实例化以及一些不同于 Collection 的内置方法的使用：</p>
+<pre><code class="language-java">import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map map = new HashMap();
+        
+        // put(0bject key, 0bject value)：将键值对(key,value)添加到集合coll中的指定位置
+        map.put(&quot;name&quot;, 123);
+        map.put(456, &quot;age&quot;);
+        map.put(&quot;name&quot;, 789); // 修改，覆盖原有的值
+        
+        // size()：获取添加的元素的个数
+        System.out.println(map.size()); // 2
+        
+        // putAll(Map map1)：将map1集合中的元素添加到集合map中的指定位置
+        Map map1 = new HashMap();
+        map1.put(1, &quot;Oh&quot;);
+        map1.put(&quot;shit&quot;, 2);
+        map.putAll(map1);
+		System.out.println(map.size()); // 4
+        
+        // get(Object key)：获取指定key对应的value
+		System.out.println(map.get(&quot;shit&quot;)); // 2
+        
+        // containsKey(Object key)：判断当前集合中是否包含指定的key
+		System.out.println(map.containsKey(&quot;12&quot;)); // false
+        
+        // containsValue(Object value)：判断当前集合中是否包含指定的value
+		System.out.println(map.containsValue(789)); // true
+
+		// remove(Object key)：从当前集合中移除key所属的键值对并返回其value；若集合中没有key，则返回null
+        System.out.println(map.remove(456)); // age
+        System.out.println(map); // 移除了456=age
+        
+        // keySet()：返回由所有key组成的Set对象
+        Set set = map.keySet();
+        Iterator iterator = set.iterator();
+        while(iterator.hasNext()) {
+        	System.out.println(iterator.next()); // 遍历所有的key集
+        }
+        
+        // values()：返回所有value组成的Collection对象
+        Collection values = map.values();
+        for(Object obj : values) {
+        	System.out.println(obj); // 遍历所有的value集
+        }
+        
+        //entryset()：返回由所有key-value组成的Set对象
+        Set entrySet = map.entrySet();
+        Iterator iterator1 = entrySet.iterator();
+        while (iterator1.hasNext()) {
+            Map.Entry entry = (Map.Entry)iterator1.next(); // entrySet集合中的元素都是entry
+            System.out.println(entry.getKey() + &quot;-&quot; + entry.getValue());  // 遍历所有的key-value集
+        }
+        
+        // hashCode()：返回当前对象的哈希值
+        
+        // clear()：清空集合元素
+        
+        // isEmpty()：判断当前集合是否为空
+        
+        // equals(Object obj)：判断当前集合和obj是否相同
+        
+    }
+}
+</code></pre>
+<p><em>注：以上只展示不同方法，相同方法仅标明</em></p>
+<h3 id="properties-的使用">Properties 的使用</h3>
+<p>Properties 类是 Hashtable 的子类，该对象用于<strong>处理属性文件</strong>；由于属性文件里的 key 、value 都是字符串类犁，所以 Properties 里的key 和 value 都是字符串类型；存取数据时，建议使用 <code>setProperty(String key,String value)</code> 和 <code>getProperty(String key)</code> 。</p>
+<p>假设该 java 文件同目录下存在一个配置文件 <code>jdbc.properties</code> ，内容如下：</p>
+<pre><code class="language-java">// 注意不要有多余空格！
+name=shit
+age=18
+</code></pre>
+<p>下面的代码简单地展示了如何读取配置文件：</p>
+<pre><code class="language-java">Properties pros = new Properties();
+fis = new FileInputStream(&quot;jdbc.properties&quot;); // 文件操作，注意捕获异常
+pros.load(fis); // 加载流对应的文件
+String name = pros.getProperty(&quot;name&quot;), age = pros.getProperty(&quot;age&quot;);
+System.out.println(&quot;name = &quot; + name + &quot;, age = &quot; + age); // name = shit, age = 18
+</code></pre>
+<h2 id="collections-工具类">Collections 工具类</h2>
+<p>Collections 是一个操作 <strong>Collection</strong> 和 <strong>Map</strong> 等集合的工具类，它提供了一系列静态的方法对集合元素进行排序、查询和修改等操作，还提供了对集合对象设置不可变、对集合对象实现同步控制等方法</p>
+<p>常用方法如下：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>reverse(List list)</strong></td>
+<td>反转 list 中元素的顺序</td>
+</tr>
+<tr>
+<td><strong>shuffLe(List list)</strong></td>
+<td>对 list 中元素的进行随机排序</td>
+</tr>
+<tr>
+<td><strong>sort(List list[, Comparator com])</strong></td>
+<td>根据元素的自然顺序或定制排序对指定 list 中的元素进行排序</td>
+</tr>
+<tr>
+<td><strong>swap(List list, int i, int j)</strong></td>
+<td>将指定 list 中的 i 处元素和 j 处元素进行交换</td>
+</tr>
+<tr>
+<td><strong>Object max(Collection coll[, Comparator com])</strong></td>
+<td>根据元素的自然顺序或定制排序，返回给定集合中的最大元素</td>
+</tr>
+<tr>
+<td><strong>Object min(Collection coll[, Comparator com])</strong></td>
+<td>根据元素的自然顺序或定制排序，返回给定集合中的最小元素</td>
+</tr>
+<tr>
+<td><strong>int frequency(Collection coll, Object obj)</strong></td>
+<td>返回指定集合中指定元素的出现次数</td>
+</tr>
+<tr>
+<td><strong>copy(List dest, List src)</strong></td>
+<td>将 src 中的内容复制到 dest 中</td>
+</tr>
+<tr>
+<td><strong>boolean replaceAll(List list, Object oldVal, Object newVal)</strong></td>
+<td>使用 newVal 替换 list 中所有的 oldVal 元素</td>
+</tr>
+</tbody>
+</table>
+<p>Collections 类中提供了多个 <code>synchronizedXxx()</code> 方法，该方法可使<strong>将指定集合包装成线程同步的集合</strong>，从而可以解决多线程并发访问集合时的线程安全问题，如下：</p>
+<pre><code class="language-java">List list1 = Collections.synchronizedList(list); // 返回的list1即为线程安全的List对象
+</code></pre>
+<p>当然，也有 Set ，Map 的方法，这里就不多赘述</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#collection-%E6%8E%A5%E5%8F%A3">Collection 接口</a>
+<ul>
+<li><a href="#%E5%86%85%E7%BD%AE%E6%96%B9%E6%B3%95">内置方法</a></li>
+<li><a href="#%E8%BF%AD%E4%BB%A3%E5%99%A8">迭代器</a></li>
+<li><a href="#list-%E6%8E%A5%E5%8F%A3">List 接口</a></li>
+<li><a href="#set-%E6%8E%A5%E5%8F%A3">Set 接口</a></li>
+</ul>
+</li>
+<li><a href="#map-%E6%8E%A5%E5%8F%A3">Map 接口</a>
+<ul>
+<li><a href="#%E5%86%85%E7%BD%AE%E6%96%B9%E6%B3%95-2">内置方法</a></li>
+<li><a href="#properties-%E7%9A%84%E4%BD%BF%E7%94%A8">Properties 的使用</a></li>
+</ul>
+</li>
+<li><a href="#collections-%E5%B7%A5%E5%85%B7%E7%B1%BB">Collections 工具类</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-fan-xing/">
+              <h3 class="post-title">
+                【Java SE】十八、泛型
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

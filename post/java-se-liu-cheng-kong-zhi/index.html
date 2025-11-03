@@ -1,0 +1,239 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】八、流程控制 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】八、流程控制 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="在 Java 中，保留了 C/C++ 中的 goto 语句的特性，推出了带标签的 break 和 countine 语句，略有不同，在此记录。
+
+带标签的 break
+带标签的 break 语句通常用于多层循环嵌套中，在某一个循环前面加一个..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】八、流程控制
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-29
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>在 Java 中，保留了 C/C++ 中的 goto 语句的特性，推出了带标签的 break 和 countine 语句，略有不同，在此记录。</p>
+<!-- more -->
+<h2 id="带标签的-break">带标签的 break</h2>
+<p>带标签的 <code>break</code> 语句通常用于多层循环嵌套中，在某一个循环前面加一个标签，如 <code>outer:</code> ，在需要退出循环的时候就可以直接用<code>break + 标签;</code> 跳出多层循环到标签处，<strong>并且不会再次进入到刚才的循环中</strong>。</p>
+<pre><code class="language-java">public class Test {
+	public static void main(String[] args) {
+		outer: // 这里是标签，跳转到这里，且不会再进入下面的循环
+		for (int i = 1; i &lt; 3; i++) {
+			for (int j = 1; j &lt; 3; j++) {
+				for (int t = 1; t &lt; 3; t++) {
+					System.out.println(&quot;假期加油 &quot; + t);
+					break outer; // break + 标签
+				}
+			}
+		}
+		System.out.println(&quot;输出结束&quot;);
+	}
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code class="language-java">假期加油 1
+输出结束
+</code></pre>
+<h2 id="带标签的-countine">带标签的 countine</h2>
+<p>带标签的 <code>countine</code> 语句用法与 <code>break</code> 一样。不同的是，<strong>跳转到标签处后，它会结束标签后面的当次循环，继续执行下一次循环</strong>。</p>
+<!-- more -->
+<pre><code class="language-java">public class Test {
+	public static void main(String[] args) {
+		label: // 这里是标签，跳转到这里，并结束下面的当次循环，继续执行下一次循环
+        for (int i = 0; i &lt; 3; ++i) {
+            for (int j = 0; j &lt; 3; ++j) {
+                if (j == 2) {continue label;} // countine + 标签
+            	System.out.println(i + &quot;, &quot; + j);
+            }
+        }
+	}
+}
+</code></pre>
+<p>运行结果如下：</p>
+<pre><code>0, 0
+0, 1
+1, 0
+1, 1
+2, 0
+2, 1
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%B8%A6%E6%A0%87%E7%AD%BE%E7%9A%84-break">带标签的 break</a></li>
+<li><a href="#%E5%B8%A6%E6%A0%87%E7%AD%BE%E7%9A%84-countine">带标签的 countine</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-qi-yong-hu-shu-ru/">
+              <h3 class="post-title">
+                【Java SE】七、用户输入
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Hualiang's Blog: 一个苦逼大学生的所学所得..." />
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+    
+        <div class="post-container">
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/java-shi-xian-ji-yu-louds-bian-ma-de-ya-suo-qian-zhui-shu/">
+        <h2 class="post-title">Succinct Trie - 基于 LOUDS 编码的压缩字典树</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2025-08-27
+        </span>
+        <span>
+          18 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/ihv9lhyoaI/" class="post-tag">
+            # 数据结构
+          </a>
+        
+          <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+            # ElasticSearch
+          </a>
+        
+          <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+            # Java
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>最近在学习 ElasticSearch 的 <strong>FST</strong> 结构发现，虽然它压缩了前后缀可以让占用空间极大缩小，但依然有对象头和指针的开销，如果能把这部分开销去掉，压缩率还能再上一层楼。于是经过调研发现一种叫“<strong>简洁数据结构</strong>”（Succinct Data Structure）的东西，它在占用<strong>极小空间</strong>下还能提供<strong>高效查询</strong>操作。对此比较好奇它的实现原理，遂深入探索，想用 Java 实现一个比 FST 占用更小的 Trie 结构，于是就有了这篇文章。</p>
+<p><em>p.s. 部分参考图和代码源自《<a href="https://blog.csdn.net/u014470403/article/details/147883426">基于 LOUDS 的 Succinct Set 详解</a>》</em></p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/guan-yu-nao-dong-da-kai-qu-yong-duo-xian-cheng-you-hua-kuai-su-pai-xu-zhe-jian-shi/">
+        <h2 class="post-title">关于我脑洞大开去用多线程优化快速排序这件事</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-10-25
+        </span>
+        <span>
+          8 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/ZPGViNQnD/" class="post-tag">
+            # 多线程
+          </a>
+        
+          <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+            # Java
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>今晚在复习 TopK 问题手写快排时，突发奇想：“既然快排每次都要划分出两个区间重复进行快排，那么我可不可以将新划分出的两个区间用两个新线程去跑 ? ” 于是就有了这篇文章。</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/python-pa-chong-js-ni-xiang-zhi-woff-zi-ti-fan-pa-po-jie/">
+        <h2 class="post-title">Javascript 逆向之 woff 字体反爬破解</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-08-25
+        </span>
+        <span>
+          8 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+            # 优质文章收藏
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>转自个人博客 “<a href="https://home.cnblogs.com/u/Eeyhan">Eeyhan</a>” 的<a href="https://www.cnblogs.com/Eeyhan/p/15576450.html">《python爬虫 - js逆向之woff字体反爬破解》</a></p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/ji-yi-ci-dui-datax-xiang-es-tong-bu-dui-xiang-xing-shu-ju-de-jie-jue-guo-cheng/">
+        <h2 class="post-title">记一次对 DataX 向 ES 同步对象型数据的探索过程</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-08-12
+        </span>
+        <span>
+          8 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+            # ElasticSearch
+          </a>
+        
+          <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+            # Other
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>今天开完产品审议会，Leader 表示让我来负责工作台模块自定义地理查询的功能开发时，已经学完 ES 的地理查询的我当即表示莫得问题👌。可就在我想先同步坐标在写业务代码时才发现，“这个 DataX 怎么同步对象型数据嘞？”🤔</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin/">
+        <h2 class="post-title">记一次 Wrangler CLI 创建 Cloudflare Worker 模板启动失败原因</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-08-04
+        </span>
+        <span>
+          6 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+            # Other
+          </a>
+        
+      </div>
+      
+        <a href="https://hualiang.online/post/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin/" class="post-feature-image" style="background-image: url('https://hualiang.online/post-images/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin.png')">
+        </a>
+      
+      <div class="post-abstract">
+        <p>因为想用 Worker API 绑定 Cloudflare R2 便于使用，所有遵循<a href="https://developers.cloudflare.com/r2/api/workers/workers-api-usage/">官方文档</a>创建模板。</p>
+<p>但是遇上了一个莫名其妙的 Bug 报错...</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/elasticsearch-java-api-shi-xian-di-li-wei-zhi-cha-xun/">
+        <h2 class="post-title">ElasticSearch 实现地理位置搜索</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-08-03
+        </span>
+        <span>
+          8 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+            # ElasticSearch
+          </a>
+        
+          <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+            # Java
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>最近，实习时涉及到了在地图上显示客户锚点的需求，想到 ES 有这么个功能可以用，便想来试试。但网上的教程太少了，我自己也是琢磨半点才看懂的，在此分享一下。</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/ru-he-yong-chao-xing-yun-pan-zuo-wai-lian-zhi-lian/">
+        <h2 class="post-title">如何用超星云盘做外链直链</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-06-29
+        </span>
+        <span>
+          3 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+            # 优质文章收藏
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>转自个人博客 “<a href="https://zxz.ee">小言u</a>” 的<a href="https://zxz.ee/100.html">《用超星云盘做外链直链》</a></p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/git-ti-jiao-gui-fan/">
+        <h2 class="post-title">Git 提交规范</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-06-17
+        </span>
+        <span>
+          2 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+            # Other
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>经常看到别人提交的代码记录里面包含一些feat、fix、chore等等，而我在提交时也不会区分什么，直接写下提交信息，今天就来看一下怎么个事，就拿 element-plus 举例来看一下</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/delayqueue-shi-xian-lin-shi-shang-chuan-wen-jian-de-ding-shi-qing-li/">
+        <h2 class="post-title">DelayQueue 实现临时上传文件的过期定时清理</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-06-07
+        </span>
+        <span>
+          9 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+            # Java
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>学院的智慧党建项目要实现图片上传功能，为了解决图片临时上传后的清理问题，考虑到数据量不大，我想到了用 Java 的 DelayQueue 延迟队列来处理。</p>
+
+      </div>
+    </article>
+  
+    <article class="post">
+      <a href="https://hualiang.online/post/zhen-zheng-you-ya-de-vite-duo-ye-mian-shi-zhan/">
+        <h2 class="post-title">Vite 多页面实战</h2>
+      </a>
+      <div class="post-info">
+        <span>
+          2024-06-01
+        </span>
+        <span>
+          6 min read
+        </span>
+        
+          <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+            # 优质文章收藏
+          </a>
+        
+      </div>
+      
+      <div class="post-abstract">
+        <p>转自稀土掘金 “<a href="https://juejin.cn/user/1099167356957885/posts">我想写文章啊</a>” 的<a href="https://juejin.cn/post/7128999848564981796">《真正优雅的 Vite 多页面实战》</a></p>
+
+      </div>
+    </article>
+  
+</div>
+
+    
+        <div class="pagination-container">
+  
+  
+    <a href="https://hualiang.online/page/2" class="next-page">下一页</a>
+  
+</div>
+
+    
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+  </body>
+</html>

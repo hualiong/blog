@@ -1,0 +1,1238 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spring Security 权限管理 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Spring Security 权限管理 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Spring Security 是 Spring 家族中的一个安全管理框架。相比与另外一个安全框架 Shiro，它提供了更丰富的功能，社区资源也比 Shiro 丰富。
+
+一、什么是权限管理
+每个系统的权限功能都不尽相同，各有其自身的业务特点..." />
+    <meta name="keywords" content="Spring,Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Spring Security 权限管理
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-11-01
+              </span>
+              <span>
+                34 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/31H9flleg/" class="post-tag">
+                  # Spring
+                </a>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Spring Security 是 Spring 家族中的一个安全管理框架。相比与另外一个安全框架 Shiro，它提供了更丰富的功能，社区资源也比 Shiro 丰富。</p>
+<!-- more -->
+<h1 id="一-什么是权限管理">一、什么是权限管理</h1>
+<p>每个系统的权限功能都不尽相同，各有其自身的业务特点，对权限管理的设计也都各有特色。不过不管是怎样的权限设计，大致可归为三种：<strong>页面权限(菜单级)、操作权限（按钮级）、数据权限</strong>。当前系统只是讲解：菜单权限与按钮权限的控制。</p>
+<h2 id="1菜单权限">1.菜单权限</h2>
+<p>菜单权限就是对页面的控制，就是有这个权限的用户才能访问这个页面，没这个权限的用户就无法访问，它是以整个页面为维度，对权限的控制并没有那么细，所以是一种<strong>粗颗粒权限</strong>。</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/image-20220606155704023.png" alt="image-20220606155704023" loading="lazy"></figure>
+<h2 id="2按钮权限">2.按钮权限</h2>
+<p>按钮权限就是将页面的<strong>操作</strong>视为资源，比如删除操作，有些人可以操作有些人不能操作。对于后端来说，操作就是一个接口。于前端来说，操作往往是一个按钮，是一种<strong>细颗粒权限</strong>。</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/image-20220606160034229.png" alt="image-20220606160034229" loading="lazy"></figure>
+<h2 id="3权限管理设计思路">3.权限管理设计思路</h2>
+<p>前面我们讲解了用户管理、角色管理及菜单管理，我们把菜单权限分配给角色，把角色分配给用户，那么用户就拥有了角色的所有权限（权限包含：菜单权限与按钮权限）。</p>
+<p>接下来需要实现这两个接口：</p>
+<p>1、用户登录</p>
+<p>2、登录成功根据 token 获取用户相关信息（菜单权限及按钮权限数据等）</p>
+<p>用户登录我们需要用到 JWT，接下来讲解 JWT。</p>
+<h1 id="二-jwt">二、JWT</h1>
+<h2 id="1-jwt-介绍">1. JWT 介绍</h2>
+<p>JWT是JSON Web Token的缩写，即JSON Web令牌，是一种自包含令牌。 是为了在网络应用环境间传递声明而执行的一种基于JSON的开放标准。</p>
+<p>JWT的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源。比如用在用户登录上。</p>
+<p>JWT最重要的作用就是对 token信息的防伪作用。</p>
+<h2 id="2-jwt-令牌的组成">2. JWT 令牌的组成</h2>
+<p>一个JWT由三个部分组成：<strong>JWT头、有效载荷、签名哈希</strong><br>
+最后由这三者组合进行base64url编码得到JWT</p>
+<p>典型的，一个JWT看起来如下图：该对象为一个很长的字符串，字符之间通过&quot;.&quot;分隔符分为三个子串。</p>
+<p>网址: <a href="https://jwt.io">https://jwt.io</a></p>
+<figure data-type="image" tabindex="3"><img src="https://hualiang.online/post-images/3402e929-2225-4c64-8f2e-4471b63366d0.png" alt="3402e929-2225-4c64-8f2e-4471b63366d0" loading="lazy"></figure>
+<p><strong>JWT头</strong></p>
+<p>JWT头部分是一个描述JWT元数据的JSON对象，通常如下所示。</p>
+<pre><code>{
+  &quot;alg&quot;: &quot;HS256&quot;,
+  &quot;typ&quot;: &quot;JWT&quot;
+}
+</code></pre>
+<p>在上面的代码中，alg属性表示签名使用的算法，默认为HMAC SHA256（写为HS256）；</p>
+<p>typ属性表示令牌的类型，JWT令牌统一写为JWT。</p>
+<p>最后，使用Base64 URL算法将上述JSON对象转换为字符串保存。</p>
+<p><strong>有效载荷</strong></p>
+<p>有效载荷部分，是JWT的主体内容部分，也是一个JSON对象，包含需要传递的数据。 JWT指定七个默认字段供选择。</p>
+<pre><code>iss: jwt签发者
+sub: 主题
+aud: 接收jwt的一方
+exp: jwt的过期时间，这个过期时间必须要大于签发时间
+nbf: 定义在什么时间之前，该jwt都是不可用的.
+iat: jwt的签发时间
+jti: jwt的唯一身份标识，主要用来作为一次性token,从而回避重放攻击。
+</code></pre>
+<pre><code>{
+  &quot;name&quot;: &quot;Helen&quot;,
+  &quot;role&quot;: &quot;editor&quot;,
+  &quot;avatar&quot;: &quot;helen.jpg&quot;
+}
+</code></pre>
+<p>请注意，默认情况下JWT是未加密的，任何人都可以解读其内容，因此不要构建隐私信息字段，存放保密信息，以防止信息泄露。</p>
+<p>JSON对象也使用Base64 URL算法转换为字符串保存。</p>
+<p><strong>签名哈希</strong></p>
+<p>签名哈希部分是对上面两部分数据签名，通过指定的算法生成哈希，以确保数据不会被篡改。</p>
+<p>首先，需要指定一个密码（secret）。该密码仅仅为保存在服务器中，并且不能向用户公开。然后，使用标头中指定的签名算法（默认情况下为HMAC SHA256）根据以下公式生成签名。</p>
+<pre><code>HMACSHA256(base64UrlEncode(header) + &quot;.&quot; + base64UrlEncode(claims), secret)    ==&gt;   签名hash
+</code></pre>
+<p>在计算出签名哈希后，JWT头，有效载荷和签名哈希的三个部分组合成一个字符串，每个部分用&quot;.&quot;分隔，就构成整个JWT对象。</p>
+<p><strong>Base64URL算法</strong></p>
+<p>如前所述，JWT头和有效载荷序列化的算法都用到了Base64URL。该算法和常见Base64算法类似，稍有差别。</p>
+<p>作为令牌的JWT可以放在URL中（例如api.example/?token=xxx）。 Base64中用的三个字符是&quot;+&quot;，&quot;/&quot;和&quot;=&quot;，由于在URL中有特殊含义，因此Base64URL中对他们做了替换：&quot;=&quot;去掉，&quot;+&quot;用&quot;-&quot;替换，&quot;/&quot;用&quot;_&quot;替换，这就是Base64URL算法。</p>
+<h1 id="三-spring-security-介绍">三、Spring Security 介绍</h1>
+<h2 id="1-spring-security-简介">1. Spring Security 简介</h2>
+<p>Spring 是非常流行和成功的 Java 应用开发框架，Spring Security 正是 Spring 家族中的成员。Spring Security 基于 Spring 框架，提供了一套 Web 应用安全性的完整解决方案。</p>
+<p>正如你可能知道的关于安全方面的两个核心功能是“<strong>认证</strong>”和“<strong>授权</strong>”，一般来说，Web 应用的安全性包括**用户认证（Authentication）和用户授权（Authorization）**两个部分，这两点也是 SpringSecurity 重要核心功能。</p>
+<p>（1）用户认证指的是：验证某个用户是否为系统中的合法主体，也就是说用户能否访问该系统。用户认证一般要求用户提供用户名和密码，系统通过校验用户名和密码来完成认证过程。</p>
+<p><strong>通俗点说就是系统认为用户是否能登录</strong></p>
+<p>（2）用户授权指的是验证某个用户是否有权限执行某个操作。在一个系统中，不同用户所具有的权限是不同的。比如对一个文件来说，有的用户只能进行读取，而有的用户可以进行修改。一般来说，系统会为不同的用户分配不同的角色，而每个角色则对应一系列的权限。</p>
+<p><strong>通俗点讲就是系统判断用户是否有权限去做某些事情。</strong></p>
+<h2 id="2-同款产品对比">2. 同款产品对比</h2>
+<h2 id="21-spring-security">2.1 Spring Security</h2>
+<p>Spring 技术栈的组成部分。</p>
+<p>https://spring.io/projects/spring-security</p>
+<p>通过提供完整可扩展的认证和授权支持保护你的应用程序。</p>
+<p><strong>SpringSecurity 特点：</strong></p>
+<p>⚫ 和 Spring 无缝整合。</p>
+<p>⚫ 全面的权限控制。</p>
+<p>⚫ 专门为 Web 开发而设计。</p>
+<p>​	◼旧版本不能脱离 Web 环境使用。</p>
+<p>​	◼新版本对整个框架进行了分层抽取，分成核心模块和 Web 模块。单独引入核心模块就可以脱离 Web 环境。</p>
+<p>⚫ 重量级。</p>
+<h2 id="22-shiro">2.2 Shiro</h2>
+<p>Apache 旗下的轻量级权限控制框架。</p>
+<p><strong>特点：</strong></p>
+<p>⚫ 轻量级。Shiro 主张的理念是把复杂的事情变简单。针对对性能有更高要求的互联网应用有更好表现。</p>
+<p>⚫ 通用性。</p>
+<p>​	◼好处：不局限于 Web 环境，可以脱离 Web 环境使用。</p>
+<p>​	◼缺陷：在 Web 环境下一些特定的需求需要手动编写代码定制。</p>
+<p>Spring Security 是 Spring 家族中的一个安全管理框架，实际上，在 Spring Boot 出现之前，Spring Security 就已经发展了多年了，但是使用的并不多，安全管理这个领域，一直是 Shiro 的天下。</p>
+<p>相对于 Shiro，在 SSM 中整合 Spring Security 都是比较麻烦的操作，所以，Spring Security 虽然功能比 Shiro 强大，但是使用反而没有 Shiro 多（Shiro 虽然功能没有Spring Security 多，但是对于大部分项目而言，Shiro 也够用了）。自从有了 Spring Boot 之后，Spring Boot 对于 Spring Security 提供了自动化配置方案，可以使用更少的配置来使用 Spring Security。</p>
+<h1 id="3-spring-security-实现权限">3. Spring Security 实现权限</h1>
+<p>要对Web资源进行保护，最好的办法莫过于Filter<br>
+要想对方法调用进行保护，最好的办法莫过于<a href="https://so.csdn.net/so/search?q=AOP&amp;spm=1001.2101.3001.7020">AOP</a>。</p>
+<p>Spring Security进行认证和鉴权的时候,就是利用的一系列的Filter来进行拦截的。</p>
+<figure data-type="image" tabindex="4"><img src="https://img-blog.csdnimg.cn/20201231155747261.png" alt="img" loading="lazy"></figure>
+<p>如图所示，一个请求想要访问到API就会从左到右经过蓝线框里的过滤器，其中<strong>绿色部分是负责认证的过滤器，蓝色部分是负责异常处理，橙色部分则是负责授权</strong>。进过一系列拦截最终访问到我们的API。</p>
+<figure data-type="image" tabindex="5"><img src="https://hualiang.online/post-images/image-20230206104938580.png" alt="image-20230206104938580" loading="lazy"></figure>
+<p>这里面我们只需要重点关注两个过滤器即可：<code>UsernamePasswordAuthenticationFilter</code> 负责登录认证，<code>FilterSecurityInterceptor</code> 负责权限授权。</p>
+<p>说明：<strong>Spring Security的核心逻辑全在这一套过滤器中，过滤器里会调用各种组件完成功能，掌握了这些过滤器和组件你就掌握了Spring Security</strong>！这个框架的使用方式就是对这些过滤器和组件进行扩展。</p>
+<h2 id="31-用户认证">3.1 用户认证</h2>
+<p><strong>用户认证流程如下：</strong></p>
+<figure data-type="image" tabindex="6"><img src="https://hualiang.online/post-images/image-20220620115942257.png" alt="image-20220620115942257" loading="lazy"></figure>
+<h2 id="311-用户认证核心组件">3.1.1 用户认证核心组件</h2>
+<p>我们系统中会有许多用户，确认当前是哪个用户正在使用我们系统就是登录认证的最终目的。这里我们就提取出了一个核心概念：<strong>当前登录用户/当前认证用户</strong>。整个系统安全都是围绕当前登录用户展开的，这个不难理解，要是当前登录用户都不能确认了，那A下了一个订单，下到了B的账户上这不就乱套了。这一概念在Spring Security中的体现就是 <strong><code>Authentication</code></strong>，它存储了认证信息，代表当前登录用户。</p>
+<p>我们在程序中如何获取并使用它呢？我们需要通过 <strong><code>SecurityContext</code></strong> 来获取<code>Authentication</code>，<code>SecurityContext</code>就是我们的上下文对象！这个上下文对象则是交由 <strong><code>SecurityContextHolder</code></strong> 进行管理，你可以在程序<strong>任何地方</strong>使用它：</p>
+<pre><code>Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+</code></pre>
+<p><code>SecurityContextHolder</code>原理非常简单，就是使用<code>ThreadLocal</code>来保证一个线程中传递同一个对象！</p>
+<p><strong>现在我们已经知道了Spring Security中三个核心组件：</strong></p>
+<p>​	1、<code>Authentication</code>：存储了认证信息，代表当前登录用户</p>
+<p>​	2、<code>SeucirtyContext</code>：上下文对象，用来获取<code>Authentication</code></p>
+<p>​	3、<code>SecurityContextHolder</code>：上下文管理对象，用来在程序任何地方获取<code>SecurityContext</code></p>
+<p><strong><code>Authentication</code>中是什么信息呢：</strong></p>
+<p>​	1、<code>Principal</code>：用户信息，没有认证时一般是用户名，认证后一般是用户对象</p>
+<p>​	2、<code>Credentials</code>：用户凭证，一般是密码</p>
+<p>​	3、<code>Authorities</code>：用户权限</p>
+<h2 id="312-用户认证">3.1.2 用户认证</h2>
+<p>Spring Security是怎么进行用户认证的呢？</p>
+<p><strong><code>AuthenticationManager</code></strong> 就是Spring Security用于执行身份验证的组件，只需要调用它的<code>authenticate</code>方法即可完成认证。Spring Security默认的认证方式就是在<code>UsernamePasswordAuthenticationFilter</code>这个过滤器中进行认证的，该过滤器负责认证逻辑。</p>
+<p>Spring Security用户认证关键代码如下：</p>
+<pre><code>// 生成一个包含账号密码的认证信息
+Authentication authenticationToken = new UsernamePasswordAuthenticationToken(username, passwrod);
+// AuthenticationManager校验这个认证信息，返回一个已认证的Authentication
+Authentication authentication = authenticationManager.authenticate(authenticationToken);
+// 将返回的Authentication存到上下文中
+SecurityContextHolder.getContext().setAuthentication(authentication);
+</code></pre>
+<p>下面我们来分析一下。</p>
+<h3 id="3121-认证接口分析">3.1.2.1 认证接口分析</h3>
+<p><code>AuthenticationManager</code>的校验逻辑非常简单：</p>
+<p>根据用户名先查询出用户对象(没有查到则抛出异常)将用户对象的密码和传递过来的密码进行校验，密码不匹配则抛出异常。</p>
+<p>这个逻辑没啥好说的，再简单不过了。重点是这里每一个步骤Spring Security都提供了组件：</p>
+<p>​	1、是谁执行 <strong>根据用户名查询出用户对象</strong> 逻辑的呢？用户对象数据可以存在内存中、文件中、数据库中，你得确定好怎么查才行。这一部分就是交由**<code>UserDetialsService</code>** 处理，该接口只有一个方法<code>loadUserByUsername(String username)</code>，通过用户名查询用户对象，默认实现是在内存中查询。</p>
+<p>​	2、那查询出来的 <strong>用户对象</strong> 又是什么呢？每个系统中的用户对象数据都不尽相同，咱们需要确认我们的用户数据是啥样的才行。Spring Security中的用户数据则是由**<code>UserDetails</code>** 来体现，该接口中提供了账号、密码等通用属性。</p>
+<p>​	3、<strong>对密码进行校验</strong>大家可能会觉得比较简单，<code>if、else</code>搞定，就没必要用什么组件了吧？但框架毕竟是框架考虑的比较周全，除了<code>if、else</code>外还解决了密码加密的问题，这个组件就是**<code>PasswordEncoder</code>**，负责密码加密与校验。</p>
+<p>我们可以看下<code>AuthenticationManager</code>校验逻辑的大概源码：</p>
+<pre><code class="language-java">public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+...省略其他代码
+
+    // 传递过来的用户名
+    String username = authentication.getName();
+    // 调用UserDetailService的方法，通过用户名查询出用户对象UserDetail（查询不出来UserDetailService则会抛出异常）
+    UserDetails userDetails = this.getUserDetailsService().loadUserByUsername(username);
+    String presentedPassword = authentication.getCredentials().toString();
+
+    // 传递过来的密码
+    String password = authentication.getCredentials().toString();
+    // 使用密码解析器PasswordEncoder传递过来的密码是否和真实的用户密码匹配
+    if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+        // 密码错误则抛出异常
+        throw new BadCredentialsException(&quot;错误信息...&quot;);
+    }
+
+    // 注意哦，这里返回的已认证Authentication，是将整个UserDetails放进去充当Principal
+    UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(userDetails,
+            authentication.getCredentials(), userDetails.getAuthorities());
+    return result;
+
+...省略其他代码
+}
+</code></pre>
+<p><code>UserDetialsService</code>、<code>UserDetails</code>、<code>PasswordEncoder</code>，这三个组件Spring Security都有默认实现，这一般是满足不了我们的实际需求的，所以这里我们自己来实现这些组件！</p>
+<p><strong>下面我们就在项目里面来实现用户认证。</strong></p>
+<h3 id="3122-加密器passwordencoder">3.1.2.2 加密器PasswordEncoder</h3>
+<p>加密我们项目采取MD5加密</p>
+<p>操作模块：spring-security模块</p>
+<p><strong>自定义加密处理组件：CustomMd5PasswordEncoder</strong></p>
+<pre><code class="language-java">package com.atguigu.security.custom;
+
+import com.atguigu.common.util.MD5;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+/**
+ * &lt;p&gt;
+ * 密码处理
+ * &lt;/p&gt;
+ *
+ */
+@Component
+public class CustomMd5PasswordEncoder implements PasswordEncoder {
+
+    public String encode(CharSequence rawPassword) {
+        return MD5.encrypt(rawPassword.toString());
+    }
+
+    public boolean matches(CharSequence rawPassword, String encodedPassword) {
+        return encodedPassword.equals(MD5.encrypt(rawPassword.toString()));
+    }
+}
+</code></pre>
+<h3 id="3123-用户对象-userdetails">3.1.2.3 用户对象 UserDetails</h3>
+<p>该接口就是我们所说的用户对象，它提供了用户的一些通用属性，源码如下：</p>
+<pre><code class="language-java">public interface UserDetails extends Serializable {
+	/**
+     * 用户权限集合（这个权限对象现在不管它，到权限时我会讲解）
+     */
+    Collection&lt;? extends GrantedAuthority&gt; getAuthorities();
+    /**
+     * 用户密码
+     */
+    String getPassword();
+    /**
+     * 用户名
+     */
+    String getUsername();
+    /**
+     * 用户没过期返回true，反之则false
+     */
+    boolean isAccountNonExpired();
+    /**
+     * 用户没锁定返回true，反之则false
+     */
+    boolean isAccountNonLocked();
+    /**
+     * 用户凭据(通常为密码)没过期返回true，反之则false
+     */
+    boolean isCredentialsNonExpired();
+    /**
+     * 用户是启用状态返回true，反之则false
+     */
+    boolean isEnabled();
+}
+</code></pre>
+<p>实际开发中我们的用户属性各种各样，这些默认属性可能是满足不了，所以我们一般会自己实现该接口，然后设置好我们实际的用户实体对象。实现此接口要重写很多方法比较麻烦，我们可以继承Spring Security提供的<code>org.springframework.security.core.userdetails.User</code>类，该类实现了<code>UserDetails</code>接口帮我们省去了重写方法的工作：</p>
+<p>操作模块：spring-security模块</p>
+<p><strong>添加CustomUser对象</strong></p>
+<pre><code class="language-java">package com.atguigu.security.custom;
+
+import com.atguigu.model.system.SysUser;
+import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+
+import java.util.Collection;
+
+public class CustomUser extends User {
+
+    /**
+     * 我们自己的用户实体对象，要调取用户信息时直接获取这个实体对象。（这里我就不写get/set方法了）
+     */
+    private SysUser sysUser;
+
+    public CustomUser(SysUser sysUser, Collection&lt;? extends GrantedAuthority&gt; authorities) {
+        super(sysUser.getUsername(), sysUser.getPassword(), authorities);
+        this.sysUser = sysUser;
+    }
+
+    public SysUser getSysUser() {
+        return sysUser;
+    }
+
+    public void setSysUser(SysUser sysUser) {
+        this.sysUser = sysUser;
+    }
+    
+}
+</code></pre>
+<h3 id="3124-业务对象-userdetailsservice">3.1.2.4 业务对象 UserDetailsService</h3>
+<p>该接口很简单只有一个方法：</p>
+<pre><code class="language-java">public interface UserDetailsService {
+    /**
+     * 根据用户名获取用户对象（获取不到直接抛异常）
+     */
+    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+}
+</code></pre>
+<p>我们实现该接口，就完成了自己的业务</p>
+<p><strong>操作模块：service-oa</strong></p>
+<p><strong>添加UserDetailsServiceImpl类，实现UserDetailsService接口</strong></p>
+<pre><code class="language-java">package com.atguigu.system.service.impl;
+
+import com.atguigu.common.execption.GuiguException;
+import com.atguigu.common.result.ResultCodeEnum;
+import com.atguigu.model.system.SysUser;
+import com.atguigu.security.custom.CustomUser;
+import com.atguigu.system.service.SysUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+
+
+@Component
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+    @Autowired
+    private SysUserService sysUserService;
+ 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        SysUser sysUser = sysUserService.getByUsername(username);
+        if(null == sysUser) {
+            throw new UsernameNotFoundException(&quot;用户名不存在！&quot;);
+        }
+
+        if(sysUser.getStatus().intValue() == 0) {
+            throw new RuntimeException(&quot;账号已停用&quot;);
+        }
+        return new CustomUser(sysUser, Collections.emptyList());
+    }
+}
+</code></pre>
+<p><code>AuthenticationManager</code>校验所调用的三个组件我们就已经做好实现了！</p>
+<h3 id="3125-自定义用户认证接口">3.1.2.5 自定义用户认证接口</h3>
+<pre><code class="language-java">package com.atguigu.security.fillter;
+
+import com.atguigu.common.jwt.JwtHelper;
+import com.atguigu.common.result.Result;
+import com.atguigu.common.result.ResultCodeEnum;
+import com.atguigu.common.util.ResponseUtil;
+import com.atguigu.security.custom.CustomUser;
+import com.atguigu.vo.system.LoginVo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * &lt;p&gt;
+ * 登录过滤器，继承UsernamePasswordAuthenticationFilter，对用户名密码进行登录校验
+ * &lt;/p&gt;
+ */
+public class TokenLoginFilter extends UsernamePasswordAuthenticationFilter {
+
+    public TokenLoginFilter(AuthenticationManager authenticationManager) {
+        this.setAuthenticationManager(authenticationManager);
+        this.setPostOnly(false);
+        //指定登录接口及提交方式，可以指定任意路径
+        this.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(&quot;/admin/system/index/login&quot;,&quot;POST&quot;));
+    }
+
+    /**
+     * 登录认证
+     * @param req
+     * @param res
+     * @return
+     * @throws AuthenticationException
+     */
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res)
+            throws AuthenticationException {
+        try {
+            LoginVo loginVo = new ObjectMapper().readValue(req.getInputStream(), LoginVo.class);
+
+            Authentication authenticationToken = new UsernamePasswordAuthenticationToken(loginVo.getUsername(), loginVo.getPassword());
+            return this.getAuthenticationManager().authenticate(authenticationToken);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 登录成功
+     * @param request
+     * @param response
+     * @param chain
+     * @param auth
+     * @throws IOException
+     * @throws ServletException
+     */
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+                                            Authentication auth) throws IOException, ServletException {
+        CustomUser customUser = (CustomUser) auth.getPrincipal();
+        String token = JwtHelper.createToken(customUser.getSysUser().getId(), customUser.getSysUser().getUsername());
+
+        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+        map.put(&quot;token&quot;, token);
+        ResponseUtil.out(response, Result.ok(map));
+    }
+
+    /**
+     * 登录失败
+     * @param request
+     * @param response
+     * @param e
+     * @throws IOException
+     * @throws ServletException
+     */
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException e) throws IOException, ServletException {
+
+        if(e.getCause() instanceof RuntimeException) {
+            ResponseUtil.out(response, Result.build(null, 204, e.getMessage()));
+        } else {
+            ResponseUtil.out(response, Result.build(null, ResultCodeEnum.LOGIN_MOBLE_ERROR));
+        }
+    }
+}
+</code></pre>
+<p>添加工具类：ResponseUtil</p>
+<p>添加模块：common-util</p>
+<pre><code class="language-java">package com.atguigu.common.util;
+
+import com.atguigu.common.result.Result;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class ResponseUtil {
+
+    public static void out(HttpServletResponse response, Result r) {
+        ObjectMapper mapper = new ObjectMapper();
+        response.setStatus(HttpStatus.OK.value());
+        response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+        try {
+            mapper.writeValue(response.getWriter(), r);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+<h3 id="3126-认证解析-token">3.1.2.6 认证解析 token</h3>
+<p>因为用户登录状态在token中存储在客户端，所以每次请求接口请求头携带token， 后台通过自定义token过滤器拦截解析token完成认证并填充用户信息实体。</p>
+<pre><code class="language-java">package com.atguigu.security.fillter;
+
+import com.atguigu.common.jwt.JwtHelper;
+import com.atguigu.common.result.Result;
+import com.atguigu.common.result.ResultCodeEnum;
+import com.atguigu.common.util.ResponseUtil;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+
+/**
+ * &lt;p&gt;
+ * 认证解析token过滤器
+ * &lt;/p&gt;
+ */
+public class TokenAuthenticationFilter extends OncePerRequestFilter {
+
+    public TokenAuthenticationFilter() {
+
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        logger.info(&quot;uri:&quot;+request.getRequestURI());
+        //如果是登录接口，直接放行
+        if(&quot;/admin/system/index/login&quot;.equals(request.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
+        if(null != authentication) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
+        } else {
+            ResponseUtil.out(response, Result.build(null, ResultCodeEnum.PERMISSION));
+        }
+    }
+
+    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
+        // token置于header里
+        String token = request.getHeader(&quot;token&quot;);
+        logger.info(&quot;token:&quot;+token);
+        if (!StringUtils.isEmpty(token)) {
+            String useruame = JwtHelper.getUsername(token);
+            logger.info(&quot;useruame:&quot;+useruame);
+            if (!StringUtils.isEmpty(useruame)) {
+                return new UsernamePasswordAuthenticationToken(useruame, null, Collections.emptyList());
+            }
+        }
+        return null;
+    }
+}
+</code></pre>
+<h3 id="3127-配置用户认证">3.1.2.7 配置用户认证</h3>
+<p>修改WebSecurityConfig配置类</p>
+<pre><code class="language-java">package com.atguigu.security.config;
+
+import com.atguigu.security.custom.CustomMd5PasswordEncoder;
+import com.atguigu.security.filter.TokenAuthenticationFilter;
+import com.atguigu.security.filter.TokenLoginFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsUtils;
+
+@Configuration
+@EnableWebSecurity //@EnableWebSecurity是开启SpringSecurity的默认行为
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomMd5PasswordEncoder customMd5PasswordEncoder;
+
+
+    @Bean
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // 这是配置的关键，决定哪些接口开启防护，哪些接口绕过防护
+        http
+                //关闭csrf跨站请求伪造
+                .csrf().disable()
+                // 开启跨域以便前端调用接口
+                .cors().and()
+                .authorizeRequests()
+                // 指定某些接口不需要通过验证即可访问。登陆接口肯定是不需要认证的
+                .antMatchers(&quot;/admin/system/index/login&quot;).permitAll()
+                // 这里意思是其它所有接口需要认证才能访问
+                .anyRequest().authenticated()
+                .and()
+                //TokenAuthenticationFilter放到UsernamePasswordAuthenticationFilter的前面，这样做就是为了除了登录的时候去查询数据库外，其他时候都用token进行认证。
+                .addFilterBefore(new TokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new TokenLoginFilter(authenticationManager()));
+
+        //禁用session
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        // 指定UserDetailService和加密器
+    auth.userDetailsService(userDetailsService)
+        .passwordEncoder(customMd5PasswordEncoder);
+    }
+
+    /**
+     * 配置哪些请求不拦截
+     * 排除swagger相关请求
+     * @param web
+     * @throws Exception
+     */
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(&quot;/favicon.ico&quot;,&quot;/swagger-resources/**&quot;, &quot;/webjars/**&quot;, &quot;/v2/**&quot;, &quot;/swagger-ui.html/**&quot;, &quot;/doc.html&quot;);
+    }
+}
+</code></pre>
+<p><strong>说明：</strong></p>
+<p><strong>1、我们是前后端分离项目，使用<code>jwt</code>生成token ，即用户状态保存在客户端中，前后端交互通过api接口 <code>无session</code>生成，所以我们不需要配置<code>formLogin</code>，session禁用</strong></p>
+<p><strong>2、在浏览器访问：http://localhost:8800/admin/system/sysRole/findAll</strong></p>
+<pre><code>{
+    &quot;code&quot;: 209,
+    &quot;message&quot;: &quot;没有权限&quot;,
+    &quot;data&quot;: null
+}
+</code></pre>
+<h3 id="3128-通过-swagger-测试登录">3.1.2.8 通过 swagger 测试登录</h3>
+<p>在相应的自定义组件设置断点，查看是否按照预期执行。</p>
+<p>1、先输入正确的用户名与密码</p>
+<p>2、输入错误的用户名与密码</p>
+<p>结论：跟预期一致</p>
+<h2 id="32-用户授权">3.2 用户授权</h2>
+<p>在SpringSecurity中，会使用默认的FilterSecurityInterceptor来进行权限校验。在FilterSecurityInterceptor中会从SecurityContextHolder获取其中的<strong>Authentication</strong>，然后获取其中的权限信息。判断当前用户是否拥有访问当前资源所需的权限。</p>
+<p><strong>SpringSecurity中的Authentication类：</strong></p>
+<pre><code class="language-java">public interface Authentication extends Principal, Serializable {
+	//权限数据列表
+    Collection&lt;? extends GrantedAuthority&gt; getAuthorities();
+
+    Object getCredentials();
+
+    Object getDetails();
+
+    Object getPrincipal();
+
+    boolean isAuthenticated();
+
+    void setAuthenticated(boolean var1) throws IllegalArgumentException;
+}
+</code></pre>
+<p>前面登录时执行loadUserByUsername方法时，return new CustomUser(sysUser, Collections.emptyList());后面的空数据对接就是返回给Spring Security的权限数据。</p>
+<p>在TokenAuthenticationFilter中怎么获取权限数据呢？登录时我们把权限数据保存到redis中（用户名为key，权限数据为value即可），这样通过token获取用户名即可拿到权限数据，这样就可构成出完整的Authentication对象。</p>
+<h2 id="321-修改-loaduserbyusername-接口方法">3.2.1、修改 loadUserByUsername 接口方法</h2>
+<pre><code class="language-java">@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    SysUser sysUser = sysUserService.getByUsername(username);
+    if(null == sysUser) {
+        throw new UsernameNotFoundException(&quot;用户名不存在！&quot;);
+    }
+
+    if(sysUser.getStatus().intValue() == 0) {
+        throw new GuiguException(ResultCodeEnum.ACCOUNT_STOP);
+    }
+    List&lt;String&gt; userPermsList = sysMenuService.findUserPermsList(sysUser.getId());
+    List&lt;SimpleGrantedAuthority&gt; authorities = new ArrayList&lt;&gt;();
+    for (String perm : userPermsList) {
+        authorities.add(new SimpleGrantedAuthority(perm.trim()));
+    }
+    return new CustomUser(sysUser, authorities);
+}
+</code></pre>
+<h2 id="322-spring-security-模块配置-redis">3.2.2 spring-security 模块配置 redis</h2>
+<p>添加依赖</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h2 id="323-修改-tokenloginfilter-登录成功方法">3.2.3 修改 TokenLoginFilter 登录成功方法</h2>
+<p>登录成功我们将权限数据保单到reids</p>
+<pre><code class="language-java">public class TokenLoginFilter extends UsernamePasswordAuthenticationFilter {
+
+    private RedisTemplate redisTemplate;
+
+    public TokenLoginFilter(AuthenticationManager authenticationManager, RedisTemplate redisTemplate) {
+        this.setAuthenticationManager(authenticationManager);
+        this.setPostOnly(false);
+        //指定登录接口及提交方式，可以指定任意路径
+        this.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(&quot;/admin/system/index/login&quot;,&quot;POST&quot;));
+        this.redisTemplate = redisTemplate;
+    }
+
+    /**
+     * 登录认证
+     * @param req
+     * @param res
+     * @return
+     * @throws AuthenticationException
+     */
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res)
+            throws AuthenticationException {
+        try {
+            LoginVo loginVo = new ObjectMapper().readValue(req.getInputStream(), LoginVo.class);
+
+            Authentication authenticationToken = new UsernamePasswordAuthenticationToken(loginVo.getUsername(), loginVo.getPassword());
+            return this.getAuthenticationManager().authenticate(authenticationToken);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 登录成功
+     * @param request
+     * @param response
+     * @param chain
+     * @param auth
+     * @throws IOException
+     * @throws ServletException
+     */
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+                                            Authentication auth) throws IOException, ServletException {
+        CustomUser customUser = (CustomUser) auth.getPrincipal();
+        String token = JwtHelper.createToken(customUser.getSysUser().getId(), customUser.getSysUser().getUsername());
+        //保存权限数据
+        redisTemplate.opsForValue().set(customUser.getUsername(), JSON.toJSONString(customUser.getAuthorities()));
+
+        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+        map.put(&quot;token&quot;, token);
+        ResponseUtil.out(response, Result.ok(map));
+    }
+
+    /**
+     * 登录失败
+     * @param request
+     * @param response
+     * @param e
+     * @throws IOException
+     * @throws ServletException
+     */
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException e) throws IOException, ServletException {
+
+        if(e.getCause() instanceof RuntimeException) {
+            ResponseUtil.out(response, Result.build(null, 204, e.getMessage()));
+        } else {
+            ResponseUtil.out(response, Result.build(null, ResultCodeEnum.LOGIN_MOBLE_ERROR));
+        }
+    }
+}
+</code></pre>
+<h2 id="324-修改-tokenauthenticationfilter">3.2.4 修改 TokenAuthenticationFilter</h2>
+<p>认证是从redis里面获取权限数据</p>
+<p>完整代码：</p>
+<pre><code class="language-java">package com.atguigu.security.fillter;
+
+import com.alibaba.fastjson.JSON;
+import com.atguigu.common.jwt.JwtHelper;
+import com.atguigu.common.result.Result;
+import com.atguigu.common.result.ResultCodeEnum;
+import com.atguigu.common.util.ResponseUtil;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * &lt;p&gt;
+ * 认证解析token过滤器
+ * &lt;/p&gt;
+ */
+public class TokenAuthenticationFilter extends OncePerRequestFilter {
+
+    private RedisTemplate redisTemplate;
+
+    public TokenAuthenticationFilter(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        logger.info(&quot;uri:&quot;+request.getRequestURI());
+        //如果是登录接口，直接放行
+        if(&quot;/admin/system/index/login&quot;.equals(request.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
+        if(null != authentication) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
+        } else {
+            ResponseUtil.out(response, Result.build(null, ResultCodeEnum.PERMISSION));
+        }
+    }
+
+    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
+        // token置于header里
+        String token = request.getHeader(&quot;token&quot;);
+        logger.info(&quot;token:&quot;+token);
+        if (!StringUtils.isEmpty(token)) {
+            String username = JwtHelper.getUsername(token);
+            logger.info(&quot;useruame:&quot;+username);
+            if (!StringUtils.isEmpty(username)) {
+                String authoritiesString = (String) redisTemplate.opsForValue().get(useruame);
+                List&lt;Map&gt; mapList = JSON.parseArray(authoritiesString, Map.class);
+                List&lt;SimpleGrantedAuthority&gt; authorities = new ArrayList&lt;&gt;();
+                for (Map map : mapList) {
+                    authorities.add(new SimpleGrantedAuthority((String)map.get(&quot;authority&quot;)));
+                }
+                return new UsernamePasswordAuthenticationToken(useruame, null, authorities);
+                } else {
+                    return new UsernamePasswordAuthenticationToken(username, null, new ArrayList&lt;&gt;());
+                }
+            }
+        }
+        return null;
+    }
+}
+</code></pre>
+<h2 id="325-修改配置类">3.2.5 修改配置类</h2>
+<p>修改WebSecurityConfig类</p>
+<p>配置类添加注解：</p>
+<p>开启基于方法的安全认证机制，也就是说在web层的controller启用注解机制的安全确认</p>
+<pre><code class="language-java">@EnableGlobalMethodSecurity(prePostEnabled = true)
+</code></pre>
+<p>添加注入bean：</p>
+<pre><code class="language-java">@Autowired
+private RedisTemplate redisTemplate;
+</code></pre>
+<p>添加参数：</p>
+<p>连个fillter添加redisTemplate参数</p>
+<p><strong>完整代码如下：</strong></p>
+<pre><code class="language-java">package com.atguigu.security.config;
+
+import com.atguigu.security.custom.CustomMd5PasswordEncoder;
+import com.atguigu.security.fillter.TokenAuthenticationFilter;
+import com.atguigu.security.fillter.TokenLoginFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+
+@Configuration
+@EnableWebSecurity //@EnableWebSecurity是开启SpringSecurity的默认行为
+@EnableGlobalMethodSecurity(prePostEnabled = true)//开启注解功能，默认禁用注解
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomMd5PasswordEncoder customMd5PasswordEncoder;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Bean
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // 这是配置的关键，决定哪些接口开启防护，哪些接口绕过防护
+        http
+                //关闭csrf
+                .csrf().disable()
+                // 开启跨域以便前端调用接口
+                .cors().and()
+                .authorizeRequests()
+                // 指定某些接口不需要通过验证即可访问。登陆接口肯定是不需要认证的
+                //.antMatchers(&quot;/admin/system/index/login&quot;).permitAll()
+                // 这里意思是其它所有接口需要认证才能访问
+                .anyRequest().authenticated()
+                .and()
+                //TokenAuthenticationFilter放到UsernamePasswordAuthenticationFilter的前面，这样做就是为了除了登录的时候去查询数据库外，其他时候都用token进行认证。
+                .addFilterBefore(new TokenAuthenticationFilter(redisTemplate), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new TokenLoginFilter(authenticationManager(), redisTemplate));
+
+        //禁用session
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        // 指定UserDetailService和加密器
+        auth.userDetailsService(userDetailsService).passwordEncoder(customMd5PasswordEncoder);
+    }
+
+    /**
+     * 配置哪些请求不拦截
+     * 排除swagger相关请求
+     * @param web
+     * @throws Exception
+     */
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(&quot;/favicon.ico&quot;,&quot;/swagger-resources/**&quot;, &quot;/webjars/**&quot;, &quot;/v2/**&quot;, &quot;/swagger-ui.html/**&quot;, &quot;/doc.html&quot;);
+    }
+}
+</code></pre>
+<h2 id="326-service-oa-模块添加-redis-配置">3.2.6 service-oa 模块添加 redis 配置</h2>
+<p>application-dev.yml配文件</p>
+<pre><code class="language-yaml">spring:
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 1800000
+    password:
+    jedis:
+      pool:
+        max-active: 20 #最大连接数
+        max-wait: -1    #最大阻塞等待时间(负数表示没限制)
+        max-idle: 5    #最大空闲
+        min-idle: 0     #最小空闲
+</code></pre>
+<h2 id="327-控制-controller-层接口权限">3.2.7 控制 controller 层接口权限</h2>
+<p><strong>Spring Security默认是禁用注解的，要想开启注解，需要在继承WebSecurityConfigurerAdapter的类上加@EnableGlobalMethodSecurity注解，来判断用户对某个控制层的方法是否具有访问权限</strong></p>
+<p>通过@PreAuthorize标签控制controller层接口权限</p>
+<pre><code class="language-java">public class SysRoleController {
+
+    @Autowired
+    private SysRoleService sysRoleService;
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.list')&quot;)
+    @ApiOperation(value = &quot;获取分页列表&quot;)
+    @GetMapping(&quot;{page}/{limit}&quot;)
+    public Result index(
+            @ApiParam(name = &quot;page&quot;, value = &quot;当前页码&quot;, required = true)
+            @PathVariable Long page,
+
+            @ApiParam(name = &quot;limit&quot;, value = &quot;每页记录数&quot;, required = true)
+            @PathVariable Long limit,
+
+            @ApiParam(name = &quot;roleQueryVo&quot;, value = &quot;查询对象&quot;, required = false)
+                    SysRoleQueryVo roleQueryVo) {
+        Page&lt;SysRole&gt; pageParam = new Page&lt;&gt;(page, limit);
+        IPage&lt;SysRole&gt; pageModel = sysRoleService.selectPage(pageParam, roleQueryVo);
+        return Result.ok(pageModel);
+    }
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.list')&quot;)
+    @ApiOperation(value = &quot;获取&quot;)
+    @GetMapping(&quot;get/{id}&quot;)
+    public Result get(@PathVariable Long id) {
+        SysRole role = sysRoleService.getById(id);
+        return Result.ok(role);
+    }
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.add')&quot;)
+    @ApiOperation(value = &quot;新增角色&quot;)
+    @PostMapping(&quot;save&quot;)
+    public Result save(@RequestBody @Validated SysRole role) {
+        sysRoleService.save(role);
+        return Result.ok();
+    }
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.update')&quot;)
+    @ApiOperation(value = &quot;修改角色&quot;)
+    @PutMapping(&quot;update&quot;)
+    public Result updateById(@RequestBody SysRole role) {
+        sysRoleService.updateById(role);
+        return Result.ok();
+    }
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.remove')&quot;)
+    @ApiOperation(value = &quot;删除角色&quot;)
+    @DeleteMapping(&quot;remove/{id}&quot;)
+    public Result remove(@PathVariable Long id) {
+        sysRoleService.removeById(id);
+        return Result.ok();
+    }
+
+    @PreAuthorize(&quot;hasAuthority('bnt.sysRole.remove')&quot;)
+    @ApiOperation(value = &quot;根据id列表删除&quot;)
+    @DeleteMapping(&quot;batchRemove&quot;)
+    public Result batchRemove(@RequestBody List&lt;Long&gt; idList) {
+        sysRoleService.removeByIds(idList);
+        return Result.ok();
+    }
+    ...
+}
+</code></pre>
+<h2 id="328-测试服务器端权限">3.2.8 测试服务器端权限</h2>
+<p>登录后台，分配权限进行测试，页面如果添加了按钮权限控制，可临时去除方便测试</p>
+<p>测试结论：</p>
+<p>​	1、分配了权限的能够成功返回接口数据</p>
+<p>​	2、没有分配权限的会抛出异常：org.springframework.security.access.AccessDeniedException: 不允许访问</p>
+<h2 id="329-异常处理">3.2.9 异常处理</h2>
+<p>异常处理有2种方式：</p>
+<p>​	1、扩展Spring Security异常处理类：AccessDeniedHandler、AuthenticationEntryPoint</p>
+<p>​	2、在spring boot全局异常统一处理</p>
+<p><strong>第一种方案说明：如果系统实现了全局异常处理，那么全局异常首先会获取AccessDeniedException异常，要想Spring Security扩展异常生效，必须在全局异常再次抛出该异常。</strong></p>
+<p><strong>我们使用第二种方案：全局异常添加处理</strong></p>
+<pre><code class="language-java">/**
+ * spring security异常
+ * @param e
+ * @return
+ */
+@ExceptionHandler(AccessDeniedException.class)
+@ResponseBody
+public Result error(AccessDeniedException e) throws AccessDeniedException {
+    return Result.build(null, ResultCodeEnum.PERMISSION);
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AF%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86">一、什么是权限管理</a>
+<ul>
+<li><a href="#1%E8%8F%9C%E5%8D%95%E6%9D%83%E9%99%90">1.菜单权限</a></li>
+<li><a href="#2%E6%8C%89%E9%92%AE%E6%9D%83%E9%99%90">2.按钮权限</a></li>
+<li><a href="#3%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF">3.权限管理设计思路</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BA%8C-jwt">二、JWT</a>
+<ul>
+<li><a href="#1-jwt-%E4%BB%8B%E7%BB%8D">1. JWT 介绍</a></li>
+<li><a href="#2-jwt-%E4%BB%A4%E7%89%8C%E7%9A%84%E7%BB%84%E6%88%90">2. JWT 令牌的组成</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89-spring-security-%E4%BB%8B%E7%BB%8D">三、Spring Security 介绍</a>
+<ul>
+<li><a href="#1-spring-security-%E7%AE%80%E4%BB%8B">1. Spring Security 简介</a></li>
+<li><a href="#2-%E5%90%8C%E6%AC%BE%E4%BA%A7%E5%93%81%E5%AF%B9%E6%AF%94">2. 同款产品对比</a></li>
+<li><a href="#21-spring-security">2.1 Spring Security</a></li>
+<li><a href="#22-shiro">2.2 Shiro</a></li>
+</ul>
+</li>
+<li><a href="#3-spring-security-%E5%AE%9E%E7%8E%B0%E6%9D%83%E9%99%90">3. Spring Security 实现权限</a>
+<ul>
+<li><a href="#31-%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81">3.1 用户认证</a></li>
+<li><a href="#311-%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6">3.1.1 用户认证核心组件</a></li>
+<li><a href="#312-%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81">3.1.2 用户认证</a>
+<ul>
+<li><a href="#3121-%E8%AE%A4%E8%AF%81%E6%8E%A5%E5%8F%A3%E5%88%86%E6%9E%90">3.1.2.1 认证接口分析</a></li>
+<li><a href="#3122-%E5%8A%A0%E5%AF%86%E5%99%A8passwordencoder">3.1.2.2 加密器PasswordEncoder</a></li>
+<li><a href="#3123-%E7%94%A8%E6%88%B7%E5%AF%B9%E8%B1%A1-userdetails">3.1.2.3 用户对象 UserDetails</a></li>
+<li><a href="#3124-%E4%B8%9A%E5%8A%A1%E5%AF%B9%E8%B1%A1-userdetailsservice">3.1.2.4 业务对象 UserDetailsService</a></li>
+<li><a href="#3125-%E8%87%AA%E5%AE%9A%E4%B9%89%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%8E%A5%E5%8F%A3">3.1.2.5 自定义用户认证接口</a></li>
+<li><a href="#3126-%E8%AE%A4%E8%AF%81%E8%A7%A3%E6%9E%90-token">3.1.2.6 认证解析 token</a></li>
+<li><a href="#3127-%E9%85%8D%E7%BD%AE%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81">3.1.2.7 配置用户认证</a></li>
+<li><a href="#3128-%E9%80%9A%E8%BF%87-swagger-%E6%B5%8B%E8%AF%95%E7%99%BB%E5%BD%95">3.1.2.8 通过 swagger 测试登录</a></li>
+</ul>
+</li>
+<li><a href="#32-%E7%94%A8%E6%88%B7%E6%8E%88%E6%9D%83">3.2 用户授权</a></li>
+<li><a href="#321-%E4%BF%AE%E6%94%B9-loaduserbyusername-%E6%8E%A5%E5%8F%A3%E6%96%B9%E6%B3%95">3.2.1、修改 loadUserByUsername 接口方法</a></li>
+<li><a href="#322-spring-security-%E6%A8%A1%E5%9D%97%E9%85%8D%E7%BD%AE-redis">3.2.2 spring-security 模块配置 redis</a></li>
+<li><a href="#323-%E4%BF%AE%E6%94%B9-tokenloginfilter-%E7%99%BB%E5%BD%95%E6%88%90%E5%8A%9F%E6%96%B9%E6%B3%95">3.2.3 修改 TokenLoginFilter 登录成功方法</a></li>
+<li><a href="#324-%E4%BF%AE%E6%94%B9-tokenauthenticationfilter">3.2.4 修改 TokenAuthenticationFilter</a></li>
+<li><a href="#325-%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E7%B1%BB">3.2.5 修改配置类</a></li>
+<li><a href="#326-service-oa-%E6%A8%A1%E5%9D%97%E6%B7%BB%E5%8A%A0-redis-%E9%85%8D%E7%BD%AE">3.2.6 service-oa 模块添加 redis 配置</a></li>
+<li><a href="#327-%E6%8E%A7%E5%88%B6-controller-%E5%B1%82%E6%8E%A5%E5%8F%A3%E6%9D%83%E9%99%90">3.2.7 控制 controller 层接口权限</a></li>
+<li><a href="#328-%E6%B5%8B%E8%AF%95%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E6%9D%83%E9%99%90">3.2.8 测试服务器端权限</a></li>
+<li><a href="#329-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86">3.2.9 异常处理</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/zhi-dao-rss-de-ren-yue-shao-wo-jiu-yue-xi-wang-ta-neng-bei-ren-zhi-dao/">
+              <h3 class="post-title">
+                你知道 RSS 订阅吗？
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,483 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ElasticSearch 实现地理位置搜索 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="ElasticSearch 实现地理位置搜索 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="最近，实习时涉及到了在地图上显示客户锚点的需求，想到 ES 有这么个功能可以用，便想来试试。但网上的教程太少了，我自己也是琢磨半点才看懂的，在此分享一下。
+
+创建映射和文档
+ES 的地理位置类型分为 geo_point 和 geo_shap..." />
+    <meta name="keywords" content="ElasticSearch,Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              ElasticSearch 实现地理位置搜索
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-08-03
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+                  # ElasticSearch
+                </a>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>最近，实习时涉及到了在地图上显示客户锚点的需求，想到 ES 有这么个功能可以用，便想来试试。但网上的教程太少了，我自己也是琢磨半点才看懂的，在此分享一下。</p>
+<!-- more -->
+<h1 id="创建映射和文档">创建映射和文档</h1>
+<p>ES 的地理位置类型分为 <code>geo_point</code> 和 <code>geo_shape</code> 两种。前者表示一个地图上的点，即坐标；后者则表示多个点框出的一篇区域。功能上讲，后者的功能更强。</p>
+<p>我们先创建一个带有这两种类型的索引映射：</p>
+<pre><code class="language-json">{
+    &quot;properties&quot;: {
+        &quot;location&quot;: {
+            &quot;type&quot;: &quot;geo_point&quot;
+        },
+        &quot;area&quot;: {
+            &quot;type&quot;: &quot;geo_shape&quot;
+        }
+    }
+}
+</code></pre>
+<h2 id="geo_point">geo_point</h2>
+<p>对于 geo_point 类型插入文档很简单，有三种方法，如下：</p>
+<pre><code class="language-json">&quot;location&quot;: &quot;34.247232,108.945872&quot; // 第一种，直接插入该格式的字符串
+
+&quot;location&quot;: [108.945872, 34.247232] // 第二种，可以用数组 [lon, lat] 的形式表示
+
+&quot;location&quot;: { // 第三种，以对象形式插入
+    &quot;lat&quot;: 34.247232,
+    &quot;lon&quot;: 108.945872
+}
+</code></pre>
+<h2 id="geo_shape">geo_shape</h2>
+<p>对于 geo_shape 类型插入文档较复杂，因为它有很多子类型，如，<code>point</code>，<code>circle</code>，<code>envelope</code>，<code>linestring</code>，<code>polygon</code>，<code>multipoint</code>，<code>multilinestring</code>，<code>multipolygon</code> 等。</p>
+<p>下面就介绍几种常用的类型：</p>
+<pre><code class="language-json">&quot;area&quot;: {
+    &quot;type&quot;: &quot;point&quot;, // 点
+    &quot;coordinates&quot;: [108.945872, 34.247232]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;circle&quot;, // 圆
+    &quot;radius&quot;: &quot;10km&quot;,
+    &quot;coordinates&quot;: [-74.0059, 40.7128]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;envelope&quot;, // 矩形
+    &quot;coordinates&quot; : [
+        [108.945872, 34.247232],
+        [108.374854, 30.809156]
+    ]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;linestring&quot;, // 线，至少两个点
+    &quot;coordinates&quot;: [
+        [108.945872, 34.247232],
+        [108.374854, 30.809156],
+        [108.378368, 30.809938]
+    ]
+}
+
+&quot;area&quot;: {
+    &quot;type&quot;: &quot;polygon&quot;, // 封闭多边形，其首点和末点必须匹配，最少需要 4 个顶点
+    &quot;coordinates&quot;: [
+        [ // 第一个多边形，作为主体
+            [-77.03653, 38.897676],
+            [-77.03653, 37.897676],
+            [-76.03653, 38.897676],
+            [-77.03653, 38.997676],
+            [-77.03653, 38.897676]
+        ]
+        // 若存在第二个及以后的多边形，则作为主体中的“洞”，排除主体中不需要包含的面积
+    ]
+}
+</code></pre>
+<p>其余的 multi 类型就是在外围多加一个中括号即可。</p>
+<h1 id="地理位置搜索">地理位置搜索</h1>
+<p>geo_point 的查询方式与 geo_shape 不同，两者常用的查询方式有半径，矩形和多边形查询。但 geo_shape 查询可以兼容 geo_point 类型，而且 geo_shape 不仅可以搜索选定区域的点，还可以搜索区域，查询的空间关系如下：</p>
+<ul>
+<li>INTERSECTS -（默认）返回其 geo_shape 或 geo_point 字段与查询几何相交的所有文档。</li>
+<li>DISJOINT - 返回其 geo_shape 或 geo_point 字段与查询几何没有共同点的所有文档。</li>
+<li>WITHIN - 返回其 geo_shape 或 geo_point 字段在查询几何内的所有文档。 不支持线几何。</li>
+<li>CONTAINS - 返回其 geo_shape 或 geo_point 字段包含查询几何的所有文档。</li>
+</ul>
+<h2 id="半径搜索">半径搜索</h2>
+<p>geo_point 的半径搜索就是在地图上标定一个中心点，再标出半径，查询在这个圆内的坐标点。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_distance&quot;: {
+            &quot;distance&quot;: &quot;500km&quot;, // 半径，可以附带单位
+            &quot;location&quot;: { // 中心点，此处使用的是第三种写法
+                &quot;lat&quot;: &quot;38.993443&quot;,
+                &quot;lon&quot;: &quot;117.158558&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;circle&quot;,
+                    &quot;radius&quot;: &quot;10km&quot;,
+                    &quot;coordinates&quot;: [-74.0059, 40.7128]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="矩形搜索">矩形搜索</h2>
+<p>geo_point 的矩形搜索只要给出左上角和右下角两个坐标即可。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_bounding_box&quot;: {
+          &quot;location&quot;: {
+            &quot;top_left&quot;: {
+              &quot;lat&quot;: 47.7328,
+              &quot;lon&quot;: -122.448
+            },
+            &quot;bottom_right&quot;: {
+              &quot;lat&quot;: 47.468,
+              &quot;lon&quot;: -122.0924
+            }
+          }
+        }
+    }
+}
+</code></pre>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;envelope&quot;, // 矩形
+                    &quot;coordinates&quot; : [
+                        [108.945872, 34.247232],
+                        [108.374854, 30.809156]
+                    ]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="多边形搜索">多边形搜索</h2>
+<p>geo_point 的多边形搜索需要给出组成多边形的所有边界点。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_polygon&quot;: {  
+          &quot;location&quot;: {  
+            &quot;points&quot; : [  
+              {&quot;lat&quot; : 40, &quot;lon&quot; : -70},  
+              {&quot;lat&quot; : 30, &quot;lon&quot; : -80},  
+              {&quot;lat&quot; : 20, &quot;lon&quot; : -90}  
+            ]  
+          }  
+        } 
+    }
+}
+</code></pre>
+<p><strong>注意</strong>：geo_point 的多边形，其首点和末点是无需匹配的，而 geo_shape 的必须要匹配。</p>
+<p>geo_shape 也是类似，不过它跟插入文档时的格式一样。</p>
+<pre><code class="language-json">{
+    &quot;query&quot;: {
+        &quot;geo_shape&quot;: {
+            &quot;location&quot;: {
+                &quot;shape&quot;: {
+                    &quot;type&quot;: &quot;polygon&quot;,
+                    &quot;coordinates&quot;: [
+                        [
+                            [-77.03653, 38.897676],
+                            [-77.03653, 37.897676],
+                            [-76.03653, 38.897676],
+                            [-77.03653, 38.997676],
+                            [-77.03653, 38.897676]
+                        ]
+                    ]
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h1 id="java-api-实现地理位置搜索">Java API 实现地理位置搜索</h1>
+<p>ElasticSearch 提供了一套 API 给 Java 用于操作，需要引入下面的依赖：</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.elasticsearch.client&lt;/groupId&gt;
+    &lt;artifactId&gt;elasticsearch-rest-high-level-client&lt;/artifactId&gt;
+    &lt;version&gt;7.15.2&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>因为业务场景中，ES 中的数据大多是从其他数据源同步过来的，而非用 Java 手动创建，所以下面仅介绍如何实现地理位置搜索。</p>
+<p>首先，搭建好框架，便于测试:</p>
+<pre><code class="language-java">@SuppressWarnings(&quot;deprecation&quot;)
+public class ESTest_Doc_Geo_Query {
+
+    public static final double[][][][] coordinates = {
+        {
+            {
+                { 116.53, 39.67 },
+                { 117.05, 39.67 },
+                { 116.39, 39.42 },
+                { 117.48, 39.16 },
+                { 116.53, 39.67 }
+            }
+        },
+        {
+            {
+                { 116.53, 39.67 },
+                { 117.05, 39.67 },
+                { 116.39, 39.42 },
+                { 117.48, 39.16 },
+                { 116.53, 39.67 }
+            }
+        }
+    };
+
+    public static void main(String[] args) {
+        RestClientBuilder builder = RestClient.builder(new HttpHost(&quot;127.0.0.1&quot;, 9200, &quot;http&quot;));
+        try (RestHighLevelClient client = new RestHighLevelClient(builder)) {
+            // 接下来，只需要调用不同的方法就行实现不同的搜索
+            QueryBuilder geoShapeQuery = geoShapePolygonQuery(coordinates);
+
+            BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(QueryBuilders.matchAllQuery())
+                    .filter(geoShapeQuery);
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().query(boolQuery);
+            SearchRequest request = new SearchRequest().indices(&quot;geo&quot;).source(searchSourceBuilder);
+            SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+            SearchHits hits = response.getHits();
+
+            System.out.println(response.getTook());
+
+            for (SearchHit hit : hits) {
+                System.out.println(hit.getSourceAsString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+</code></pre>
+<p>因为半径搜索和多边形搜索更常用，所以就不介绍矩形搜索了，感兴趣自行搜索。</p>
+<h2 id="半径搜索-2">半径搜索</h2>
+<p>我们创建两个方法 <code>geoPointCircleQuery</code>，<code>geoShapeCircleQuery</code> 来代表两种类型的搜索：</p>
+<pre><code class="language-java">public static GeoDistanceQueryBuilder geoPointCircleQuery(String name, double lon, double lat, String distance) {
+    return QueryBuilders.geoDistanceQuery(name).distance(distance).point(lat, lon);
+}
+
+public static GeoShapeQueryBuilder geoShapeCircleQuery(String name, double lon, double lat, double radius) throws IOException {
+    return QueryBuilders.geoIntersectionQuery(name, new Circle(lon, lat, radius * 1000));
+}
+</code></pre>
+<p>geo_point 的每种搜索都会有一个专门的 Builder 类，而 geo_shape 只有一种。</p>
+<p><code>geoIntersectionQuery</code> 等价于 使用 <code>builder.relation(ShapeRelation.INTERSECTS)</code> 设置空间关系为<strong>相交</strong>的 <code>geoShapeQuery</code>。同理，其余关系也有专门的查询类。当然，你也可以选择手动设置。</p>
+<h2 id="多边形搜索-2">多边形搜索</h2>
+<p>同上，还是封装两个方法实现：</p>
+<pre><code class="language-java">public static GeoPolygonQueryBuilder geoPointPolygonQuery(String name, double[][] points) {
+    List&lt;GeoPoint&gt; geoPoints = Arrays.stream(points).map(point -&gt; new GeoPoint(point[1], point[0]))
+            .collect(Collectors.toList());
+    return QueryBuilders.geoPolygonQuery(name, geoPoints);
+}
+
+public static GeoShapeQueryBuilder geoShapePolygonQuery(String name, double[][] points) throws IOException {
+    double[] lat = Arrays.stream(points).mapToDouble(point -&gt; point[1]).toArray();
+    double[] lon = Arrays.stream(points).mapToDouble(point -&gt; point[0]).toArray();
+    return QueryBuilders.geoIntersectionQuery(name, new Polygon(new LinearRing(lon, lat)));
+}
+</code></pre>
+<p><code>LinearRing</code> 代表一个闭合的线，仅作为创建 <code>Polygon</code> 的边界，不能直接应用于搜索。</p>
+<p><em>p.s. <code>Polygon</code> 还提供了 <code>Polygon(LinearRing polygon, List&lt;LinearRing&gt; holes)</code> 的构造方法来创建具有“洞”的多边形。</em></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%9B%E5%BB%BA%E6%98%A0%E5%B0%84%E5%92%8C%E6%96%87%E6%A1%A3">创建映射和文档</a>
+<ul>
+<li><a href="#geo_point">geo_point</a></li>
+<li><a href="#geo_shape">geo_shape</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E6%90%9C%E7%B4%A2">地理位置搜索</a>
+<ul>
+<li><a href="#%E5%8D%8A%E5%BE%84%E6%90%9C%E7%B4%A2">半径搜索</a></li>
+<li><a href="#%E7%9F%A9%E5%BD%A2%E6%90%9C%E7%B4%A2">矩形搜索</a></li>
+<li><a href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2%E6%90%9C%E7%B4%A2">多边形搜索</a></li>
+</ul>
+</li>
+<li><a href="#java-api-%E5%AE%9E%E7%8E%B0%E5%9C%B0%E7%90%86%E4%BD%8D%E7%BD%AE%E6%90%9C%E7%B4%A2">Java API 实现地理位置搜索</a>
+<ul>
+<li><a href="#%E5%8D%8A%E5%BE%84%E6%90%9C%E7%B4%A2-2">半径搜索</a></li>
+<li><a href="#%E5%A4%9A%E8%BE%B9%E5%BD%A2%E6%90%9C%E7%B4%A2-2">多边形搜索</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/ru-he-yong-chao-xing-yun-pan-zuo-wai-lian-zhi-lian/">
+              <h3 class="post-title">
+                如何用超星云盘做外链直链
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

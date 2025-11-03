@@ -1,0 +1,338 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>记一次对 DataX 向 ES 同步对象型数据的探索过程 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="记一次对 DataX 向 ES 同步对象型数据的探索过程 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="今天开完产品审议会，Leader 表示让我来负责工作台模块自定义地理查询的功能开发时，已经学完 ES 的地理查询的我当即表示莫得问题👌。可就在我想先同步坐标在写业务代码时才发现，“这个 DataX 怎么同步对象型数据嘞？”🤔
+
+介绍
+D..." />
+    <meta name="keywords" content="ElasticSearch,Other" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              记一次对 DataX 向 ES 同步对象型数据的探索过程
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-08-12
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/UXX0ydlwT/" class="post-tag">
+                  # ElasticSearch
+                </a>
+              
+                <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+                  # Other
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>今天开完产品审议会，Leader 表示让我来负责工作台模块自定义地理查询的功能开发时，已经学完 ES 的地理查询的我当即表示莫得问题👌。可就在我想先同步坐标在写业务代码时才发现，“这个 DataX 怎么同步对象型数据嘞？”🤔</p>
+<!-- more -->
+<h1 id="介绍">介绍</h1>
+<p>DataX 是阿里巴巴开源的一个异构数据源离线同步工具，致力于实现包括关系型数据库(MySQL、Oracle等)、HDFS、Hive、ODPS、HBase、FTP等各种异构数据源之间稳定高效的数据同步功能。使用插件增强功能，这里我需要从 MySQL 同步数据到 ES，就要用到 MySQL 的输入端插件和 ES 的输出端插件。</p>
+<h1 id="用法">用法</h1>
+<p>这里演示从 MySQL 同步到 ES，DataX 的同步很简单，只需要一个配置脚本并运行下面地命令即可</p>
+<pre><code>python /datax/bin/datax.py job.json
+</code></pre>
+<p>DataX 就会自动按照配置文件里的信息连接对应服务获取和同步数据。示例如下：</p>
+<pre><code class="language-json">// job.json
+{
+  &quot;job&quot;: {
+    &quot;setting&quot;: {
+      &quot;speed&quot;: {
+        &quot;channel&quot;: 2
+      }
+    },
+    &quot;content&quot;: [
+      {
+        &quot;reader&quot;: {
+          &quot;name&quot;: &quot;mysqlreader&quot;,
+          &quot;parameter&quot;: {
+            &quot;username&quot;: &quot;root&quot;,
+            &quot;password&quot;: &quot;123456&quot;,
+            &quot;connection&quot;: [
+              {
+                &quot;querySql&quot;: [&quot;select * from user_t&quot;],
+                &quot;jdbcUrl&quot;: [&quot;jdbc:mysql://127.0.0.1:3306/db_user&quot;]
+              }
+            ]
+          }
+        },
+        &quot;writer&quot;: {
+          &quot;name&quot;: &quot;elasticsearchwriter&quot;,
+          &quot;parameter&quot;: {
+            &quot;endpoint&quot;: &quot;http://127.0.0.1:9200&quot;,
+            &quot;accessId&quot;: &quot;elastic&quot;,
+            &quot;accessKey&quot;: &quot;123456&quot;,
+            &quot;index&quot;: &quot;user&quot;,
+            &quot;column&quot;: [
+              { &quot;name&quot;: &quot;pk&quot;, &quot;type&quot;: &quot;id&quot; },
+              { &quot;name&quot;: &quot;col_ip&quot;, &quot;type&quot;: &quot;ip&quot; },
+              { &quot;name&quot;: &quot;col_double&quot;, &quot;type&quot;: &quot;double&quot; },
+              { &quot;name&quot;: &quot;col_long&quot;, &quot;type&quot;: &quot;long&quot; },
+              { &quot;name&quot;: &quot;col_integer&quot;, &quot;type&quot;: &quot;integer&quot; },
+              { &quot;name&quot;: &quot;col_keyword&quot;, &quot;type&quot;: &quot;keyword&quot; },
+              { &quot;name&quot;: &quot;col_text&quot;, &quot;type&quot;: &quot;text&quot;, &quot;analyzer&quot;: &quot;ik_max_word&quot; },
+              { &quot;name&quot;: &quot;col_geo_point&quot;, &quot;type&quot;: &quot;geo_point&quot; },
+              { &quot;name&quot;: &quot;col_date&quot;, &quot;type&quot;: &quot;date&quot;, &quot;format&quot;: &quot;yyyy-MM-dd HH:mm:ss&quot; },
+              { &quot;name&quot;: &quot;col_nested1&quot;, &quot;type&quot;: &quot;nested&quot; },
+              { &quot;name&quot;: &quot;col_nested2&quot;, &quot;type&quot;: &quot;nested&quot; },
+              { &quot;name&quot;: &quot;col_object1&quot;, &quot;type&quot;: &quot;object&quot; },
+              { &quot;name&quot;: &quot;col_object2&quot;, &quot;type&quot;: &quot;object&quot; },
+              { &quot;name&quot;: &quot;col_integer_array&quot;, &quot;type&quot;: &quot;integer&quot;, &quot;array&quot;: true },
+              { &quot;name&quot;: &quot;col_geo_shape&quot;, &quot;type&quot;: &quot;geo_shape&quot;, &quot;tree&quot;: &quot;quadtree&quot;, &quot;precision&quot;: &quot;10m&quot; }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+</code></pre>
+<h1 id="问题">问题</h1>
+<p>看起来是不是很简单？如果只是针对普通字符串，数字，或是日期字段，那确实没啥问题，通过 SQL 语句 都能正确地查出并同步。但问题就出在最后一个字段 <code>col_geo_shape</code>，它的类型是 <code>geo_shape</code>。了解 ES 的人都知道，这是 ES 用于地理查询的一个重要类型，用它我们可以实现判断坐标和坐标，坐标和区域以及区域和区域之间的空间关系。</p>
+<p>但问题是，在 ES 中，geo_shape 类型的数据长下面这样：</p>
+<pre><code class="language-json">&quot;col_geo_shape&quot;: {
+    &quot;type&quot;: &quot;point&quot;,
+    &quot;coordinates&quot;: [
+        108.374854,
+        30.809156
+    ]
+}
+</code></pre>
+<p>没错，它是一个遵循 GeoJson 格式的 Json 对象，这里的类型除了 <code>point</code> 外，还有 <code>circle</code>，<code>envelope</code>，<code>polygon</code> 等等</p>
+<p>对于 SQL 语句的查询结果，我们都知道是一个个字段，默认情况下，它们都可以作为字符串，也就是对应 ES 的 <code>keyword</code> 或 <code>text</code> 类型。但 SQL 如何查出一个对象？</p>
+<p>我相信到多数人的第一反应拼出来一个 json 串。如果你想到了，那么恭喜你答对了！可惜的是，当时的我并没有那么聪明，再加上每一次测试同步数据都要等很长的时间，我可不想为了一个猜测去冒这么大的时间成本（其实就是想追求一次通过）</p>
+<p>于是，漫长的探索过程就开始了......</p>
+<h1 id="探索">探索</h1>
+<p>原本我以为这样一个小问题，广大网友应该已经踩过坑了，大不了官方文档应该有写怎么用吧。</p>
+<p>但直到我搜索了无数次，就是没有找到向 ES 同步对象型数据的具体示例。大部分都是在同步普通类型，如：<code>integer</code>，<code>date</code>，<code>keyword</code>，<code>long</code> 等等。还有一些介绍也只是提了一嘴能同步 <code>geo_shape</code> 类型，但却依然没有给出具体的示例。</p>
+<p>这时，我想到，既然官方有提供这样一个类型，那么一定有同步它的办法。所以我决定去 GitHub 找找<a href="https://github.com/alibaba/DataX/blob/master/elasticsearchwriter/doc/elasticsearchwriter.md">官方文档</a>。令我大失所望的是，官方仅提供了 ES 输出端的配置信息，我仍不清楚 mysql 到底怎么同步对象给 ES。</p>
+<p>最终，我决定看源码。</p>
+<h1 id="分析">分析</h1>
+<p>经过一番寻找，我最终找到了相关的代码，位于 <a href="https://github.com/alibaba/DataX/blob/master/elasticsearchwriter/src/main/java/com/alibaba/datax/plugin/writer/elasticsearchwriter/ElasticSearchWriter.java#L301">ElasticSearchWriter.java</a> 如下：</p>
+<pre><code class="language-java">// ElasticSearchWriter.java
+switch (colType) {
+    case STRING:
+        // 兼容string类型,ES5之前版本
+        break;
+    case KEYWORD:
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-search-speed.html#_warm_up_global_ordinals
+        field.put(&quot;eager_global_ordinals&quot;, jo.getBoolean(&quot;eager_global_ordinals&quot;));
+        break;
+    case TEXT:
+        field.put(&quot;analyzer&quot;, jo.getString(&quot;analyzer&quot;));
+        // 优化disk使用,也同步会提高index性能
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-disk-usage.html
+        field.put(&quot;norms&quot;, jo.getBoolean(&quot;norms&quot;));
+        field.put(&quot;index_options&quot;, jo.getBoolean(&quot;index_options&quot;));
+        if(jo.getString(&quot;fields&quot;) != null) {
+            field.put(&quot;fields&quot;, jo.getJSONObject(&quot;fields&quot;));
+        }
+        break;
+    case DATE:
+        if (Boolean.TRUE.equals(jo.getBoolean(&quot;origin&quot;))) {
+            if (jo.getString(&quot;format&quot;) != null) {
+                field.put(&quot;format&quot;, jo.getString(&quot;format&quot;));
+            }
+            // es原生format覆盖原先来的format
+            if (jo.getString(&quot;dstFormat&quot;) != null) {
+                field.put(&quot;format&quot;, jo.getString(&quot;dstFormat&quot;));
+            }
+            if(jo.getBoolean(&quot;origin&quot;) != null) {
+                columnItem.setOrigin(jo.getBoolean(&quot;origin&quot;));
+            }
+        } else {
+            columnItem.setTimeZone(jo.getString(&quot;timezone&quot;));
+            columnItem.setFormat(jo.getString(&quot;format&quot;));
+        }
+        break;
+    case GEO_SHAPE:
+        field.put(&quot;tree&quot;, jo.getString(&quot;tree&quot;));
+        field.put(&quot;precision&quot;, jo.getString(&quot;precision&quot;));
+        break;
+    case OBJECT:
+    case NESTED:
+        if (jo.getString(&quot;dynamic&quot;) != null) {
+            field.put(&quot;dynamic&quot;, jo.getString(&quot;dynamic&quot;));
+        }
+        break;
+    default:
+        break;
+}
+if (jo.containsKey(&quot;other_params&quot;)) {
+    field.putAll(jo.getJSONObject(&quot;other_params&quot;));
+}
+</code></pre>
+<p>注意看最后一个 if 语句，它会将除固定配置外的其余参数当成 json 串进行反序列化。这也坐实了，你只需要在 SQL 语句中通过 <code>CONCAT</code> 等字符串函数拼出一个字符串即可同步对象型数据。</p>
+<h1 id="结尾">结尾</h1>
+<p>总之，这件事给我的启发就是：<strong>在行动前一定要做好可行性分析</strong>，否则到时候代码写一半发现方法行不通，那就白写了🤣</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BB%8B%E7%BB%8D">介绍</a></li>
+<li><a href="#%E7%94%A8%E6%B3%95">用法</a></li>
+<li><a href="#%E9%97%AE%E9%A2%98">问题</a></li>
+<li><a href="#%E6%8E%A2%E7%B4%A2">探索</a></li>
+<li><a href="#%E5%88%86%E6%9E%90">分析</a></li>
+<li><a href="#%E7%BB%93%E5%B0%BE">结尾</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/ji-yi-ci-wrangler-cli-chuang-jian-cloudflare-worker-mo-ban-qi-dong-shi-bai-yuan-yin/">
+              <h3 class="post-title">
+                记一次 Wrangler CLI 创建 Cloudflare Worker 模板启动失败原因
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

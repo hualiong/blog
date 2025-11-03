@@ -1,0 +1,479 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DelayQueue 实现临时上传文件的过期定时清理 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="DelayQueue 实现临时上传文件的过期定时清理 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="学院的智慧党建项目要实现图片上传功能，为了解决图片临时上传后的清理问题，考虑到数据量不大，我想到了用 Java 的 DelayQueue 延迟队列来处理。
+
+需求分析
+前端在编辑器里编辑文章时，有时需要上传本地图片，如下：
+
+上传图片：
+
+..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              DelayQueue 实现临时上传文件的过期定时清理
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-06-07
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>学院的智慧党建项目要实现图片上传功能，为了解决图片临时上传后的清理问题，考虑到数据量不大，我想到了用 Java 的 DelayQueue 延迟队列来处理。</p>
+<!-- more -->
+<h1 id="需求分析">需求分析</h1>
+<p>前端在编辑器里编辑文章时，有时需要上传本地图片，如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://hualiang.online/post-images/1717766874461.png" alt="1" loading="lazy"></figure>
+<p>上传图片：</p>
+<figure data-type="image" tabindex="2"><img src="https://hualiang.online/post-images/1717767213521.png" alt="2" loading="lazy"></figure>
+<p>要求：</p>
+<ol>
+<li>上传到后端后，后端需要返回一个可访问的 URL 链接给前端用来在文章中引用</li>
+<li>临时上传到后端的图片若一定时间内未被任何文章引用，需要定时清理</li>
+</ol>
+<h1 id="技术选型">技术选型</h1>
+<p>说到定时任务，首先想到两种方案：</p>
+<ol>
+<li>SpringBoot 提供的定时任务实现</li>
+<li>Java 提供的延迟队列来实现</li>
+</ol>
+<p>考虑到该项目原本就是在学院内使用，数据量不大。而且定时任务时效性差，不能针对单独文件进行计时，故选择第二种方案。</p>
+<h1 id="代码实现">代码实现</h1>
+<p>延迟队列实现的思路还是很简单的：</p>
+<p>将临时上传的图片都放入队列中并设置好过期时间，一旦图片过期就从队列中取出并删除。如果在过期前有文章引用了该图片，那么从队列中将其删除即可。</p>
+<h2 id="ttlfile">TTLFile</h2>
+<p>我们先创建一个过期文件类 <code>TTLFile</code> 实现 <code>Delayed</code> 接口，这里我们定义的是抽象类，实现一些基础功能，留下一些关键功能，如 <code>clean()</code> 方法，便于后续拓展功能。比如，用于清理本地文件的 <code>LocalFile</code>，或是存储在 Minio 上的 <code>MinioFile</code></p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+
+import lombok.Getter;
+// 延迟队列中的元素都需要实现 Delayed 接口来判断过期时间
+public abstract class TTLFile implements Delayed {
+
+    protected final String uuid;
+
+    protected long ttl; // 过期时间
+
+    @Getter
+    protected int failedCount = 0; // 任务失败次数
+
+    public TTLFile(String uuid, long delay) {
+        this.uuid = uuid;
+        this.ttl = System.currentTimeMillis() + delay;
+    }
+
+    /**
+     * 查看当前任务还有多久到期
+     * 
+     * @param unit
+     * @return 剩余时间
+     */
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(ttl - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 延迟队列需要到期时间升序入队，所以我们需要实现compareTo进行到期时间比较
+     * 
+     * @param delayed
+     * @return 比较结果
+     */
+    @Override
+    public int compareTo(Delayed delayed) {
+        return Long.compare(this.ttl, ((TTLFile) delayed).ttl);
+    }
+
+    /**
+     * 判断任务是否失败
+     * 
+     * @return 是否失败
+     */
+    public boolean isFailed() {
+        return ++failedCount &gt;= 3;
+    }
+
+    /**
+     * 延时
+     */
+    public void delay(long delay) {
+        ttl = System.currentTimeMillis() + delay;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TTLFile other = (TTLFile) obj;
+        if (uuid == null) {
+            if (other.uuid != null)
+                return false;
+        } else if (!uuid.equals(other.uuid))
+            return false;
+        return true;
+    }
+
+    /**
+     * 清理文件
+     * 
+     * @return 是否清理成功
+     */
+    public abstract boolean clean();
+
+    /**
+     * 获取文件路径
+     * 
+     * @return 文件路径
+     */
+    public abstract String getPath();
+
+}
+</code></pre>
+<p>注意：这里重写的 <code>hashCode()</code> 和 <code>equal()</code> 只将 <code>uuid</code> 作为唯一标识，因为要想从延迟队列中移除元素，我们就必须传入一个等价的元素才行。将 <code>uuid</code> 作为唯一标识，到时候移除元素只需要传入一个具有相同 <code>uuid</code> 的对象实例即可。</p>
+<p><em>p.s. 一般情况，文件的存储路径都是唯一的，可以用来作为 uuid</em></p>
+<h2 id="localfile">LocalFile</h2>
+<p>因为一开始该项目并未使用 Minio 这种专门的文件存储服务，直接将文件存在本地，所以我先实现的是清理本地文件的功能。</p>
+<p>得益于抽象类已经实现了一些基本功能，我们只需要实现 <code>clean()</code> 和 <code>getPath()</code> 即可。</p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import java.io.File;
+
+public class LocalFile extends TTLFile {
+
+    // 任务
+    private File file;
+
+    public LocalFile(String uuid, String path, long delay) {
+        super(uuid, delay);
+        this.file = new File(path);
+    }
+
+    /**
+     * 删除文件
+     * 
+     * @return 是否清理成功
+     */
+    @Override
+    public boolean clean() {
+        return file.exists() ? file.delete() : true;
+    }
+
+    /**
+     * 获取文件路径
+     * 
+     * @return 文件路径
+     */
+    @Override
+    public String getPath() {
+        return file.getPath();
+    }
+
+}
+</code></pre>
+<p>内置一个 <code>File</code> 类用来操作文件，<code>clean()</code> 也是判断文件存在后直接删除，实现起来并不难。</p>
+<p>这样一个定时清理本地文件的类就写好了~</p>
+<h2 id="cleaner">Cleaner</h2>
+<p>根据之前的思路，要想从延迟队列里不断取出过期元素删除，我们就需要一个后台线程异步获取队列中的元素，而且需要在 SpringBoot 一启动就要开始执行。这里我们可以用 SpringBoot 提供的 <code>ApplicationRunner</code> 接口来实现。</p>
+<p>在 SpringBoot 应用程序启动时，有时我们需要执行一些特定的任务，如加载配置、建立连接等。SpringBoot 提供了 <code>ApplicationRunner</code> 接口，允许我们在应用程序完全启动后执行自定义的逻辑。</p>
+<p>下面我们通过实现该接口来定义一个“清洁工”</p>
+<pre><code class="language-java">package com.dangjian.clean;
+
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
+
+import com.dangjian.utils.FileUtil;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.concurrent.DelayQueue;
+
+@Slf4j
+@Component
+public class Cleaner implements ApplicationRunner {
+
+    private DelayQueue&lt;TTLFile&gt; cleanQueue = new DelayQueue&lt;&gt;();
+
+    public void addTask(TTLFile ttlFile) {
+        cleanQueue.add(ttlFile);
+    }
+
+    public void addTask(List&lt;TTLFile&gt; ttlFile) {
+        cleanQueue.addAll(ttlFile);
+    }
+
+    public boolean removeTask(TTLFile ttlFile) {
+        return cleanQueue.remove(ttlFile);
+    }
+
+    public boolean removeTask(List&lt;TTLFile&gt; ttlFile) {
+        return cleanQueue.removeAll(ttlFile);
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        Thread thread = new Thread(() -&gt; {
+            while (true) {
+                try {
+                    TTLFile ttlFile = cleanQueue.take();
+                    if (ttlFile.clean()) {
+                        log.info(&quot;成功清理：{}&quot;, ttlFile.getPath());
+                    } else {
+                        if (ttlFile.isFailed()) {
+                            log.error(&quot;清理失败，文件路径：{}&quot;, ttlFile.getPath());
+                            String info = String.format(&quot;[%s] - 清理失败，文件路径：%s&quot;, LocalTime.now(), ttlFile.getPath());
+                            FileUtil.writeLog(FileUtil.getCurrentPath(), info);
+                        } else {
+                            log.warn(&quot;清理失败，重试次数：{}，文件路径：{}&quot;, ttlFile.getFailedCount(), ttlFile.getPath());
+                            ttlFile.delay(60000); // 1分钟后重试
+                            cleanQueue.put(ttlFile);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.setName(&quot;Cleaner&quot;);
+        thread.start();
+    }
+
+}
+</code></pre>
+<p>在上面的代码中，我们内置了一个延迟队列，还定义了一些往队列里添加定时任务的方法。</p>
+<p>其中，在重写的方法中，我们直接创建一个死循环的线程不断从队列中提取任务，这里调用的是延迟队列的 <code>take()</code> 方法，该方法在队列中没有可以取出的过期元素时，会阻塞消费者，直到有元素过期。所以并不会过多损耗 CPU 资源。</p>
+<p>对于清理失败的情况，还会通过 <code>TTLFile</code> 内含的计数字段来重试 3 次清理操作。若依旧不成功，则该报错报错，该写日志写日志。</p>
+<h1 id="实战">实战</h1>
+<p>在我们的项目中，有一个专门的临时上传文件接口，我们可以在接收文件后将其加入到队列里。</p>
+<pre><code class="language-java">@Operation(summary = &quot;临时上传文件&quot;)
+@PostMapping(&quot;/upload&quot;)
+public Result upload(@Parameter(description = &quot;上传的文件&quot;) @RequestPart MultipartFile file) {
+    Optional.ofNullable(file).orElseThrow(() -&gt; new CustomException(&quot;上传文件为空！&quot;));
+
+    String tempPath = FileUtil.tempUpload(file);
+    String uuid = UUID.randomUUID().toString();
+    redisTemplate.opsForValue().set(uuid, tempPath, 10, TimeUnit.MINUTES);
+    
+    // 将临时路径作为唯一标识
+    cleaner.addTask(new LocalFile(tempPath, 10 * 60 * 1000)); // 10分钟后删除
+
+    log.info(&quot;文件上传成功，临时路径：{}&quot;, tempPath);
+    return Result.ok(uuid);
+}
+</code></pre>
+<p><em>p.s. Cleaner 带有 @Component 注解，可直接注入</em></p>
+<p>而当我们引用临时文件，需要将他从队列中移除时，只需要用相同的路径作为表示传入一个新对象即可。</p>
+<p>下面的代码是用来设置支部活动附件，附件已经临时上传到后端了</p>
+<pre><code class="language-java">@Override
+public void setActivityFile(String actId, Activity activity) {
+    // 通过活动 ID 从 Redis 里拿到预先存在里面的临时路径
+    String path = redisTemplate.opsForValue().getAndDelete(actId);
+    if (StringUtils.hasLength(path) &amp;&amp; cleaner.removeTask(new LocalFile(path, 1000))) { // 传入一个具有相同临时路径的对象来删除队列中的临时文件
+        Optional.ofNullable(activity.getFile()).ifPresent(FileUtil::delete);
+        activity.setFile(path);
+    } else {
+        throw new CustomException(&quot;临时上传的活动文件已过期，请重新上传！&quot;);
+    }
+}
+</code></pre>
+<p>经测试，在不出现 <code>IOException</code> 的情况下，只要提前将任务加入队列，一旦到期，临时上传的文件就能被成功删除。</p>
+<h1 id="总结">总结</h1>
+<p>清理文件时记得做好异常处理以及回滚机制，防止清理失败后未将任务重新添加回队列导致垃圾文件堆积。</p>
+<p>延迟队列底层使用的无界队列，基于 JVM 内存，数据量少的情况下，这种方法简单且使用。若在企业级场景下，可能更多的会使用像 Kafka，RocketMQ 这种高性能消息队列提供的延迟队列来实现。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90">需求分析</a></li>
+<li><a href="#%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B">技术选型</a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">代码实现</a>
+<ul>
+<li><a href="#ttlfile">TTLFile</a></li>
+<li><a href="#localfile">LocalFile</a></li>
+<li><a href="#cleaner">Cleaner</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AE%9E%E6%88%98">实战</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/zhen-zheng-you-ya-de-vite-duo-ye-mian-shi-zhan/">
+              <h3 class="post-title">
+                Vite 多页面实战
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

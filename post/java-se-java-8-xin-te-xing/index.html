@@ -1,0 +1,721 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】二十二、Java 8 新特性  | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】二十二、Java 8 新特性  | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Java 8 是 oracle 公司于 2014 年 3 月发布，可以看成是自 Java 5 以来最具革命性的版本。Java 8 为 Java 语言、编译器、类库、开发工具与JVM带来了大量新特性，是目前最常用的 Java 版本。
+
+函数式..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】二十二、Java 8 新特性 
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-03-03
+              </span>
+              <span>
+                19 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Java 8 是 oracle 公司于 2014 年 3 月发布，可以看成是自 Java 5 以来<strong>最具革命性</strong>的版本。Java 8 为 Java 语言、编译器、类库、开发工具与JVM带来了大量新特性，是目前<strong>最常用</strong>的 Java 版本。</p>
+<!-- more -->
+<h2 id="函数式接口">函数式接口</h2>
+<p>只包含一个抽象方法的接口，称为函数式接口。<strong>所有以前用匿名实现类表示的现在都可以用 Lambda 表达式来写。</strong></p>
+<p>你可以通过 Lambda 表达式来创建该接口的对象。(若 Lambda 表达式抛出一个受检异常，那么该异常需要在目标接口的抽象方法上进行声明)。我们可以在一个接口，上使用 <code>@Functionallnterface</code> 注解，这样做可以检查它是否是一个函数式接口。同时 javadoc 也会包含一条声明， 说明这个接口是一个函数式接口。在 java.util.function 包下定义了 Java 8的丰富的函数式接口。</p>
+<p>Java 内置四大核心函数式接口，如下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数式接口</th>
+<th style="text-align:center">参数类型</th>
+<th style="text-align:center">返回类型</th>
+<th style="text-align:center">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Consumer&lt;T&gt;</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">void</td>
+<td style="text-align:center">消费型接口，对类型为 T 的对象应用操作，包含方法: <br><strong>void accept(T t)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">Supplier&lt;T&gt;</td>
+<td style="text-align:center">null</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">供给型接口，返回类型为 T 的对象，包含方法: <br><strong>T get()</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">Function&lt;T, R&gt;</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">R</td>
+<td style="text-align:center">函数型接口，对类型 T 的对象应用操作，并返回 R 类型的对象，包含方法: <br><strong>R apply(T t)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">Predicate&lt;T&gt;</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">boolean</td>
+<td style="text-align:center">断定型接口，确定 T 类型对象是否满足某约束，并返回 boolean 值，包含方法: <br><strong>boolean test(T t)</strong></td>
+</tr>
+</tbody>
+</table>
+<p>其他接口：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">函数式接口</th>
+<th style="text-align:center">参数类型</th>
+<th style="text-align:center">返回类型</th>
+<th style="text-align:center">用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">BiFunction&lt;T, U, R&gt;</td>
+<td style="text-align:center">T, U</td>
+<td style="text-align:center">R</td>
+<td style="text-align:center">对类型为 T, U 参数应用操作，返回 R 类型的结果。包含方法：<br><strong>R apply(T t, U u)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">UnaryOperator&lt;T&gt;</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">对类型 T 的对象进行一元运算，并返回 T 类型的结果。包含方法为: <br><strong>T apply(T t)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">BinaryOperator&lt;T&gt;</td>
+<td style="text-align:center">T, T</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">对类型 T 的对象进行二元运算，并返回 T 类型的结果。包含方法为: <br><strong>T apply(Tt1, T t2)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">BiConsumer&lt;T, U&gt;</td>
+<td style="text-align:center">T, U</td>
+<td style="text-align:center">void</td>
+<td style="text-align:center">对类型为T, U参数应用操作。包含方法：<br><strong>void accept(T t, U u)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">BiPredicate&lt;T, U&gt;</td>
+<td style="text-align:center">T, U</td>
+<td style="text-align:center">boolean</td>
+<td style="text-align:center">略。包含方法为: <br><strong>void accept(Tt, U u)</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">TolntFunction&lt;T&gt;<br>ToLongFunction&lt;T&gt;<br>ToDoubleFunction&lt;T&gt;</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">int<br>long<br>double</td>
+<td style="text-align:center">分别计算 int、long、double 值的函数</td>
+</tr>
+<tr>
+<td style="text-align:center">IntFunction&lt;R&gt;<br>LongFunction&lt;R&gt;<br>DoubleFunction&lt;R&gt;</td>
+<td style="text-align:center">int<br/>long<br/>double</td>
+<td style="text-align:center">R</td>
+<td style="text-align:center">参数分别为 int、long、double 类型的函数</td>
+</tr>
+</tbody>
+</table>
+<p>##　Lambda 表达式</p>
+<p>Lambda 是一个匿名函数，我们可以把 Lambda 表达式理解为是一段可以传递的代码(将代码像数据一样进行传递) ，<strong>使用它可以写出更简洁、更灵活的代码</strong>。</p>
+<p>示例如下：</p>
+<pre><code class="language-java">//匿名方法
+Comparator&lt;Integer&gt; com1 = new Comparator&lt;Integer&gt;() { // Comparator其实就是一个函数式接口
+    @Override
+    public int compare(Integer o1, Integer o2) {
+    	return Integer.compare(o1,o2);
+    }
+};
+System.out.println(com1.compare(12,21));
+
+//Lambda表达式
+Comparator&lt;Integer&gt; com2 = (o1,o2) -&gt; Integer.compare(o1,o2);
+System.out.println(com2.compare(32,21));
+
+//方法引用
+Comparator&lt;Integer&gt; com3 = Integer :: compare;
+System.out.println(com3.compare(32,21));
+</code></pre>
+<p>从上面的实例，我们可以看到 Lambda 表达式如下：</p>
+<pre><code class="language-java">(o1,o2) -&gt; Integer.compare(o1,o2)
+</code></pre>
+<ul>
+<li>中间: Lambda 操作符或箭头操作符</li>
+<li>左边: Lambda 形参列表 (其实就是按口中的抽象方法的形参列表)</li>
+<li>右边: Lambda 体 (其实就是重写的抽象方法的方法体)</li>
+</ul>
+<p>总共分 6 种语法格式，如下：</p>
+<pre><code class="language-java">//无参，有返回值
+Runnabler1 = () -&gt; {System.out.println(&quot;Hello Lambda!&quot;);};
+//一个参数，但是没有返回值。
+Consumer&lt;String&gt; con = (String str) -&gt; {System.out.println(str);};
+//数据类型可以省略，因为可由编译器推断得出，称为“类型推断”
+Consumer&lt;String&gt; con = (str) -&gt; {System.out.printn(str);};
+//若只需一个参数，则参数的小括号可以省略
+Consumer&lt;String&gt; con = str -&gt; {System.out.printn(str);};
+//需要两个或以上的参数，多条执行语句，并且可以有返回值
+Comparator&lt;Integer&gt; com = (x,y) -&gt; {
+    System.out.printn(&quot;实现函数式接口方法! &quot;);
+    return Integer.compare(x,y);
+};
+//只有一条语句，若有return与大括号，则都可以省略
+Comparator&lt;Integer&gt; com = (x,y) -&gt; Integer.compare(x,y); // {return Integer.compare(x,y)}
+</code></pre>
+<p><em>注：Lambda 表达式的本质是<strong>作为函数式接口的实例</strong></em></p>
+<h2 id="方法引用和构造器引用">方法引用和构造器引用</h2>
+<p>方法引用可以看做是 Lambda 表达式深层次的表达。换句话说，方法引用就是 Lambda 表达式，也是函数式接口的一个实例，通过方法的名字来指向一个方法，可以认为是 Lambda 表达式的一个语法糖。</p>
+<p><strong>当要传递给 Lambda 体的操作，已经有实现的方法了，可以使用方法引用。</strong></p>
+<p><strong>注意</strong>：实现接口的抽象方法的参数列表和返回值类型，必须与方法引用的方法的参数列表和返回值类型保持一致 <strong>(仅针对于前两种情况)</strong></p>
+<pre><code class="language-java">//下面的例子皆省略调用方法
+public void test1() {
+    //情况一: 对象::实例方法
+    //Consumer中的void accept(T t) &amp; PrintStream中的void println(T t)
+    Consumer&lt;string&gt; con1 = str -&gt; System.out.println(str); //lambda表达式
+    System.out.print1n(&quot;****************************&quot;);
+    PrintStream ps = System.out;
+    Consumer&lt;String&gt; con2 = ps::println; //方法引用
+    
+    //情况二: 类::静态方法
+    //Function中的R apply(T t) &amp; Math中的Long round(Double d)
+    Function&lt;Double,Long&gt; func1 = d -&gt; Math.round(d);
+	System.out.printn(&quot;****************************&quot;);
+	Function&lt;Double,Long&gt; func2 = Math::round;
+    
+	//情况三:类::实例方法（难点）
+    //Comparator中的int comapre(T t1,T t2) &amp; String中的int t1.compareTo(t2)
+	Comparator&lt;string&gt; com1 = (s1,s2) -&gt; s1.compareTo(s2);
+	System.out.printn(&quot;****************************&quot;);
+    Comparator&lt;string&gt; com2 = String::compareTo;
+	//BiPredicate中的boolean test(T t1, T t2) &amp; String中的boolean t1.equals(t2)
+	BiPredicate&lt;String,String&gt; pre1 = (s1,s2) -&gt; s1.equals(s2);
+	System.out.printn(&quot;****************************&quot;);
+	BiPredicate&lt;String,string&gt; pre2 = String::equals;
+	//Function中的apply(T t) &amp; 自定义类（Person）中的String getName();
+	Function&lt;Person,String&gt; func1= e -&gt; e.getName();
+    System.out.printn(&quot;****************************&quot;);
+    Function&lt;Employee,String&gt; func2 = Employee::getName;
+}
+</code></pre>
+<p>构造器实质上是没有返回值的方法，所以引用相似，如下</p>
+<pre><code class="language-java">//构造器引用需要类有相应参数的构造器
+public void test2() {
+    //Supplier中的T get()
+    Supplier&lt;Employee&gt; sup1 = () -&gt; new Employee();
+    System.out.printn(&quot;****************************&quot;);
+    Supplier&lt;Employee&gt; sup2 = Employee::new; //构造器引用
+
+	//Function中的R apply(T t)
+	Function&lt;Integer, Person&gt; func1 = id -&gt; new Person(id);
+	System.out.println(&quot;****************************&quot;);
+	Function&lt;Integer, Person&gt; func2 = Employee::new;
+	
+    //BiFunction中的R apply(T t, U u)
+	BiFunction&lt;Integer,String,Employee&gt; func1 = (id,name) -&gt; new Employee(id,name);
+    System.out.println(&quot;****************************&quot;);
+	BiFunction&lt;Integer,String,Employee&gt; func2 = Employee::new;
+
+    //Function中的R apply(T t)，可以把数组看作一个特殊的类
+	Function&lt;Integer ,String[]&gt; func1 = length -&gt; new String[length]; //这是个lambda表达式应用于数组的例子
+	String[] arr1 = func1.apply(5); //创建一个长度为5的数组
+	System.out.println(&quot;****************************&quot;);
+    Function&lt;Integer,String[]&gt; func2 = String[]::new; //数组引用
+}
+</code></pre>
+<h2 id="stream-api">Stream API</h2>
+<p>Stream是 Java 8  中处理集合的关键抽象概念，它可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作。 使用 Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询。也可以使用 Stream API 来并行执行操作。简言之，StreamAPl 提供了一种高效且易于使用的处理数据的方式。<strong>集合讲的是数据，Stream讲的是计算</strong></p>
+<p><strong>注意：</strong></p>
+<ul>
+<li>Stream 自己不会存储元素。</li>
+<li>Stream 不会改变源对象。相反，他们会返回一个持有结果的新 Stream。</li>
+<li>Stream 操作是延迟执行的，这意味着他们会等到需要结果的时候才执行。</li>
+</ul>
+<h3 id="stream-的实例化">Stream 的实例化</h3>
+<pre><code class="language-java">//1.通过集合
+List&lt;String&gt; str = new ArrayList&lt;&gt;();
+// default Stream&lt;E&gt; stream(): 返回一个顺序流
+Stream&lt;String&gt; stream = str.stream();
+// default Stream&lt;E&gt; parallelStream() :返回- -个并行流
+Stream&lt;String&gt; parallelStream = str.parallelStream();
+
+//2.通过数组
+int[] arr = new int[]{1,2,3,4,5,6};
+//调用Arrays类的static &lt;T&gt; Stream&lt;T&gt; stream(T[] array): 返回一个流
+IntStream stream = Arrays.stream(arr); // 还有long和double类型的Stream
+Stream&lt;String&gt; stream1 = Arrays.stream(new String[10]); // 也可以用泛型
+
+//3.通过Stream的of()
+Stream&lt;Integer&gt; stream = Stream.of(1,2,3,4,5);
+
+//4.创造无限流: Stream.iterate()和Stream.generate()，不加限制则会一直运行下去
+//迭代: public static&lt;T&gt; Stream&lt;T&gt; iterate(final T seed, final Unaryoperator&lt;T&gt; f)
+Stream.iterate(0, t -&gt; t + 2).limit(10).forEach(System.out::println); //遍历前10个偶数
+//生成: public static&lt;T&gt; Stream&lt;T&gt; generate(Supplier&lt;T&gt; s)
+Stream.generate(Math::random).limit(10).forEach(System.out::println);
+</code></pre>
+<p><em>注：其实有点像 Python 里的生成器</em></p>
+<h3 id="stream-的中间操作">Stream 的中间操作</h3>
+<p>多个中间操作可以连接起来形成一个流水线，除非流水线上触发终止操作，否则中间操作不会执行任何的处理!而在终止操作时一次性全部处理，称为“惰性求值“。</p>
+<h4 id="筛选与切片">筛选与切片</h4>
+<p>主要有四个方法，接下来我将会使用一个存有 Employee 类的集合来举例，如下：</p>
+<pre><code class="language-java">List&lt;Employee&gt; list = EmployeeData.getEmployees(); //获取集合
+
+//1.filter(Predicate p) - 过滤，接收 Lambda，从流中排除某些元素
+Stream&lt;Employee&gt; stream = list.stream(); //获取stream实例
+stream.filter(e -&gt; e.getSalary() &gt; 7000).forEach(System.out::println); //筛出工资大于7000的员工
+
+//2.limit(n) - 载断流，便其元素不超过给定数
+list.stream().limit(3).forEach(System.out::println); 
+
+//3.skip(n) -跳过元素，返回一个扔掉了前n个元素的流。若流中元素不足n个,则返回一个空流。与limit(n)互补
+list.stream().skip(3).forEach(System.out::println);
+
+//4.distinct() - 筛选，通过流所生成元素的hashCode()和equals()去除重复元素
+list.stream().distinct().forEach(System.out::println);
+
+</code></pre>
+<p><em>注：Stream 的执行流程是<strong>单向不可逆的</strong>。想要从头开始，需在执行终止操作（迭代）后，重新实例化</em></p>
+<h4 id="映射">映射</h4>
+<p>有 2 个主要方法，共 5 个，如下：</p>
+<pre><code class="language-java">//1.map(Function f) - 接收一个函数作为参数，将元素转换成其他形式或提取信息，该函数会被应用到每个元素上，并将其映射成一个新的元素
+List&lt;String&gt; list = Arrays.asList(&quot;aa&quot;, &quot;bb&quot;, &quot;cc&quot;, &quot;dd&quot;);
+list.stream().map(str -&gt; str.toUpperCase()).forEach(System.out::println);
+
+//2.flatMap(Function f) - 接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流
+//比较复杂，不演示
+</code></pre>
+<p>其余方法如下：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mapToDouble(ToDoubleFunction f)</td>
+<td>接收一个函数作为参数，该函数会被应用到每个元素上，产生一个新的 DoubleStream</td>
+</tr>
+<tr>
+<td>mapTolnt(TolntFunction f)</td>
+<td>接收一个函数作为参数，该函数会被应用到每个元素上，产生一个新的 IntStream</td>
+</tr>
+<tr>
+<td>mapToLong(ToLongFunction f)</td>
+<td>接收一个函数作为参数，该函数会被应用到每个元素上，产生一个新的 LongStream</td>
+</tr>
+</tbody>
+</table>
+<h4 id="排序">排序</h4>
+<p>只有 1 个重载方法，如下：</p>
+<pre><code class="language-java">//sorted() - 自然排序 | sorted(Comparator com) - 定制排序
+List&lt;Integer&gt; list = Arrays.asList(12, 43, 65, 34, 87, 0, -98, 7);
+list.stream().sorted().forEach(System.out::println);
+List&lt;String&gt; list2 = Arrays.asList(&quot;abc&quot;, &quot;ddjc&quot;, &quot;pa&quot;, &quot;cca&quot;);
+list2.stream().sorted((x,y) -&gt; String.compare(x,y)).forEach(System.out::println);
+</code></pre>
+<h3 id="stream-的终止操作">Stream 的终止操作</h3>
+<p>终端操作会从流的流水线生成结果。其结果可以是任何不是流的值，如: List，Integer, 还是 void。<strong>流进行了终止操作后，不能再次使用。</strong></p>
+<h4 id="匹配与查找">匹配与查找</h4>
+<p>我们依然以上面的 Employee 类为例：</p>
+<pre><code class="language-java">List&lt;Employee&gt; employees = EmployeeData.getEmployees();
+
+//allMatch(Predicate p) - 检查是否匹配所有元素
+boolean allMatch = employees.stream().allMatch(e -&gt; e.getAge() &gt; 18); //是否所有的员工的年龄都大于18
+System.out.println(allMatch);
+
+//anyMatch(Predicate p) - 检查是否至少匹配一个元素，同上不演示
+//noneMatch(Predicate p) - 检查是否没有匹配的元素，同上不演示
+
+//findFirst - 返回第一个元素
+Optional&lt;Employee&gt; employee = employees.stream().findFirst();
+System.out.println(emp1oyee);
+
+//findAny - 返回当前流中的任意元素，返回值依然是Optional，只不过要用，用法同上不演示
+Optional&lt;Employee&gt; employee1 = employees.parallelStream().findAny();
+System.out.println(employee1);
+
+//count - 返回流中元素的总个数，返回值是long，用法简单不演示
+
+//max(Comparator c) - 返回流中最大值
+Stream&lt;Double&gt; salaryStream = employees.stream().map(e -&gt; e.getSalary());
+Optional&lt;Double&gt; maxSalary = salaryStream.max(Double::compare); //返回最高工资
+System.out.print1n(maxsalary);
+
+//min(Comparator c) - 返回流中最小值，同上不演示
+
+//forEach(Consumer c) - 内部迭代，之前演示过了
+</code></pre>
+<p><em>注：集合也有一个 <code>forEach</code> 方法，两个方法的对象不同</em></p>
+<h4 id="归约">归约</h4>
+<pre><code class="language-java">//reduce(T identity, BinaryOperator) - 可以将流中元素反复结合起来， 得到一个值。返回T
+List&lt;Integer&gt; list = Arrays.asList(1,2,3,4,5,6,7,8,9,10);
+Integer sum = list.stream().reduce(0, Integer::sum); //计算1-1日的自然数的和
+System.out.println(sum);
+
+//reduce(BinaryOperator) - 可以将流中元素反复结合起来， 得到一个值。返回Optional&lt;T&gt;
+List&lt;Employee&gt; employees = EmployeeData.getEmployees();
+Stream&lt;Double&gt; salaryStream = employees.stream().map(Employee::getSalary);
+Optional&lt;Double&gt; sumMoney = salaryStream.reduce(Double::sum); //求公司所有员工工资的总和，(d1,d2) -&gt; d1 + d2也行
+System.out.println(sumMoney);
+</code></pre>
+<h4 id="收集">收集</h4>
+<p>Collector 接口中方法的实现决定了如何对流执行收集的操作(如收集到 List、Set、Map)。另外，Collectors 实用类提供了很多静态方法，可以方便地创建常见收集器实例。</p>
+<pre><code class="language-java">//collect(Collector c) - 将流转换为其他形式，接收-个Collector接口的实现，用于给Stream中元素做汇总的方法
+//查找工资大于6e的员工，结果返回为一个List或Set
+List&lt;Employee&gt; employees = EmployeeData.getEmployees();
+List&lt;Employee&gt; collect = employees.stream().filter(e -&gt; e.getSalary() &gt; 6000).collect(Collectors.tolist());
+employeeList.forEach(System.out::println); //这是集合的迭代方法
+</code></pre>
+<p>Collector 接口中的方法如下表：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>返回类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>toList()</td>
+<td>List&lt;T&gt;</td>
+<td>把流中元素收集到 List</td>
+</tr>
+<tr>
+<td>toSet()</td>
+<td>Set&lt;T&gt;</td>
+<td>把流中元素收集到 Set</td>
+</tr>
+<tr>
+<td>toCollection(ArrayList::new)</td>
+<td>Collection&lt;T&gt;</td>
+<td>把流中元素收集到创建的集合</td>
+</tr>
+<tr>
+<td>counting()</td>
+<td>Long</td>
+<td>计算流中元素的个数</td>
+</tr>
+<tr>
+<td>summingInt(Employee::getSalary)</td>
+<td>Integer</td>
+<td>对流中元素的整数属性求和</td>
+</tr>
+<tr>
+<td>averagingInt(Employee::getSalary)</td>
+<td>Double</td>
+<td>计算流中元素 Integer 属性的平均值</td>
+</tr>
+<tr>
+<td>summarizingInt(Employee::getSalary)</td>
+<td>IntSummaryStatistics</td>
+<td>收集流中 Integer 属性的统计值，如:平均值</td>
+</tr>
+<tr>
+<td>joining()</td>
+<td>String</td>
+<td>连接流中每个字符串</td>
+</tr>
+<tr>
+<td>maxBy(comparingInt(Employee::getSalary))</td>
+<td>Optional&lt;T&gt;</td>
+<td>根据比较器选择最大值</td>
+</tr>
+<tr>
+<td>minBy(comparingInt(Employee::getSalary))</td>
+<td>Optional&lt;T&gt;</td>
+<td>根据比较器选择最小值</td>
+</tr>
+<tr>
+<td>reducing(0, Employee::getSalary,Integer::sum)</td>
+<td>归约产生的类型</td>
+<td>从一个作为累加器的初始值开始利用BinaryOperator 与流中元素逐个结合，从而归约成单个值</td>
+</tr>
+<tr>
+<td>collectingAndThen(Collectors.toList(),List::size)</td>
+<td>转换函数近回的类型</td>
+<td>包裹另一个收集器，对其结果转换函数</td>
+</tr>
+<tr>
+<td>groupingBy(Employee::getStatus)</td>
+<td>Map&lt;K,List&lt;T&gt;&gt;</td>
+<td>根据某属性值对流分组，属性为 K，结果为 V</td>
+</tr>
+<tr>
+<td>partitioningBy(Employee::getManage)</td>
+<td>Map&lt;Boolean,List&lt;T&gt;&gt;</td>
+<td>根据 true 或 false 进行分区</td>
+</tr>
+</tbody>
+</table>
+<h2 id="optional-类">Optional 类</h2>
+<p>Optional&lt;T&gt;类是一个容器类（类似于<strong>包装类</strong>），它可以保存类型 T 的值，代表这个值存在。或者仅保存 null，表示这个值不存在。原来用 null 表示一个值不存在，现在 Optional 可以更好的表达这个概念。并且可以<strong>避免空指针异常</strong>。Optional 类的 Javadoc 描述如下：这是一个可以为 null 的容器对象。如果值存在则 isPresent() 方法会返回 true，调用 get() 方法 会返回该对象。</p>
+<p>Optional 提供很多有用的方法，这样我们就不用显式进行空值检测。</p>
+<p><strong>创建 Optional 类对象的方法：</strong></p>
+<ul>
+<li>
+<p>Optional.of(T t)：创建一个 Optional 实例，T 必须非空;</p>
+</li>
+<li>
+<p>Optional.empty()：创建一个空的 Optional 实例</p>
+</li>
+<li>
+<p>Optional.ofNullable(T t)：t 可以为 null</p>
+</li>
+</ul>
+<p><strong>判断 Optional 容器中是否包含对象：</strong></p>
+<ul>
+<li>
+<p>boolean isPresent()：判断是否包含对象</p>
+</li>
+<li>
+<p>void ifPresent(Consumer&lt;? super T&gt; consumer)：如果有值，就执行 Consumer 接口的实现代码，并且该值会作为参数传给它。</p>
+</li>
+</ul>
+<p><strong>获取 Optional 容器的对象：</strong></p>
+<ul>
+<li>
+<p>T get()：如果调用对象包含值，返回该值，否则抛异常</p>
+</li>
+<li>
+<p>T orElse(T other)：如果有值则将其返回，否则返回指定的 other 对象</p>
+</li>
+<li>
+<p>T orElseGet(Supplier&lt;? extends T&gt; other)：如果有值则将其返回，否则返回由Supplier接口实现提供的对象</p>
+</li>
+<li>
+<p>T orElse Throw(Supplier&lt;? extends X&gt; exceptionSupplier)：如果有值则将其返回，否则抛出由 Supplier 接口实现提供的异常。</p>
+</li>
+</ul>
+<p>示例如下：</p>
+<pre><code class="language-java">// 构建一个空的Optional对象
+Optional&lt;String&gt; empty = Optional.empty();
+System.out.println(empty); // Optional.empty
+
+// 构建一个非空的Optional对象
+Optional&lt;String&gt; hello = Optional.of(&quot;Hello&quot;);
+System.out.println(hello); // Optional[Hello]
+
+// 构建一个可能为空的Optional对象
+String name = null;
+Optional&lt;String&gt; optionalName = Optional.ofNullable(name);
+System.out.println(optionalName); // Optional.empty
+
+// 获取Optional对象里的值
+String value = hello.get();
+System.out.println(value); // Hello
+
+// 如果为空，返回默认值
+String defaultValue = optionalName.orElse(&quot;World&quot;);
+System.out.println(defaultValue); // World
+
+// 如果为空，返回函数结果
+String supplierValue = optionalName.orElseGet(() -&gt; &quot;Java&quot;);
+System.out.println(supplierValue); // Java
+
+// 如果为空，抛出异常
+try {
+   String exceptionValue = optionalName.orElseThrow(() -&gt; new RuntimeException(&quot;No value&quot;));
+   System.out.println(exceptionValue);
+} catch (RuntimeException e) {
+   e.printStackTrace(); 
+   /*
+   java.lang.RuntimeException: No value
+     at com.example.OptionalDemo.lambda$main$0(OptionalDemo.java:30)
+     at java.base/java.util.Optional.orElseThrow(Optional.java:408)
+     at com.example.OptionalDemo.main(OptionalDemo.java:30)
+   */
+}
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3">函数式接口</a></li>
+<li><a href="#%E6%96%B9%E6%B3%95%E5%BC%95%E7%94%A8%E5%92%8C%E6%9E%84%E9%80%A0%E5%99%A8%E5%BC%95%E7%94%A8">方法引用和构造器引用</a></li>
+<li><a href="#stream-api">Stream API</a>
+<ul>
+<li><a href="#stream-%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96">Stream 的实例化</a></li>
+<li><a href="#stream-%E7%9A%84%E4%B8%AD%E9%97%B4%E6%93%8D%E4%BD%9C">Stream 的中间操作</a>
+<ul>
+<li><a href="#%E7%AD%9B%E9%80%89%E4%B8%8E%E5%88%87%E7%89%87">筛选与切片</a></li>
+<li><a href="#%E6%98%A0%E5%B0%84">映射</a></li>
+<li><a href="#%E6%8E%92%E5%BA%8F">排序</a></li>
+</ul>
+</li>
+<li><a href="#stream-%E7%9A%84%E7%BB%88%E6%AD%A2%E6%93%8D%E4%BD%9C">Stream 的终止操作</a>
+<ul>
+<li><a href="#%E5%8C%B9%E9%85%8D%E4%B8%8E%E6%9F%A5%E6%89%BE">匹配与查找</a></li>
+<li><a href="#%E5%BD%92%E7%BA%A6">归约</a></li>
+<li><a href="#%E6%94%B6%E9%9B%86">收集</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#optional-%E7%B1%BB">Optional 类</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-fan-she/">
+              <h3 class="post-title">
+                【Java SE】二十一、反射
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

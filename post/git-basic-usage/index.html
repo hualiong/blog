@@ -1,0 +1,367 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Git 基本用法 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Git 基本用法 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="2023年1月11日，学习了 Git 和 Gitee 的用法，这里仅记录目前学到的用法，以便后期回顾。
+
+安装
+过程较为繁琐，这里不多赘述，具体参考请这篇博客。
+初始设置
+初始化
+右键菜单打开安装好的 Git Bash Here ，然后输入..." />
+    <meta name="keywords" content="Other" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Git 基本用法
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-01-11
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/sGT3DdeWp/" class="post-tag">
+                  # Other
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://hualiang.online/post-images/git-basic-usage.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>2023年1月11日，学习了 Git 和 Gitee 的用法，这里仅记录目前学到的用法，以便后期回顾。</p>
+<!-- more -->
+<h1 id="安装">安装</h1>
+<p>过程较为繁琐，这里不多赘述，具体参考请<a href="https://blog.csdn.net/mukes/article/details/115693833?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522167341649916800186532730%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=167341649916800186532730&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-115693833-null-null.142%5Ev70%5Ewechat,201%5Ev4%5Eadd_ask&amp;utm_term=%E5%AE%89%E8%A3%85git&amp;spm=1018.2226.3001.4187">这篇博客</a>。</p>
+<h1 id="初始设置">初始设置</h1>
+<h2 id="初始化">初始化</h2>
+<p>右键菜单打开安装好的 Git Bash Here ，然后输入以下命令设置用户名和邮箱：</p>
+<pre><code class="language-bash">git config --global user.name &quot;Your Name&quot;
+git config --global user.email &quot;email@example.com&quot;
+</code></pre>
+<h2 id="用-windows-自带终端打开-git-可选">用 Windows 自带终端打开 Git (可选)</h2>
+<ol>
+<li>
+<p>右键打开 Git Bash 输入命令 <code>where git</code> ，记下安装路径，如下图：</p>
+<figure data-type="image" tabindex="1"><img src="https://img-blog.csdnimg.cn/2021030916041528.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1l0d2lua2xlc3Rhcg==,size_16,color_FFFFFF,t_70#pic_center" alt="image1" loading="lazy"></figure>
+</li>
+<li>
+<p>找到位置后往父文件夹一层层查找，直到找到一个 cmd 文件夹，复制其路径，<strong>比如</strong>： <code>D:\Program Files (x86)\Git\cmd\</code></p>
+</li>
+<li>
+<p>编辑环境变量 Path 将复制的地址添加到 Path 中，然后保存</p>
+</li>
+<li>
+<p>最后，再次打开终端输入 <code>git</code> 回车，显示下图，大功告成</p>
+ <img src="https://img-blog.csdnimg.cn/2021030916115996.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1l0d2lua2xlc3Rhcg==,size_16,color_FFFFFF,t_70#pic_center" alt="image2" style="zoom: 67%;" />	
+</li>
+</ol>
+<h1 id="创建版本库">创建版本库</h1>
+<p>版本库是用来存放你的项目的，对你项目的一删一改，版本库都能监控的到。</p>
+<ol>
+<li>首先寻找一个目录（<strong>切记不能是含中文目录</strong>），创建一个文件夹</li>
+<li>然后在此文件夹右键打开 Git Bash，输入命令 <code>git init</code> 初始化（这样版本库才能管理此文件夹中的内容）</li>
+<li>完成的标志就是该目录下会出现一个叫 <code>.git</code> 的<strong>隐藏</strong>文件夹，它是用于记录项目的改动的，<strong>千万不能删</strong></li>
+</ol>
+<h1 id="基本操作">基本操作</h1>
+<p>如下表即为 Git 几乎所有的核心使用命令，接下来将一一详解：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>git init</td>
+<td>以当前目录作为项目库，初始化 Git</td>
+</tr>
+<tr>
+<td>git add [path]</td>
+<td>向 Git 添加或 修改文件（<strong>暂存区</strong>）</td>
+</tr>
+<tr>
+<td>git rm [path]</td>
+<td>向 Git 删除文件（<strong>暂存区</strong>）</td>
+</tr>
+<tr>
+<td>git commit -m [message]</td>
+<td>合并到分支中（快照）</td>
+</tr>
+<tr>
+<td>git reset --hard [id]</td>
+<td>回滚到某个快照版本</td>
+</tr>
+<tr>
+<td>git reflog</td>
+<td>查看快照的回滚步骤</td>
+</tr>
+<tr>
+<td>git log</td>
+<td>查看快照，比 reflog 详细，但没有 reset 回滚</td>
+</tr>
+<tr>
+<td>git status</td>
+<td>查看 Git 的状态，关于各区域的文件情况，包括增删改</td>
+</tr>
+<tr>
+<td>git diff [path]</td>
+<td>查看这个文件和之前文件的对比</td>
+</tr>
+</tbody>
+</table>
+<h2 id="add-commit">add &amp; commit</h2>
+<p>这里已经初始化了一个 gitee_suyuan 目录作为项目库，先在此新建一个 note 文本文件，如下：</p>
+<figure data-type="image" tabindex="2"><img src="https://img-blog.csdnimg.cn/2326a2e156f74b2a8884db87bbfb609e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_11,color_FFFFFF,t_70,g_se,x_16" alt="image3" loading="lazy"></figure>
+<p>接下来，把文件交给 Git 管理，也就是加入本地仓库，只要【两步】：</p>
+<ol>
+<li>
+<p>将文件<strong>预先添加</strong>到 Git 仓库，如果没有出现任何提示，代表你这条命令执行成功了</p>
+<pre><code class="language-bash">git add note.txt
+</code></pre>
+</li>
+<li>
+<p>然后<strong>提交</strong>给 Git 仓库，并且附上<strong>说明</strong></p>
+<pre><code class="language-bash">git commit -m &quot;刚刚我创建了一个文本&quot;
+</code></pre>
+</li>
+</ol>
+<figure data-type="image" tabindex="3"><img src="https://img-blog.csdnimg.cn/3a15a685e06942b1b4d6fed5b0dc8ca7.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_10,color_FFFFFF,t_70,g_se,x_16" alt="image4" loading="lazy"></figure>
+<p>1 file changed（文件改变）,1 insertion 插入（代表行，我只写了一行）</p>
+<p><strong>提醒几点：</strong></p>
+<ul>
+<li>
+<p>git 操作必须在存在 .git 的仓库下进行，否则没有意义，git init 除外</p>
+</li>
+<li>
+<p>如果添加的文件没有任何更新，则不会进行合并，也就是提交</p>
+</li>
+<li>
+<p><code>add</code> 可一次添加多个文件，通过空格间隔，如 <code>git add [file1 file2 ...]</code>；注意，这些并不是文件名而是<strong>路径</strong></p>
+</li>
+<li>
+<p><code>add</code> 在 <code>commit</code> 之前会一直记录，你又新添了一行，然后在进行 <code>add</code> 命令，都会被记录叠加，最后 <code>commit</code> 对他们一次处理</p>
+</li>
+<li>
+<p>如果将原有文件修改并添加提交，就能在仓库里更新文件，它会将存在的文件进行覆盖，将新文件进行创建</p>
+</li>
+</ul>
+<h2 id="status">status</h2>
+<p>那么假如有人在我们不知情的情况下对这个项目进行改动，我们又如何知道什么地方被修改了呢？</p>
+<p>这时候就要通过 <code>status</code> 命令去查询当前的项目状态：</p>
+<figure data-type="image" tabindex="4"><img src="https://img-blog.csdnimg.cn/bb7c2f6fc1144353b19db1ff85ee2ba0.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_9,color_FFFFFF,t_70,g_se,x_16" alt="image6" loading="lazy"></figure>
+<p>从中能看到 modified（改动了）<strong>说明 Git 能通过以前的文件和现在的文件做比对，而得到现在的情况</strong>，包括增删改</p>
+<p>这时候用 <code>add</code> 将 note 添加到暂存区，颜色则会变成绿色，代表已经加入，如下：</p>
+<figure data-type="image" tabindex="5"><img src="https://img-blog.csdnimg.cn/d7dd0104a33141de914153971173a884.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_9,color_FFFFFF,t_70,g_se,x_16" alt="image7" loading="lazy"></figure>
+<h2 id="diff">diff</h2>
+<p>正如上文，我们通过发现 note 文件被修改了，那么如何查看修改了哪些内容呢？</p>
+<p>Git 提供了一个 <code>diff</code> 命令来查看，如下：</p>
+<figure data-type="image" tabindex="6"><img src="https://img-blog.csdnimg.cn/f838ee694ef94ca990b639427a632a50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_6,color_FFFFFF,t_70,g_se,x_16" alt="image8" loading="lazy"></figure>
+<p>输出显示，上一个版本是2行，现在是3行，并且会显示2个文件，<strong>说明 Git 并没有做具体的对比，只是给你展示了双方的文件内容。</strong></p>
+<p>这种对比方式不适用于大量的内容，因此要具体查看还是应到编辑器里对比。</p>
+<h2 id="log-reset">log &amp; reset</h2>
+<p>除了上面几个功能，还有一个功能很重要，那就是 <code>log</code> 命令。</p>
+<p>使用 <code>log</code> 就能查看该项目的详细修改记录，如下：</p>
+<figure data-type="image" tabindex="7"><img src="https://img-blog.csdnimg.cn/149bd46458ae46ad929f0a8e717d0206.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_8,color_FFFFFF,t_70,g_se,x_16" alt="image9" loading="lazy"></figure>
+<p>commit 那一行黄色字体表示用 hash 值生成的 ID 代表的是你提交的<strong>版本号</strong>，<strong>可以通过它进行回滚</strong>。</p>
+<p>Author 代表作者，就是你开头安装完之后，输入的本机信息</p>
+<p>Date 代表更新时间</p>
+<p>回滚命令需要根据你的 log 显示的 ID 进行回滚，如下：</p>
+<pre><code class="language-bash">git reset --hard id  # 此处的hard相当于指针，你可以不用写全ID，Git就能自动去查找
+</code></pre>
+<figure data-type="image" tabindex="8"><img src="https://img-blog.csdnimg.cn/a99a1e9b0e914e51b0d723acc7235f76.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_10,color_FFFFFF,t_70,g_se,x_16" alt="image10" loading="lazy"></figure>
+<p><strong>说明 Git 是根据 ID，将现在的版本定为，你回滚的版本</strong>，而且如果你没有关闭窗口，根据 ID 照样可以回滚回去。</p>
+<h2 id="reflog">reflog</h2>
+<p>如果回滚错了，又关闭了窗口，不记得是哪一个回滚了，Git 也有个功能可以查看你的回滚日志。</p>
+<p>使用 <code>reflog</code> 命令查看日志，如下：</p>
+<figure data-type="image" tabindex="9"><img src="https://img-blog.csdnimg.cn/9d33c3dbb3404c19aac89474a4fcf34f.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_9,color_FFFFFF,t_70,g_se,x_16" alt="image11" loading="lazy"></figure>
+<p>现在是 1792cdf 的版本，可以通过前面的版本号回滚。</p>
+<p>从下往上看，是每一次commit，然后执行了reset命令。看的很清楚。</p>
+<p><strong>说明 Git 记录了每一次快照改变的情况。</strong></p>
+<h2 id="rm">rm</h2>
+<p>说完了增和改，该到删除了。我们可以用 <code>rm</code> 命令来<strong>预先删除</strong>文件，但删除也算是修改，所以也需要 <code>commit</code>。</p>
+<p>对于删除操作，和添加和修改一样的，要说明删除了哪个文件才可以，然后就要和添加修改一样，先把他放到暂存区再提交。</p>
+<pre><code class="language-bash">git rm [file] # 放入暂存区
+git commit -m [message] # 提交删除
+</code></pre>
+<figure data-type="image" tabindex="10"><img src="https://img-blog.csdnimg.cn/9b12e9553eea485f8edf24f4c7179f74.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBA5oiR6KaB55So5Luj56CB5ZCR5oiR5Zac5qyi55qE5aWz5a2p6KGo55m9,size_8,color_FFFFFF,t_70,g_se,x_16" alt="image11" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%AE%89%E8%A3%85">安装</a></li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E8%AE%BE%E7%BD%AE">初始设置</a>
+<ul>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+<li><a href="#%E7%94%A8-windows-%E8%87%AA%E5%B8%A6%E7%BB%88%E7%AB%AF%E6%89%93%E5%BC%80-git-%E5%8F%AF%E9%80%89">用 Windows 自带终端打开 Git (可选)</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E7%89%88%E6%9C%AC%E5%BA%93">创建版本库</a></li>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C">基本操作</a>
+<ul>
+<li><a href="#add-commit">add &amp; commit</a></li>
+<li><a href="#status">status</a></li>
+<li><a href="#diff">diff</a></li>
+<li><a href="#log-reset">log &amp; reset</a></li>
+<li><a href="#reflog">reflog</a></li>
+<li><a href="#rm">rm</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/markdown-basic-syntax/">
+              <h3 class="post-title">
+                Markdown 基本语法
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

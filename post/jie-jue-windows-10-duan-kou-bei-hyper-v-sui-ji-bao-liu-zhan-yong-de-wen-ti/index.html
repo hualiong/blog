@@ -1,0 +1,217 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>解决 Win 10 端口被 Hyper-V 随机占用的问题 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="解决 Win 10 端口被 Hyper-V 随机占用的问题 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="转自知乎 “爱丽丝基” 的《解决 Windows 10 端口被 Hyper-V 随机保留（占用）的问题》
+
+大概从半年前开始，我发现我的代理软件配置的端口有时会不能用，软件提示「没有权限访问端口」。这个问题会在什么时候出现完全随机，没有任何..." />
+    <meta name="keywords" content="优质文章收藏" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              解决 Win 10 端口被 Hyper-V 随机占用的问题
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-05-23
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+                  # 优质文章收藏
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>转自知乎 “<a href="https://www.zhihu.com/people/frederick_wang">爱丽丝基</a>” 的<a href="https://zhuanlan.zhihu.com/p/474392069">《解决 Windows 10 端口被 Hyper-V 随机保留（占用）的问题》</a></p>
+<!-- more -->
+<p>大概从半年前开始，我发现我的代理软件配置的端口有时会不能用，软件提示「没有权限访问端口」。这个问题会在什么时候出现完全随机，没有任何规律。对于这个问题，有时候重启可以解决，有时候重启好几次才能解决，并且如果运气不好，可能重启几次后这些端口还是不能用……</p>
+<p>这让我非常困惑，我给代理软件开了管理员权限，但没有效果。我使用netstat -ano想看看这些端口被什么程序占用，却一无所获。当时，我误以为是代理软件出了一些神秘问题，在 google 无果后，因为大多数时候重启都能解决，我就没有再管。</p>
+<p>直到前两天，我在做 Web 开发时，发现在Windows 10中使用 localhost:8088 死活访问不了 WSL 2 的 8088 端口。一开始我以为是 WSL 2 默认的端口转发出错了，便用 netsh interface portproxy 重新指定了端口转发，但还是访问不了。我又猜想可能是 WSL 2 中 Ubuntu 的防火墙规则有问题，但排查后发现不是。我又怀疑是 Windows 10 的防火墙设置有问题，但仔细核对后发现确实没有问题。正当我百思不得其解时，我随手把端口号换成了 3000，发现居然能用了。并且在我再一次重启电脑之后，发现之前不能用的 8088 也又能用了。</p>
+<p>这个灵异问题让我顿时联想到了半年前出现的那个代理软件端口不能用的问题，我试着又重启了几次，发现刚刚能用的 8088 端口又不能用了。面对这种奇葩情况，我只能推断可能是 Windows 10 因为某些原因，会随机保留这些端口号，不让用户使用。</p>
+<p>但老重启也不是个事儿，这次我找对了搜索关键字，一番 google 后终于搞明白了问题的成因，并解决了这个困扰我半年之久的问题。</p>
+<h1 id="1-问题背景">1. 问题背景</h1>
+<p>这个问题的背景分为两部分：</p>
+<p>Windows 中有一个「TCP 动态端口范围」，处在这个范围内的端口，有时候会被一些服务占用。在 Windows Vista（或 Windows Server 2008）之前，动态端口范围是 1025 到 5000；在 Windows Vista（或 Windows Server 2008）之后，新的默认起始端口为 49152，新的默认结束端口为 65535。</p>
+<p>如果安装了 Hyper-V，那么 Hyper-V 会为容器宿主网络服务（Windows Container Host Networking Service）随机保留一些端口号使用。</p>
+<p>正常情况下，Hyper-V 虽然会在「TCP 动态端口范围」中随机挑一些端口号保留（占用），不过保留的端口号普遍比较大，就算保留几百、几千个也影响不大。但是，Windows 自动更新有时会出错，导致这个范围的起始端口被重置为 1024……这可就麻烦了，一些常用端口动不动就因为被保留而无法使用了。</p>
+<p>使用命令 <code>netsh int ipv4 show dynamicport tcp</code> 可以查看目前「TCP 动态端口」的范围，如图 1 所示。</p>
+<figure data-type="image" tabindex="1"><img src="https://pic4.zhimg.com/80/v2-be52a63d36544d8cb24582bb4e30d5e3_1440w.webp" alt="图 1 查看目前「TCP 动态端口」的范围" loading="lazy"></figure>
+<p>这只是一个「待选择」范围，并不代表其中的所有端口都会被保留，只是有一部分会被Hyper-V征用。使用<code>netsh int ipv4 show excludedportrange protocol=tcp</code> 命令可以查看当前所有已经被征用了的端口，如图所示：</p>
+<figure data-type="image" tabindex="2"><img src="https://pic3.zhimg.com/80/v2-f912347eeb3d218697d59a87bed8e356_1440w.webp" alt="图 2 当前所有已经被征用了的端口" loading="lazy"></figure>
+<p>如果这些被征用的端口范围随机挑选到8088、8000、3000等 Web 开发常用端口，那开发就会受到影响；如果挑选到其他应用软件要调用的端口，那这些应用软件就会受到影响，可以说非常坑爹了……</p>
+<p>在说正确的解决方法前，我们先说一个在 Stack Overflow 上看到的错误解决方法，这个方法还在好几个地方被提到过。</p>
+<h1 id="2-错误的解决方法">2. 错误的解决方法</h1>
+<p>错误的解决方法是，运行 <code>net stop winnat</code> 停止 winnat 服务，然后再运行 <code>net start winnat </code>启动 winnat 服务。</p>
+<p>这个方法本质上就是重启电脑的简化版……让Hyper-V再随机初始化一些端口保留，如果正好没随机到要用的端口，那一次成功。如果还是随机到了要用的端口，那就只能多来几次。</p>
+<p>在那个问题的回答下，我看到有一些网友说「对我有用」，也有一些网友说「对我没用」，原因就是这个方法解决问题的概率完全是随机的……</p>
+<h1 id="3-正确的解决方法">3. 正确的解决方法</h1>
+<p>正确的解决方法很简单，就是重新设置一下「TCP 动态端口范围」，让 Hyper-V 只在我们设定的范围内保留端口即可。可以以管理员权限运行下面的命令，将「TCP 动态端口范围」重新设定为 49152-65535。如果你觉得这个范围太大，还可以改小一点。</p>
+<figure data-type="image" tabindex="3"><img src="https://pic1.zhimg.com/80/v2-006623272f7415e1c9c9d30e9f1800d4_1440w.webp" alt="image" loading="lazy"></figure>
+<p>然后重启电脑即可。</p>
+<p>重启电脑后，再运行命令netsh int ipv4 show dynamicport tcp查看动态端口范围，发现确实已经修改为了49152-65535。现在只有这个范围内的端口可能会被保留了，基本不会影响日常使用（图 3）。</p>
+<figure data-type="image" tabindex="4"><img src="https://pic3.zhimg.com/80/v2-4ab36ede1d1b569754d850b972dbfafe_1440w.webp" alt="图 3 重启后再查看动态端口范围" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF">1. 问题背景</a></li>
+<li><a href="#2-%E9%94%99%E8%AF%AF%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95">2. 错误的解决方法</a></li>
+<li><a href="#3-%E6%AD%A3%E7%A1%AE%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95">3. 正确的解决方法</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/jdbc-core-technology/">
+              <h3 class="post-title">
+                JDBC 核心技术
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

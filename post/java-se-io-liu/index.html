@@ -1,0 +1,776 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>【Java SE】十九、I/O 流 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="【Java SE】十九、I/O 流 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="java.io 包几乎包含了所有操作输入、输出需要的类。所有这些流类代表了输入源和输出目标。一个流可以理解为一个数据的序列。输入流表示从一个源读取数据，输出流表示向一个目标写数据。
+
+File 类
+File 类的一个对象，代表一个文件或一个..." />
+    <meta name="keywords" content="Java" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              【Java SE】十九、I/O 流
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-02-26
+              </span>
+              <span>
+                18 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/6ysHJUyVK/" class="post-tag">
+                  # Java
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>java.io 包几乎包含了所有操作输入、输出需要的类。所有这些流类代表了输入源和输出目标。一个流可以理解为一个数据的序列。输入流表示从一个源读取数据，输出流表示向一个目标写数据。</p>
+<!-- more -->
+<h2 id="file-类">File 类</h2>
+<p>File 类的一个对象，代表一个<strong>文件</strong>或一个<strong>文件目录</strong>，其中涉及到关于文件或文件目录的创建、删除、重命名、修改时间、文件大小等方法</p>
+<h3 id="实例化">实例化</h3>
+<p>下面的示例展示了 File 的三种实例化方式：</p>
+<pre><code class="language-java">import java.io.File;
+public void test() {
+    // 构造方式一
+	File file1 = new File(&quot;D:\\fuck\\shit\\hello.txt&quot;); // 完整绝对路径（也支持相对路径）
+	System.out.println(file1); // 只是输出路径
+    
+    // 构造方式二
+    File file2 = new File(&quot;D:\\fuck&quot;, &quot;shit&quot;); // 分开传入父目录及文件目录
+    
+    // 构造方式三
+    File file3 = new File(file2, &quot;hello.txt&quot;); // 分开传入file对象及文件
+}
+</code></pre>
+<p><em>注：创建实例时，不管文件或目录是否存在，仅在内存方面先创建一个对象，并不会报错</em></p>
+<h3 id="常用方法">常用方法</h3>
+<p>File 类的方法主要分为五部分：获取、重命名、判断、创建、删除。</p>
+<pre><code class="language-java">import java.io.File;
+public void test() {
+    File file1 = new File(&quot;hello.txt&quot;);
+    File file2 = new File(&quot;D:\\fuck\\shit&quot;);
+    File file3 = new File(file2, &quot;hello.txt&quot;);
+    File file4 = new File(&quot;shit.txt&quot;);
+        
+    // 获取方法
+    System.out.println(file1.getAbsolutePath()); // 获取绝对路径
+    System.out.println(file1.getPath()); // 获取路径（传给构造器的路径）
+    System.out.println(file1.getName()); // 获取文件名
+    System.out.println(file1.getParent()); // 获取父目录（根据传给构造器的路径查找）
+    System.out.println(file1.length()); // 获取文件长度（字节数）不能获取文件目录长度
+    System.out.println(file1.lastModified()); // 获取最后一次修改时间（时间戳）
+    System.out.println(file2.list()); // 获取指定目录下的所有文件或者文件目录的名称数组（字符串数组）
+    System.out.println(file2.listFiles()); // 获取指定目录下的所有文件或者文件目录的File类型数组
+        
+    // 重命名方法（要想保证返回true,需要file1是存在的，且file3是不存在的）
+    System.out.println(file1.renameTo(file3)); // 把文件重命名为指定的文件路径（可修改的不仅是名称，还有路径）
+        
+    // 判断方法（若文件不存在，以下皆为false）
+    System.out.println(file1.isDirectory()); // 判断是否是文件目录
+    System.out.println(file1.isFile()); // 判断是否是文件
+    System.out.println(file1.exists()); // 判断是否存在
+    System.out.println(file1.canRead()); // 判断是否可读
+    System.out.println(file1.canWrite()); // 判断是否可写
+    System.out.println(file1.isHidden()); // 判断是否隐藏
+        
+    // 创建和删除方法
+    file4.createNewFile(); // 创建该文件（若文件存在，则返回false）
+    file4.delete(); // 彻底删除该文件（若文件不存在，则返回false）
+    file2.mkdir(); // 创建文件目录（若文件目录存在或文件目录的上级目录不存在，则返回false）
+    file2.mkdirs(); // 递归创建文件目录（若文件目录存在，则返回false；若文件目录的上级目录不存在，则一并创建）
+}
+</code></pre>
+<h2 id="流">流</h2>
+<p>Java 提供的 I/O 流光类就有 40 多个，但它们都继承于四个抽象基类：<code>InputStream</code> 、<code>OutputStream</code> 、<code>Reader</code> 、<code>Writer</code> ，按照不同的方向可以把他们分类成不同类别：</p>
+<ul>
+<li><strong>操作数据单位</strong>：字节流、字符流</li>
+<li><strong>数据的流向</strong>：输入流、输出流</li>
+<li><strong>流的角色</strong>：节点流、处理流</li>
+</ul>
+<p>I/O 流常用体系如下：</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th style="text-align:left">字节输入流</th>
+<th>字节输出流</th>
+<th>字符输入流</th>
+<th>字符输出流</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>抽象基类</strong></td>
+<td style="text-align:left">InputStream</td>
+<td>OutputStream</td>
+<td>Reader</td>
+<td>Writer</td>
+</tr>
+<tr>
+<td><strong>访问文件</strong></td>
+<td style="text-align:left">FileInputStream</td>
+<td>FileOutputStream</td>
+<td>FileReader</td>
+<td>FileWriter</td>
+</tr>
+<tr>
+<td><strong>访问数组</strong></td>
+<td style="text-align:left">ByteArrayInputStream</td>
+<td>ByteArrayOutputStream</td>
+<td>CharArrayReader</td>
+<td>CharArrayWriter</td>
+</tr>
+<tr>
+<td><strong>访问管道</strong></td>
+<td style="text-align:left">PipedlnputStream</td>
+<td>PipedOutputStream</td>
+<td>PipedReader</td>
+<td>PipedWriter</td>
+</tr>
+<tr>
+<td><strong>访问字符串</strong></td>
+<td style="text-align:left">*</td>
+<td>*</td>
+<td>StringReader</td>
+<td>StringWiter</td>
+</tr>
+<tr>
+<td><strong>缓冲流</strong></td>
+<td style="text-align:left">BufferedInputStream</td>
+<td>BufferedOuputStream</td>
+<td>BufferedReader</td>
+<td>BufferedWriter</td>
+</tr>
+<tr>
+<td><strong>转换流</strong></td>
+<td style="text-align:left">*</td>
+<td>*</td>
+<td>InputStreamReader</td>
+<td>OutputStreamWriter</td>
+</tr>
+<tr>
+<td><strong>对象流</strong></td>
+<td style="text-align:left">ObjectInputStream</td>
+<td>ObjectOutputStream</td>
+<td>*</td>
+<td>*</td>
+</tr>
+<tr>
+<td><strong>过滤流</strong></td>
+<td style="text-align:left">FilterlnputStream</td>
+<td>FilterOutputStream</td>
+<td>FiterReader</td>
+<td>FilterWriter</td>
+</tr>
+<tr>
+<td><strong>打印流</strong></td>
+<td style="text-align:left">*</td>
+<td>PrintStream</td>
+<td>*</td>
+<td>PrintWriter</td>
+</tr>
+<tr>
+<td><strong>推回流</strong></td>
+<td style="text-align:left">PushbackInputStream</td>
+<td>*</td>
+<td>PushbackReader</td>
+<td>*</td>
+</tr>
+<tr>
+<td><strong>数据流</strong></td>
+<td style="text-align:left">DatalnputStream</td>
+<td>DataOutputStream</td>
+<td>*</td>
+<td>*</td>
+</tr>
+</tbody>
+</table>
+<h3 id="字符流">字符流</h3>
+<p>根据操作数据单位可分为字节流和字符流。因为流的操作都是相似的，所以这里以最基本的<strong>文件流</strong>为例。</p>
+<p><strong>FileReader</strong>：顾名思义是输入流，用来读取<strong>字符数据</strong>，常从<strong>文本文件</strong>中读取数据，实例如下：</p>
+<pre><code class="language-java">public void test() {
+    FileReader fr = null;
+    try { // 文件操作会抛出IOException异常，要注意捕获
+        File file = new File(&quot;hello.txt&quot;); // 实例化File类的对象，指明要操作的文件
+        fr = new FileReader(file); // 提供具体的流，若文件不存在，则报错
+        
+        // 方式一：read() - 返回读入的一一个字符。如果达到文件末尾，返回-1 
+        int data; 
+        while((data = fr.read()) &gt; 0) // 数据的读入
+            System.out.println((char)data);
+        
+        // 方式二：read(char[] cbuf) - 返回每次读入cbuf数组中的字符的个数。如果达到文件末尾，返回-1
+        int len;
+        char[] cbuf = new char[5];
+        while((len = fr.read(cbuf)) &gt; 0) {
+            // 常规写法
+            for (int i = 0; i &lt; len; i++)
+            	System.out.print(cbuf[i]);
+            // 简易写法
+            String str = new String(cbuf, 0, 1en);
+			System.out.print(str);
+        }
+        
+        // 方式三：read(char cbuf[], int off, int len) - 返回每次读入cbuf数组中限定位置的字符的个数。
+    	// 也是达到文件末尾，返回-1；不过这个不常用，不展示
+    } catch (IOException e) {
+        // 异常处理
+    } finally { // 确保流能正常关闭
+        try {
+            if (fr != null) fr.close(); // 流的关闭操作，它也会抛出IOException异常
+        } catch (IOException e) {
+        // 异常处理
+        }
+    }
+}
+</code></pre>
+<p><strong>FileWriter</strong>：这个是用来向<strong>文本文件</strong>写入<strong>字符数据</strong>，示例如下：</p>
+<pre><code class="language-java">public vo1d test() {
+    File file = new File(&quot;hello1.txt&quot;); // 若文件不存在，则直接新建
+    FileWriter writer = null;
+    try {
+        writer = new FileWriter(file, false); // 后一个参数代表是否添加数据，不然直接覆盖，默认为false
+        writer.write(&quot;你好&quot;);
+    } catch (IOException e) {
+        System.out.println(&quot;一段捕获: &quot; + e);
+    } finally { // 依旧做好异常处理
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e1) {
+                System.out.println(&quot;二段捕获: &quot; + e1);
+            }
+        }
+    }
+}
+</code></pre>
+<p><em>注：字符流不能用来读取二进制文件，<strong>即使这样做并不会报错！</strong></em></p>
+<h3 id="字节流">字节流</h3>
+<p>当需要操纵<strong>二进制数据</strong>时，常用 <strong>FileInputStream</strong> &amp; <strong>FileOutputStream</strong> 来读取图片，视频等文件，实例如下：</p>
+<pre><code class="language-java">public vo1d test() {
+    File file1 = new File(&quot;he1lo.jpg&quot;), file2 = new File(&quot;world.jpg&quot;);
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+    try {
+        fis = new FileInputStream(file1);
+        fos = new FileOutputStream(file2);
+        
+     /* 方式一，不建议用来读取中文文本，但很常用
+        byte[] buffer = new byte[5];
+        while((int len = fis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+        } */
+        
+     // 方式二，更安全，可以读中文
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); // 创建字节数组输出流
+        byte[] buffer = new byte[5];
+        while((int len = fis.read(buffer)) != -1){
+        	baos.write(buffer, 0, len);
+        }
+    } catch (IOException e) {
+        System.out.println(&quot;一段捕获: &quot; + e);
+    } finally { // 依旧做好异常处理
+        try {
+            if (fis != null) {
+                fis.close();
+            }
+            if (fos != null) {
+                fos.close();
+            }
+        } catch (IOException e1) {
+            System.out.println(&quot;二段捕获: &quot; + e1);
+        }
+    }
+}
+</code></pre>
+<p><em>注：字节流其实也可以读取文本数据，但方式一读取<strong>中文</strong>时可能会出现乱码,，所以不建议这样用</em></p>
+<h3 id="缓冲流">缓冲流</h3>
+<p>缓冲流是处理流的一种，是对原有节点流进行包装后的流，用法相同，但比上面说的节点流<strong>效率高</strong>，开发常用，用法如下：</p>
+<pre><code class="language-java">// 缓冲流的使用简单的要死，只需要这样
+BufferedReader br = new BufferedReader(new FileReader(file));
+BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+</code></pre>
+<p>缓冲流除了原有的节点流的方法，还有一些新增的方法，这里以 <code>readLine()</code> , <code>newLine()</code> 为例：</p>
+<pre><code class="language-java">String data = br,readLine(); // 一行行读取文本（不包含换行符），该行为空则返回null
+bw.write(data);
+bw.newLine(); // 换行
+</code></pre>
+<h3 id="转换流">转换流</h3>
+<p>转换流是处理流的一种，提供字节流与字符流之间的转换，用法如下：</p>
+<pre><code class="language-java">// 将一个字符的输出流转换为字节的输出泪
+FileInputStream fis = new FileInputStream(&quot;dbcp.txt&quot;);
+FileOutputStream fos = new FileOutputStream(&quot;dbcp1.txt&quot;);
+// 将字节输入流转为字符输入流
+InputStreamReader isr = new InputStreamReader(fis, &quot;UTF-8&quot;); // 参数二为所使用字符集，默认为UTF-8
+OutputStreamWriter osw = new OutputStreamWriter(fos);
+//读写过程
+char[] cbuf = new char[20];
+while((int len = isr.read(cbuf)) != -1){
+	osw.write(cbuf, 0, 1en);
+}
+isr.close();
+osw.close();
+</code></pre>
+<h3 id="打印流">打印流</h3>
+<p>说打印流前，我们先得说明一下<strong>标准输入，输出流</strong>，它是 System 类里的两个类型为<strong>字节流</strong>的属性。</p>
+<ul>
+<li><strong>System.in</strong>：标准的输入流，默认从键盘输入</li>
+<li><strong>System.out</strong>：标准的输出流，默认从控制台输出</li>
+<li>System 类里的 <strong>setIn(InputStream is)</strong>  &amp; <strong>setOut(PrintStream ps)</strong> 方法可重新指定输入和输出的设备</li>
+</ul>
+<p>而<strong>打印流</strong>则是用来实现<strong>将基本数据类型的数据格式转化为字符串输出</strong>。，实例如下：</p>
+<pre><code class="language-java">// 该实例实现了将数据打印到指定文件里
+PrintStream ps = null;
+try {
+    FileOutputStream fos = new FileOutputStream(new File(&quot;D:\\IO\\text.txt&quot;));
+    // 创建打印输出流,设置为自动刷新模式(写入换行符或字节'\n'时都会刷新输出缓冲区)
+    ps = new PrintStream(fos, true) 
+    if (ps != nu1l) {
+    	System.setOut(ps); // 把标准输出流(控制台输出)改成文件
+    }
+    for(int i = 0; i &lt;= 255; i++){ // 输出ASCII字符
+        System.out.print((char)i);
+        if(i % 50 == 0){ // 每50个数据一行
+        	System.out.println(); // 换行
+        }
+	}
+} catch (FileNotFoundException e) {
+	e.printStackTrace();
+} finally {
+    if (ps != null) {
+    	ps.close();
+    }
+}
+</code></pre>
+<h3 id="数据流">数据流</h3>
+<p>为了方便地操作 Java 的基本数据类型和字符串， 我们可以使用数据流，实例如下：</p>
+<pre><code class="language-java">// 该实例实现了将内存中的字符串、基本数据类型的变量写出到文件中。
+DataOutputStream dos = new DataOutputStream(new FileOutputStream(new File(&quot;D:\\data&quot;));
+dos.writeUTF(&quot;刘建辰&quot;); // 写入字符串
+dos.flush(); // 刷新操作，将内存中的数据写入文件
+dos.writeInt(23); // 写入数字
+dos.flush();
+dos.writeBoolean(true); // 写入布尔值
+dos.flush();
+dos.close();
+</code></pre>
+<p>值得注意的是，数据流写入的数据文件要用其输入流去<strong>按顺序</strong>读取，而不应该直接打开查看，如下：</p>
+<pre><code class="language-java">DataInputStream dis = new DataInputStream(new FileInputStream(new File(&quot;D:\\data&quot;));
+System.out.print(dis.readUTF() + dis.readInt() + dis.readBoolean()); // 打印结果
+dis.close();
+</code></pre>
+<p><em>注：如果你觉得数据存在内存中不靠谱，可以用数据流存在文件里，自带加密</em></p>
+<h3 id="对象流">对象流</h3>
+<p>用于存储和读取基本数据类型数据或对象的处理流。它的强大之处就是可以把对象写入到数据源中，也能把对象从数据源中还原回来。</p>
+<p>而这中转换靠的是<strong>序列化</strong>机制：</p>
+<ul>
+<li>对象序列化机制允许把内存中的 Java 对象转换成平台无关的二进制流，从而允许把这种二进制流持久地保存在磁盘上，或通过网络将这种二进制流传输到另一个网络节点。当其它程序获取了这种二进制流，就可以恢复成原来的 Java 对象。</li>
+<li>序列化的好处在于可将任何实现了 Serializable 接口的对象转化为字节数据,使其在保存和传输时可被还原。</li>
+<li>如果需要让某个对象支持序列化机制，则必须让对象所属的类及其属性是可序列化的，为了让某个类是可序列化的，该类必须实现如下 Serializable 或 Externalizable 两个接口之一。否则，会抛出 NotSerializableException 异常。</li>
+</ul>
+<pre><code class="language-java">// 序列化，即写入（这里忽略了异常处理）
+ObjectOutputStream ooS = new objectOutputStream(new FileOutputStream(new File(&quot;string.data&quot;));
+oos.writeobiect(new String(&quot;我爱北京天安门&quot;));
+oos.flush();//剧新操作
+oos.close();
+                                                
+// 反序列化，即读取（同样忽略异常处理）
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(&quot;string.data&quot;));
+String str = (String) ois.readobject(); // 读取类，如果有多个类，则要按写入顺序读取
+ois.close();
+</code></pre>
+<p>我们还可以自定义序列化的类，如下：</p>
+<pre><code class="language-java">// Serializable是一个标识接口，所以只需要实现而不用重写任何方法
+public class Person implements Serializable {
+    // 还需提供一个全局常量，作为反序列化时的依据
+    private static final long serialVersionUID = 151462268431L; // 值随便写，但不能不写！
+    ......
+}
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>自定义类要实现标识接口：Serializable</li>
+<li>自定义类要提供一个全局常量：serialVersionUID</li>
+<li>除自定义类是可序列化的外， 还必须保证其内部所有属性也是可序列化的（默认情况下， 基本数据类型是可序列化的）</li>
+<li><strong>static 和 transient 修饰的值不能在序列化中被保存下来，正常读取后为默认值</strong></li>
+</ul>
+<h3 id="随机存取文件流">随机存取文件流</h3>
+<p>RandomAccessFile 声明在 java.io 包下，但直接继承于 java.lang.Object 类。并且它实现了 Datalnput、DataOutput 这两个接口，也就意味着这个类既可以<strong>读</strong>也可以<strong>写</strong>。</p>
+<ul>
+<li>RandomAccessFile类支持<strong>随机访问</strong>的方式，程序可以<strong>直接跳到文件的任意地方来读、写文件</strong>
+<ul>
+<li>支持只访问文件的部分内容</li>
+<li>可以向已存在的文件后追加内容</li>
+<li>RandomAccessFile 对象包含一个记录指针，用以标示当前读写处的位置</li>
+</ul>
+</li>
+<li>RandomAccessFile类对象可以自由移动记录指针
+<ul>
+<li><strong>long getFilePointer()</strong>：获取文件记录指针的当前位置</li>
+<li><strong>void seek(long pos)</strong>：将文件记录指针定位到 pos 位置</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-java">File file = new File(&quot;爱情与友情2.txt&quot;);
+RandomAccessFile raf1 = new RandomAccessFile(&quot;爱情与友情.jpg&quot;, &quot;r&quot;);
+RandomAccessFile raf2 = new RandomAccessFile(&quot;爱情与友情1.jpg&quot;, &quot;rw&quot;);
+RandomAccessFile raf3 = new RandomAccessFile(file, &quot;rw&quot;);
+
+byte[] buffer = new byte[1024]; // 正常的文件复制用法
+while((int len = raf1.read(buffer)) != -1){
+	raf2.write(buffer, 0,len);
+}
+System.out.print(raf1.getFilePointer()); // 获取文件指针的当前位置，此时应该在末尾
+
+raf3.seek(file.length); // 设定文件指针位置,这里是移动到末尾，默认为0
+raf3.write(&quot;xyz&quot;.getBytes()); // 只能以字节形式写入
+
+raf1.close();
+raf2.close();
+raf3.close();
+</code></pre>
+<h2 id="nio">NIO</h2>
+<p>Java NIO (New IO，Non-Blocking I0) 是从 Java 1.4 版本开始引入的一套新的IO API,可以替代标准的Java IO API。NIO 与原来的 IO 有同样的作用和目的，但是使用的方式完全不同，NIO 支持面向缓冲区的( IO 是面向流的)、基于通道的 IO 操作。<strong>NIO 将以更加高效的方式进行文件的读写操作</strong>。Java API 中提供了两套 NIO, 一套是针对标准输入输出 NIO， 另一套就是网络编程 NIO。</p>
+<p><strong>java.nio.channels.Channel</strong>：</p>
+<ul>
+<li>FileChannel：处理本地文件</li>
+<li>SocketChannel：TCP网絡編程的客户端的 Channel</li>
+<li>ServerSocketChannel：TCP网络编程的服务器端的 Channel</li>
+<li>DatagramChannel：UDP网络编程中发送端和接收端的 Channel</li>
+</ul>
+<p>我们现在常用的是 JDK 7 发布的 <strong>NIO.2</strong> ，相比上代进行极大的拓展，已经成为文件处理中越来越重要部分。</p>
+<p>但因为白嫖的网课内容里没讲，这里就只做了解一下里面的 Path ，Paths 和一些方法，<strong>便于之后查询</strong>。</p>
+<p>NIO.2 中使用 Path 代替了 原有的 File 类，而创建一个 Path 对象，则需要用 Paths</p>
+<p>Paths 类提供的静态 <code>get()</code> 方法用来获取 Path 对象:</p>
+<pre><code class="language-java">static Path get(String first, String ...more)) // 用于将多个字符串串连成路径
+static Path get(URI uni) // 返回指定uri对应的Path路径
+</code></pre>
+<p>Path 有很多常用方法，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>String toString()</td>
+<td>返回调用 Path 对象的字符串表示形式</td>
+</tr>
+<tr>
+<td>boolean startsWith(String path)</td>
+<td>判断是否以 Path 路径开始</td>
+</tr>
+<tr>
+<td>boolean endsWith(String path)</td>
+<td>判断是否以 Path 路径结束</td>
+</tr>
+<tr>
+<td>boolean isAbsolute()</td>
+<td>判断是否是绝对路径</td>
+</tr>
+<tr>
+<td>Path getParent()</td>
+<td>返回 Path 对象包含整个路径，不包含 Path 对象指定的文件路径</td>
+</tr>
+<tr>
+<td>Path getRoot()</td>
+<td>返回调用 Path 对象的根路径</td>
+</tr>
+<tr>
+<td>Path getFileName()</td>
+<td>返回与调用 Path 对象关联的文件名</td>
+</tr>
+<tr>
+<td>int getNameCount()</td>
+<td>返回 Path 根目录后面元素的数量</td>
+</tr>
+<tr>
+<td>Path getName(int idx)</td>
+<td>返回指定索引位置 idx 的路径名称</td>
+</tr>
+<tr>
+<td>Path toAbsolutePath()</td>
+<td>作为绝对路径返回调用 Path 对象</td>
+</tr>
+<tr>
+<td>Path resolve(Path p)</td>
+<td>合并两个路径，返回合并后的路径对应的 Path 对象</td>
+</tr>
+<tr>
+<td>File toFile()</td>
+<td>将 Path 转化为 File 类的对象</td>
+</tr>
+</tbody>
+</table>
+<p>NIO.2 还提供了 Files 类用于操作文件或目录的工具类，常用方法如下表：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Path copy(Path src, Path dest, CopyOption ...how)</td>
+<td>文件的复制</td>
+</tr>
+<tr>
+<td>Path createDirectory(Path path, FileAttribute&lt;?&gt; ...attr)</td>
+<td>创建一个目录</td>
+</tr>
+<tr>
+<td>Path createFile(Path path, FileAttribute&lt;?&gt; ...arr)</td>
+<td>创建一个文件</td>
+</tr>
+<tr>
+<td>void delete(Path path)</td>
+<td>删除一个文件/目录，若不存在，执行报错</td>
+</tr>
+<tr>
+<td>void deletelfExists(Path path)</td>
+<td>Path 对应的文件/目录，若存在，执行删除</td>
+</tr>
+<tr>
+<td>Path move(Path src, Path dest, CopyOption ...how)</td>
+<td>将 src 移动到 dest 位置</td>
+</tr>
+<tr>
+<td>long size(Path path)</td>
+<td>返回 Path 指定文件的大小</td>
+</tr>
+<tr>
+<td>boolean exists(Path path, LinkOption ...opts)</td>
+<td>判断文件是否存在</td>
+</tr>
+<tr>
+<td>boolean isDirectory(Path path, LinkOption ...opts)</td>
+<td>判断是否是目录</td>
+</tr>
+<tr>
+<td>boolean isRegularFile(Path path, LinkOption ...opts)</td>
+<td>判断是否是文件</td>
+</tr>
+<tr>
+<td>boolean isHidden(Path path)</td>
+<td>判断是否是隐藏文件</td>
+</tr>
+<tr>
+<td>boolean isReadable(Path path)</td>
+<td>判断文件是否可读</td>
+</tr>
+<tr>
+<td>boolean isWritable(Path path)</td>
+<td>判断文件是否可写</td>
+</tr>
+<tr>
+<td>boolean notExists(Path path, LinkOption ...opts)</td>
+<td>判断文件是否不存在</td>
+</tr>
+<tr>
+<td>SeekableByteChannel newByteChannel(Path path, OpenOption ...how)</td>
+<td>获取与指定文件的连接，how 指打开方式</td>
+</tr>
+<tr>
+<td>DirectoryStream&lt;Path&gt; newDirectoryStream(Path path)</td>
+<td>打开 Path 指定的目录</td>
+</tr>
+<tr>
+<td>InputStream newInputStream(Path path, OpenOption ...how)</td>
+<td>获取 InputStream 对象</td>
+</tr>
+<tr>
+<td>OutputStream newOutputStream(Path path, OpenOption ...how)</td>
+<td>获取 OutputStream 对象</td>
+</tr>
+</tbody>
+</table>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#file-%E7%B1%BB">File 类</a>
+<ul>
+<li><a href="#%E5%AE%9E%E4%BE%8B%E5%8C%96">实例化</a></li>
+<li><a href="#%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95">常用方法</a></li>
+</ul>
+</li>
+<li><a href="#%E6%B5%81">流</a>
+<ul>
+<li><a href="#%E5%AD%97%E7%AC%A6%E6%B5%81">字符流</a></li>
+<li><a href="#%E5%AD%97%E8%8A%82%E6%B5%81">字节流</a></li>
+<li><a href="#%E7%BC%93%E5%86%B2%E6%B5%81">缓冲流</a></li>
+<li><a href="#%E8%BD%AC%E6%8D%A2%E6%B5%81">转换流</a></li>
+<li><a href="#%E6%89%93%E5%8D%B0%E6%B5%81">打印流</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E6%B5%81">数据流</a></li>
+<li><a href="#%E5%AF%B9%E8%B1%A1%E6%B5%81">对象流</a></li>
+<li><a href="#%E9%9A%8F%E6%9C%BA%E5%AD%98%E5%8F%96%E6%96%87%E4%BB%B6%E6%B5%81">随机存取文件流</a></li>
+</ul>
+</li>
+<li><a href="#nio">NIO</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/java-se-ji-he-kuang-jia/">
+              <h3 class="post-title">
+                【Java SE】十七、集合框架
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

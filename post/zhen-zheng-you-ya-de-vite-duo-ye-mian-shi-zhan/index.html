@@ -1,0 +1,409 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vite 多页面实战 | Hualiang&#39;s Blog</title>
+<link rel="shortcut icon" href="https://hualiang.online/favicon.ico?v=1762159937976">
+<link href="https://cdn.staticfile.net/remixicon/2.3.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://hualiang.online/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Vite 多页面实战 | Hualiang&#39;s Blog - Atom Feed" href="https://hualiang.online/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="转自稀土掘金 “我想写文章啊” 的《真正优雅的 Vite 多页面实战》
+
+Vite如何支持多页？
+cn.vitejs.dev/guide/build…
+官方文档对于多页模式的描述中说到，如果想要新建一个单页，只需要在项目根目录（注意：不是 ..." />
+    <meta name="keywords" content="优质文章收藏" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://hualiang.online">
+  <img class="avatar" src="https://hualiang.online/images/avatar.png?v=1762159937976" alt="">
+  </a>
+  <h1 class="site-title">
+    Hualiang&#39;s Blog
+  </h1>
+  <p class="site-description">
+    <i>Unless I don't want to win, nobody can make me lose.</i><br/><br/>I always believe 天道酬勤
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/hualiong" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://twitter.com/huoliong" target="_blank">
+          <i class="ri-twitter-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://weibo.com" target="_blank">
+          <i class="ri-weibo-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://zhuanlan.zhihu.com" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+        <a href="https://www.facebook.com" target="_blank">
+          <i class="ri-facebook-line"></i>
+        </a>
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Vite 多页面实战
+            </h2>
+            <div class="post-info">
+              <span>
+                2024-06-01
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://hualiang.online/tag/CiyBBiV7L/" class="post-tag">
+                  # 优质文章收藏
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>转自稀土掘金 “<a href="https://juejin.cn/user/1099167356957885/posts">我想写文章啊</a>” 的<a href="https://juejin.cn/post/7128999848564981796">《真正优雅的 Vite 多页面实战》</a></p>
+<!-- more -->
+<h1 id="vite如何支持多页">Vite如何支持多页？</h1>
+<p><a href="https://link.juejin.cn?target=https%3A%2F%2Fcn.vitejs.dev%2Fguide%2Fbuild.html%23multi-page-app">cn.vitejs.dev/guide/build…</a></p>
+<p>官方文档对于多页模式的描述中说到，如果想要新建一个单页，只需要在<strong>项目根目录</strong>（注意：不是 <code>src</code> 目录！）新建：</p>
+<ul>
+<li>nested
+<ul>
+<li><strong>index.html</strong></li>
+<li><strong>main.js</strong></li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>然后通过访问：<code>http://localhost:5173/nested/</code>即可。</p>
+<p>这里要说明两个问题：</p>
+<p><em>为什么在根目录新建目录，而不是 <code>src</code> 目录？</em></p>
+<p>因为vite启动时，会以根目录启动一个开发服务器，可以简单理解为开发服务器托管了整个项目的文件（但其实内部做了一些其他处理如处理public目录等）。</p>
+<p>因此，在项目目录下的文件，都可以通过链接访问到，你可以访问<code>http://localhost:5173/package.json</code> 试试。</p>
+<p>所以，你可以在任意目录放置自己的单页，但是开发时的访问地址也必须受限于单页的目录结构，如果你的单页入口文件放在<code>src/hello/index.html</code> ，也就只能通过<code>http://localhost:5173/src/hello/</code> 来进行访问。</p>
+<p><em>为什么使用 <code>/nested/</code> 访问而不是 <code>nested</code>？</em></p>
+<p>访问<code>/nested/</code> 相当于访问<code>nested</code>目录下的入口文件（一般静态服务器都会将 <code>index.html</code> 作为入口文件）。</p>
+<h1 id="官方例子不符合实际开发场景">官方例子不符合实际开发场景</h1>
+<p>vite官方给出的项目模板是这样的：</p>
+<ul>
+<li>src
+<ul>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>index.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>按照官方例子，如果要新增一个单页，需要这样组织目录结构：</p>
+<ul>
+<li>src
+<ul>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+<li>index.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>新的单页居然与<code>src</code> 目录是平行的！这显然不符合正常的项目结构，一般而言，开发相关的源代码都会放在<code>src</code>目录下。因此，这个方案不适用，废弃。</p>
+<p>那么，试试看第二种方案：</p>
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>这种方案的好处是，单页互为平行关系，而且可以通过访问<code>/index/</code>与<code>/nested/</code>访问到对应的单页。</p>
+<p>但是，其缺点就是：如何管理公共资源？</p>
+<p>例如，<code>index</code> 单页与<code>nested</code>单页都使用到同一款公共组件，应该放在哪里管理呢？</p>
+<p>显然，这种项目结构缺陷明显，因此，这个方案也不适用，废弃。</p>
+<h1 id="项目结构最佳实践">项目结构最佳实践</h1>
+<p>按照以往的开发经验，这样组织项目结构可以让开发的可扩展达到最好：</p>
+<ul>
+<li>src
+<ul>
+<li>components</li>
+<li>pages
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+<li>main.js</li>
+<li>App.vue</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>这种项目结构，可以在<code>src</code>目录下管理多个单页需要使用到的公共资源，引用非常方便，并且扩展新的单页也非常方便。</p>
+<p>但是！这种结构下，访问对应的单页需要使用<code>http://localhost:5173/src/pages/index/</code> 来访问，这种开发体验虽说不好，但尚且能忍受。最致命的问题是，当我们在<code>vite.config.js</code>中配置多页打包时：</p>
+<pre><code class="language-typescript">export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'src/pages/index/index.html'),
+        nested: path.resolve(__dirname, 'src/pages/nested/index.html'),
+      }
+    }
+  }
+})
+</code></pre>
+<p>打出来的包是这样的：</p>
+<ul>
+<li>dist
+<ul>
+<li>src
+<ul>
+<li>pages
+<ul>
+<li>index
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+<li>nested
+<ul>
+<li>index.html</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>assets</li>
+</ul>
+</li>
+</ul>
+<p>也就是说，线上用于也必须通过<code>http://localhost/src/pages/index/</code> 来访问！这显然不符合预期，我们预期的输出应该是：</p>
+<ul>
+<li>dist
+<ul>
+<li>assets</li>
+<li>index.html</li>
+<li>nested.html</li>
+</ul>
+</li>
+</ul>
+<p>为了解决这个问题，网上的一篇热门文章，采用了一种更改打包后的文件路径的方法来解决此问题，此方案的基本思路是：</p>
+<ol>
+<li>将<code>src/pages</code>下所有子目录下的<code>index.html</code>文件复制到根目录，并且改名为其父目录的名称，如<code>src/pages/nested/index.html</code>复制到跟目录，改名为<code>nested.html</code></li>
+<li>将<code>nested.html</code> 下的样式、js等引用改为正确的引用路径。</li>
+</ol>
+<p>这个方案看似解决了打包后的路径问题，但是给开发人员带来了额外的认知成本，虽勉强解决了问题，但思路不够优雅。（居然是google搜索“vite 多页面”的第一篇文章，有点误人子弟了。）</p>
+<h1 id="优雅的解决方案">优雅的解决方案</h1>
+<p>首先，我们的项目结构必须以此为准：</p>
+<ul>
+<li>src
+<ul>
+<li>pages
+<ul>
+<li>index</li>
+<li>nested</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>其次，打包出来的结构必须以此为准：</p>
+<ul>
+<li>dist
+<ul>
+<li>assets</li>
+<li>index.html</li>
+<li>nested.html</li>
+</ul>
+</li>
+</ul>
+<p>为了实现第二点，必须要求项目根目录下至少有这两个文件：</p>
+<ul>
+<li>src</li>
+<li>index.html</li>
+<li>nested.html</li>
+<li>package.json</li>
+<li>vite.config.js</li>
+</ul>
+<p>然后，在<code>src/pages/index</code>目录下，不放置<code>index.html</code>，只放<code>main.js</code>、<code>App.vue</code>等，让<code>src/index.html</code> 反向引用<code>src/pages/index/main.js</code>即可：</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+    &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;/vite.svg&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Vite + Vue + TS&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;app&quot;&gt;&lt;/div&gt;
+    &lt;script type=&quot;module&quot; src=&quot;/src/pages/index/main.js&quot;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>至此，vite多页面架构的问题已完美解决！</p>
+<h1 id="总结">总结</h1>
+<ul>
+<li>官方文档虽然权威，但不一定适合所有场景</li>
+<li>在框架内解决问题，勉强的方案虽能解决问题，但后患无穷</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#vite%E5%A6%82%E4%BD%95%E6%94%AF%E6%8C%81%E5%A4%9A%E9%A1%B5">Vite如何支持多页？</a></li>
+<li><a href="#%E5%AE%98%E6%96%B9%E4%BE%8B%E5%AD%90%E4%B8%8D%E7%AC%A6%E5%90%88%E5%AE%9E%E9%99%85%E5%BC%80%E5%8F%91%E5%9C%BA%E6%99%AF">官方例子不符合实际开发场景</a></li>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">项目结构最佳实践</a></li>
+<li><a href="#%E4%BC%98%E9%9B%85%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">优雅的解决方案</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://hualiang.online/post/bag-problem-solving-skills/">
+              <h3 class="post-title">
+                背包问题的套路
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by&nbsp;<a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://hualiang.online/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
